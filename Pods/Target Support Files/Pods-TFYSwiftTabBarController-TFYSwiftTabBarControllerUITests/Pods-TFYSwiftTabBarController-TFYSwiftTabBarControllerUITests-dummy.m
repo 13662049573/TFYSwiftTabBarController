@@ -1,0 +1,5 @@
+#import <Foundation/Foundation.h>
+@interface PodsDummy_Pods_TFYSwiftTabBarController_TFYSwiftTabBarControllerUITests : NSObject
+@end
+@implementation PodsDummy_Pods_TFYSwiftTabBarController_TFYSwiftTabBarControllerUITests
+@end
