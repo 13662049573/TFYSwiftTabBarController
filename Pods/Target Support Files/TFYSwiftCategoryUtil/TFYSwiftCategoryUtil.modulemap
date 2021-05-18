@@ -1,0 +1,6 @@
+framework module TFYSwiftCategoryUtil {
+  umbrella header "TFYSwiftCategoryUtil-umbrella.h"
+
+  export *
+  module * { export * }
+}

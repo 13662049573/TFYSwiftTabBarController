@@ -1,0 +1,6 @@
+framework module TFYSwiftNavigationKit {
+  umbrella header "TFYSwiftNavigationKit-umbrella.h"
+
+  export *
+  module * { export * }
+}

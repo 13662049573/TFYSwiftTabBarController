@@ -7,198 +7,162 @@
 
 import UIKit
 
-// MARK:- 底部Item点击协议和实现
-/// 底部Item点击协议
-public protocol TabBarItemRepeatTouch {
-    /// 底部Item重复点击
-    func tabBarItemRepeatTouch()
-    /// 其他Item点击
-    func tabBarOtherItemClick()
-    /// 当前item将要被选中
-    func tabBarSelfItemSelected(selectedIndex: Int)
-    /// 滚动到顶部
-    func tabBarSelfItemSelectedScrollTop()
-}
-
-public extension TabBarItemRepeatTouch {
-    func tabBarItemRepeatTouch() { }
-    func tabBarOtherItemClick() { }
-    func tabBarSelfItemSelected(selectedIndex: Int) { }
-    func tabBarSelfItemSelectedScrollTop() {}
-}
-
+/// 是否可以拦截点击事件
+public typealias TFYSwiftTabBarControllerCanHijackHandler = ((_ tabBarController: TFYSwiftTabbarController, _ viewController: UIViewController, _ index: Int) -> (Bool))
+/// 拦截点击事件的回调
+public typealias TFYSwiftTabBarControllerDidHijackHandler = ((_ tabBarController: TFYSwiftTabbarController, _ viewController: UIViewController, _ index: Int) -> (Void))
 
 open class TFYSwiftTabbarController: UITabBarController {
 
-    /// TabBarView 属性
-    public private(set) var tabBarView: TFYSwiftTabBarView = TFYSwiftTabBarView()
-
-    // MARK: 移除某个TabbarItem
-    /// 移除某个TabbarItem
-    /// - Parameters:
-    ///   - index: 第几个
-    ///   - item: JKTabBarItem
-    ///   - controller: 控制器
-    public func removeTabbarItem(index: Int) {
-        // 容错处理
-        guard index < self.tabBarView.barButtonItems.count && index < 5 else {
-            return
-        }
-        self.tabBarView.barButtonItems.remove(at: index)
-        viewControllers?.remove(at: index)
-        // 原来选中的index<移除的
-        guard self.tabBarView.oldSelectedIndex >= index else {
-            return
-        }
-        // 大于移除的 原先的index-1
-        self.tabBarView.oldSelectedIndex = self.tabBarView.oldSelectedIndex - 1
+    deinit {
+        self.removeNotification()
     }
     
-    // MARK: 插入某个TabbarItem
-    /// 插入某个TabbarItem
-    /// - Parameters:
-    ///   - index: 插入item的位置
-    ///   - item: JKTabBarItem
-    ///   - vc: 插入对应的ViewController
-    public func insertTabbarItem(index: Int, item: TFYSwiftTabBarItem, vc: UIViewController) {
-        guard self.tabBarView.barButtonItems.count < 5 && index <= self.tabBarView.barButtonItems.count else {
-            return
+    /// 是否可以拦截点击事件
+    public var canHijackHandler: TFYSwiftTabBarControllerCanHijackHandler?
+    /// 拦截点击事件的回调
+    public var didHijackHandler: TFYSwiftTabBarControllerDidHijackHandler?
+    
+    /// 设置选中的`viewController`
+    public override var selectedViewController: UIViewController? {
+        willSet {
+            guard let newValue = newValue else {
+                return
+            }
+            if !self.shouldNext {
+                self.shouldNext = true
+                return
+            }
+            self.shouldNext = false
+            
+            guard let tabBar = self.tabBar as? TFYSwiftTabBar, let _ = tabBar.items, let index = self.viewControllers?.firstIndex(of: newValue) else {
+                return
+            }
+            tabBar._select(newIndex: index)
         }
-        if self.tabBarView.oldSelectedIndex >= index {
-            // 大于插入的 原先选中的的index+1
-            self.tabBarView.oldSelectedIndex = self.tabBarView.oldSelectedIndex + 1
-        }
-        viewControllers?.insert(vc, at: index)
-        tabBarView.barButtonItems.insert(item, at: index)
     }
     
-    // MARK: 设置图片
-    /// 设置图片
-    /// - Parameters:
-    ///   - imageString: 图片的名称
-    ///   - index: 位置
-    ///   - animated: 是否要动画
-    open func setUpItemImage(_ imageString: String, index: Int, animated: Bool = true) {
-        self.tabBarView.setUpbarItemImage(imageString, index: index, animated: animated)
-    }
-    
-    // MARK: 设置标题
-    /// 设置标题
-    /// - Parameters:
-    ///   - titleString: 标题的名字
-    ///   - index: 位置
-    ///   - animated: 是否要动画
-    open func setUpItemTitle(_ titleString: String, index: Int, animated: Bool = true) {
-        self.tabBarView.setUpbarItemTitle(titleString, index: index, animated: animated)
-    }
-
-    // MARK: 设置提醒数，位置 访问调 JK.rootViewController?
-    /// 设置提醒数，位置 访问调 JK.rootViewController?
-    /// - Parameters:
-    ///   - number: 数字
-    ///   - index: 位置
-    open func showBadgeNumber(_ number: Int?, index: Int) {
-        guard let number = number else {
-            return
+    /// 设置选中的索引
+    public override var selectedIndex: Int {
+        willSet {
+            if !self.shouldNext {
+                self.shouldNext = true
+                return
+            }
+            self.shouldNext = false
+            guard let tabBar = self.tabBar as? TFYSwiftTabBar, let _ = tabBar.items else {
+                return
+            }
+            
+            let count = tabBar.items?.count ?? 0
+            if count <= 0 {
+                return
+            }
+            var _selectedIndex = newValue
+            if newValue < 0 {
+                _selectedIndex = 0
+            }
+            if newValue >= count {
+                _selectedIndex = count - 1
+            }
+            tabBar._select(newIndex: _selectedIndex)
         }
-        self.tabBarView.showBadgeNumber(number, index: index)
     }
     
-    // MARK: 设置小红点
-    /// 设置小红点
-    /// - Parameters:
-    ///   - index: 位置
-    ///   - isShow: 是否显示
-    open func setRedPoint(at index: Int, isShow: Bool) {
-        self.tabBarView.setRedPoint(at: index, isShow: isShow)
+    /// 设置`viewControllers`
+    public override var viewControllers: [UIViewController]? {
+        willSet {
+            if let newValue = newValue, newValue.count > 5 {
+                // 不能超过5个
+                fatalError("The number of items count cannot exceed 5.")
+            }
+            super.viewControllers = newValue
+        }
     }
-
-    // MARK: 设置选中位置
-    /// 设置选中位置
-    open func setSelectedItem(at index: Int) {
-        guard index < 5, index >= 0 else { return }
-        changeIndex(index)
-        selectedIndex = index
+    
+    /// 设置`tabBar`的高度
+    public var tabBarHeight: CGFloat? {
+        didSet {
+            if let _ = self.tabBarHeight {
+                self.view.setNeedsLayout()
+                self.view.layoutIfNeeded()
+            }
+        }
     }
-
-    override open func viewDidLoad() {
+    
+    private var shouldNext: Bool = true
+    
+    open override func viewDidLoad() {
         super.viewDidLoad()
-        /// 解决tabBar在push操作时 上移问题
-        setValue(TFYSwiftTabBar(), forKey: "tabBar")
-        commonInit()
-    }
-
-    // MARK: 布局视图
-    private func commonInit() {
-        tabBar.backgroundColor = UIColor.white
-        tabBar.clipsToBounds = true
-        tabBar.addSubview(tabBarView)
-        tabBarView.snp.makeConstraints { (make) in
-            make.edges.equalTo(tabBar)
-        }
-    }
-    
-    // MARK: 设置选中的位置
-    /// 设置选中的位置
-    /// - Parameter index: 位置
-    private func changeIndex(_ index: Int) {
-        let preNavigationController = self.viewControllers![selectedIndex] as? UINavigationController
-        let preFirstViewControler = preNavigationController?.viewControllers.first ?? viewControllers![selectedIndex]
-
-        if let viewController = preFirstViewControler as? TabBarItemRepeatTouch, tabBarView.oldSelectedIndex == index {
-            viewController.tabBarItemRepeatTouch()
-        }
-       
-        if tabBarView.oldSelectedIndex != index {
-            if let viewController = preFirstViewControler as? TabBarItemRepeatTouch {
-                viewController.tabBarOtherItemClick()
-            }
-            let navigationController = self.viewControllers![index] as? UINavigationController
-            let firstViewControler = navigationController?.viewControllers.first ?? viewControllers![index]
-            if let viewController = firstViewControler as? TabBarItemRepeatTouch {
-                viewController.tabBarSelfItemSelected(selectedIndex: index)
-            }
-        }
+        let tabBar = TFYSwiftTabBar()
+        tabBar._tabBarelegate = self
+        self.setValue(tabBar, forKey: "tabBar")
         
-        if index == 0, tabBarView.isScrollTop {
-            if let viewController = preFirstViewControler as? TabBarItemRepeatTouch {
-                viewController.tabBarSelfItemSelectedScrollTop()
+        self.addNotification()
+        
+        
+        tabBar.didSelectIndexClosure = { [weak self] (idx) in
+            guard let self = self else { return }
+            guard let vc = self.viewControllers?[idx] else {
+                return
             }
+            self.shouldNext = false
+            self.selectedIndex = idx // 避免无限循环
+            self.delegate?.tabBarController?(self, didSelect: vc)
         }
-        tabBarView.selectedIndex = index
-    }
-
-    // MARK: UITabBarDelegate
-    override open func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
-        guard let index = tabBar.items?.firstIndex(of: item) else { return }
-        changeIndex(index)
-    }
-
-    // MARK: GC
-    override open func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-
-    /// 设置当前控制器支持的旋转方向
-    override open var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        /*
-        protrait: 竖屏
-        landscape：横屏
-        - 在当前的控制器中定义完成之后当前的控制器与当前控制器的字控制器都会遵守这个方向
-        */
-        return [.portrait]
     }
     
-    /// 是否支持屏幕翻转
-    override open var shouldAutorotate: Bool {
-        return false
+    open override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if let _tabBarHeight = self.tabBarHeight {
+            var frame = self.tabBar.frame
+            let beforeHeight: CGFloat = frame.size.height
+            frame.size.height = _tabBarHeight
+            frame.origin.y = frame.origin.y - (_tabBarHeight - beforeHeight)
+            self.tabBar.frame = frame
+        }
     }
-
-    // MARK: LeftCycle
-    override open func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        // 强制旋转成全屏
-        UIViewController.attemptRotationToDeviceOrientation()
+    
+    open override func value(forUndefinedKey key: String) -> Any? {
+        return nil
     }
 }
+
+extension TFYSwiftTabbarController {
+    private func addNotification() {
+        NotificationCenter.default.addObserver(self, selector: #selector(orientationDidChangeNotification), name: UIDevice.orientationDidChangeNotification, object: nil)
+    }
+    
+    private func removeNotification() {
+        NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
+    }
+    
+    @objc private func orientationDidChangeNotification() {
+        // 屏幕旋转时，重新设置`selectedIndex`，会触发`tabBar`的`_select`方法，然后出发`_reselect`方法
+        let index = self.selectedIndex
+        self.selectedIndex = index
+    }
+}
+
+extension TFYSwiftTabbarController: TFYSwiftTabBarDelegate {
+    internal func tabBar(_ tabBar: TFYSwiftTabBar, shouldSelect item: UITabBarItem) -> Bool {
+        if let idx = tabBar.items?.firstIndex(of: item), let vc = self.viewControllers?[idx] {
+            return delegate?.tabBarController?(self, shouldSelect: vc) ?? true
+        }
+        return true
+    }
+    
+    internal func tabBar(_ tabBar: TFYSwiftTabBar, canHijack item: UITabBarItem) -> Bool {
+        if let idx = tabBar.items?.firstIndex(of: item), let vc = viewControllers?[idx] {
+            return self.canHijackHandler?(self, vc, idx) ?? false
+        }
+        return false
+    }
+    
+    internal func tabBar(_ tabBar: TFYSwiftTabBar, didHijack item: UITabBarItem) {
+        if let idx = tabBar.items?.firstIndex(of: item), let vc = viewControllers?[idx] {
+            self.didHijackHandler?(self, vc, idx)
+        }
+    }
+}
+

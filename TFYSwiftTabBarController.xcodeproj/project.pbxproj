@@ -7,6 +7,33 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		367264D72653AE3200049CEF /* TFYSwiftTabBarBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264D62653AE3200049CEF /* TFYSwiftTabBarBadgeView.swift */; };
+		367264D92653AEAC00049CEF /* TFYSwiftTabBarItemWrapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264D82653AEAC00049CEF /* TFYSwiftTabBarItemWrapView.swift */; };
+		367264DB2653AF0000049CEF /* TFYSwiftTabBarItemContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264DA2653AF0000049CEF /* TFYSwiftTabBarItemContainerView.swift */; };
+		367264DD2653B1BA00049CEF /* TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264DC2653B1BA00049CEF /* TFYSwiftTabBar.swift */; };
+		367264DF2653B45F00049CEF /* TFYSwiftNaviController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264DE2653B45F00049CEF /* TFYSwiftNaviController.swift */; };
+		367265052653B51D00049CEF /* BackgroundViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264E22653B51C00049CEF /* BackgroundViewController.swift */; };
+		367265062653B51D00049CEF /* BackgroundTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264E32653B51C00049CEF /* BackgroundTabBarController.swift */; };
+		367265092653B51D00049CEF /* DynamicHeightTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264E82653B51C00049CEF /* DynamicHeightTabBarController.swift */; };
+		3672650A2653B51D00049CEF /* DynamicHeightViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264E92653B51C00049CEF /* DynamicHeightViewController.swift */; };
+		3672650B2653B51D00049CEF /* MixTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264EB2653B51C00049CEF /* MixTabBarController.swift */; };
+		3672650C2653B51D00049CEF /* MixViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264EC2653B51C00049CEF /* MixViewController.swift */; };
+		3672650D2653B51D00049CEF /* Irregular_1_TabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264EE2653B51C00049CEF /* Irregular_1_TabBarController.swift */; };
+		3672650E2653B51D00049CEF /* IrregularViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264EF2653B51C00049CEF /* IrregularViewController.swift */; };
+		3672650F2653B51D00049CEF /* HideOrShowViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264F12653B51C00049CEF /* HideOrShowViewController.swift */; };
+		367265102653B51D00049CEF /* HideOrShowTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264F22653B51C00049CEF /* HideOrShowTabBarController.swift */; };
+		367265112653B51D00049CEF /* DynamicWidthViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264F42653B51C00049CEF /* DynamicWidthViewController.swift */; };
+		367265122653B51D00049CEF /* DynamicWidthTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264F52653B51C00049CEF /* DynamicWidthTabBarController.swift */; };
+		367265132653B51D00049CEF /* HijackViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264F72653B51C00049CEF /* HijackViewController.swift */; };
+		367265142653B51D00049CEF /* HijackTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264F82653B51C00049CEF /* HijackTabBarController.swift */; };
+		367265152653B51D00049CEF /* AnimationBadgeTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264FA2653B51C00049CEF /* AnimationBadgeTabBarController.swift */; };
+		367265162653B51D00049CEF /* AnimationBadgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264FB2653B51C00049CEF /* AnimationBadgeViewController.swift */; };
+		367265172653B51D00049CEF /* OnlyImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264FD2653B51D00049CEF /* OnlyImageViewController.swift */; };
+		367265182653B51D00049CEF /* OnlyImageTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264FE2653B51D00049CEF /* OnlyImageTabBarController.swift */; };
+		367265192653B51D00049CEF /* BackgroundItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367265002653B51D00049CEF /* BackgroundItemController.swift */; };
+		3672651A2653B51D00049CEF /* BackgroundItemTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367265012653B51D00049CEF /* BackgroundItemTabBarController.swift */; };
+		3672651B2653B51D00049CEF /* BadgeTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367265032653B51D00049CEF /* BadgeTabBarController.swift */; };
+		3672651C2653B51D00049CEF /* BadgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367265042653B51D00049CEF /* BadgeViewController.swift */; };
 		369F464726421E56002D8566 /* TFYSwiftTabBarControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F464626421E56002D8566 /* TFYSwiftTabBarControllerTests.swift */; };
 		369F465226421E56002D8566 /* TFYSwiftTabBarControllerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F465126421E56002D8566 /* TFYSwiftTabBarControllerUITests.swift */; };
 		369F466B26421EAE002D8566 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F466026421EAD002D8566 /* ViewController.swift */; };
@@ -17,11 +44,7 @@
 		369F467026421EAE002D8566 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 369F466826421EAD002D8566 /* Main.storyboard */; };
 		369F46762642218B002D8566 /* TFYSwiftTabbarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F46752642218B002D8566 /* TFYSwiftTabbarController.swift */; };
 		369F467D26422E62002D8566 /* TFYSwiftTabBarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F467C26422E62002D8566 /* TFYSwiftTabBarItem.swift */; };
-		369F467F26423A48002D8566 /* TFYSwiftTabBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F467E26423A48002D8566 /* TFYSwiftTabBarView.swift */; };
 		369F468126423E2F002D8566 /* TFYTabbarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F468026423E2F002D8566 /* TFYTabbarController.swift */; };
-		369F468326423F44002D8566 /* TFYSwiftHomeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F468226423F44002D8566 /* TFYSwiftHomeController.swift */; };
-		369F468526423F61002D8566 /* TFYSwiftTradeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F468426423F61002D8566 /* TFYSwiftTradeController.swift */; };
-		369F468726423F7A002D8566 /* TFYSwiftProfileController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F468626423F7A002D8566 /* TFYSwiftProfileController.swift */; };
 		4AC61B18A4D371C2A868B3FB /* Pods_TFYSwiftTabBarController_TFYSwiftTabBarControllerUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 088DD4451827A7B45B771F76 /* Pods_TFYSwiftTabBarController_TFYSwiftTabBarControllerUITests.framework */; };
 		7438EE421EEE2FD5F7D76B8F /* Pods_TFYSwiftTabBarController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7225CA48D6E76B8327E2B824 /* Pods_TFYSwiftTabBarController.framework */; };
 		7F087F441FDDBF00F8F18C6F /* Pods_TFYSwiftTabBarControllerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5959573B2BC2B8A4102F0AC8 /* Pods_TFYSwiftTabBarControllerTests.framework */; };
@@ -47,6 +70,33 @@
 /* Begin PBXFileReference section */
 		088DD4451827A7B45B771F76 /* Pods_TFYSwiftTabBarController_TFYSwiftTabBarControllerUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TFYSwiftTabBarController_TFYSwiftTabBarControllerUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		258EDE6EE829CCAAA7901694 /* Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests.release.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests/Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests.release.xcconfig"; sourceTree = "<group>"; };
+		367264D62653AE3200049CEF /* TFYSwiftTabBarBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarBadgeView.swift; sourceTree = "<group>"; };
+		367264D82653AEAC00049CEF /* TFYSwiftTabBarItemWrapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarItemWrapView.swift; sourceTree = "<group>"; };
+		367264DA2653AF0000049CEF /* TFYSwiftTabBarItemContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarItemContainerView.swift; sourceTree = "<group>"; };
+		367264DC2653B1BA00049CEF /* TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBar.swift; sourceTree = "<group>"; };
+		367264DE2653B45F00049CEF /* TFYSwiftNaviController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftNaviController.swift; sourceTree = "<group>"; };
+		367264E22653B51C00049CEF /* BackgroundViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundViewController.swift; sourceTree = "<group>"; };
+		367264E32653B51C00049CEF /* BackgroundTabBarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundTabBarController.swift; sourceTree = "<group>"; };
+		367264E82653B51C00049CEF /* DynamicHeightTabBarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DynamicHeightTabBarController.swift; sourceTree = "<group>"; };
+		367264E92653B51C00049CEF /* DynamicHeightViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DynamicHeightViewController.swift; sourceTree = "<group>"; };
+		367264EB2653B51C00049CEF /* MixTabBarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MixTabBarController.swift; sourceTree = "<group>"; };
+		367264EC2653B51C00049CEF /* MixViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MixViewController.swift; sourceTree = "<group>"; };
+		367264EE2653B51C00049CEF /* Irregular_1_TabBarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Irregular_1_TabBarController.swift; sourceTree = "<group>"; };
+		367264EF2653B51C00049CEF /* IrregularViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IrregularViewController.swift; sourceTree = "<group>"; };
+		367264F12653B51C00049CEF /* HideOrShowViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HideOrShowViewController.swift; sourceTree = "<group>"; };
+		367264F22653B51C00049CEF /* HideOrShowTabBarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HideOrShowTabBarController.swift; sourceTree = "<group>"; };
+		367264F42653B51C00049CEF /* DynamicWidthViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DynamicWidthViewController.swift; sourceTree = "<group>"; };
+		367264F52653B51C00049CEF /* DynamicWidthTabBarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DynamicWidthTabBarController.swift; sourceTree = "<group>"; };
+		367264F72653B51C00049CEF /* HijackViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HijackViewController.swift; sourceTree = "<group>"; };
+		367264F82653B51C00049CEF /* HijackTabBarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HijackTabBarController.swift; sourceTree = "<group>"; };
+		367264FA2653B51C00049CEF /* AnimationBadgeTabBarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnimationBadgeTabBarController.swift; sourceTree = "<group>"; };
+		367264FB2653B51C00049CEF /* AnimationBadgeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnimationBadgeViewController.swift; sourceTree = "<group>"; };
+		367264FD2653B51D00049CEF /* OnlyImageViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OnlyImageViewController.swift; sourceTree = "<group>"; };
+		367264FE2653B51D00049CEF /* OnlyImageTabBarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OnlyImageTabBarController.swift; sourceTree = "<group>"; };
+		367265002653B51D00049CEF /* BackgroundItemController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundItemController.swift; sourceTree = "<group>"; };
+		367265012653B51D00049CEF /* BackgroundItemTabBarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackgroundItemTabBarController.swift; sourceTree = "<group>"; };
+		367265032653B51D00049CEF /* BadgeTabBarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BadgeTabBarController.swift; sourceTree = "<group>"; };
+		367265042653B51D00049CEF /* BadgeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BadgeViewController.swift; sourceTree = "<group>"; };
 		369F462C26421E55002D8566 /* TFYSwiftTabBarController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TFYSwiftTabBarController.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		369F464226421E56002D8566 /* TFYSwiftTabBarControllerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TFYSwiftTabBarControllerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		369F464626421E56002D8566 /* TFYSwiftTabBarControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarControllerTests.swift; sourceTree = "<group>"; };
@@ -64,11 +114,7 @@
 		369F46752642218B002D8566 /* TFYSwiftTabbarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabbarController.swift; sourceTree = "<group>"; };
 		369F467826422BCA002D8566 /* TFYSwiftTabBarController-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TFYSwiftTabBarController-Bridging-Header.h"; sourceTree = "<group>"; };
 		369F467C26422E62002D8566 /* TFYSwiftTabBarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarItem.swift; sourceTree = "<group>"; };
-		369F467E26423A48002D8566 /* TFYSwiftTabBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarView.swift; sourceTree = "<group>"; };
 		369F468026423E2F002D8566 /* TFYTabbarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYTabbarController.swift; sourceTree = "<group>"; };
-		369F468226423F44002D8566 /* TFYSwiftHomeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftHomeController.swift; sourceTree = "<group>"; };
-		369F468426423F61002D8566 /* TFYSwiftTradeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTradeController.swift; sourceTree = "<group>"; };
-		369F468626423F7A002D8566 /* TFYSwiftProfileController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftProfileController.swift; sourceTree = "<group>"; };
 		3ED0DD7FF3393B7F53426101 /* Pods-TFYSwiftTabBarController.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarController.debug.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarController/Pods-TFYSwiftTabBarController.debug.xcconfig"; sourceTree = "<group>"; };
 		46275AE566470D99A19187DE /* Pods-TFYSwiftTabBarControllerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarControllerTests.release.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarControllerTests/Pods-TFYSwiftTabBarControllerTests.release.xcconfig"; sourceTree = "<group>"; };
 		5959573B2BC2B8A4102F0AC8 /* Pods_TFYSwiftTabBarControllerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TFYSwiftTabBarControllerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -117,6 +163,123 @@
 				46275AE566470D99A19187DE /* Pods-TFYSwiftTabBarControllerTests.release.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		367264E02653B51C00049CEF /* Example */ = {
+			isa = PBXGroup;
+			children = (
+				367264E12653B51C00049CEF /* Background */,
+				367264E72653B51C00049CEF /* DynamicHeight */,
+				367264EA2653B51C00049CEF /* Mix */,
+				367264ED2653B51C00049CEF /* Irregular Item */,
+				367264F02653B51C00049CEF /* HideOrShow */,
+				367264F32653B51C00049CEF /* DynamicWidth */,
+				367264F62653B51C00049CEF /* Hijack */,
+				367264F92653B51C00049CEF /* Animation Badge */,
+				367264FC2653B51C00049CEF /* Only Image */,
+				367264FF2653B51D00049CEF /* Background Item */,
+				367265022653B51D00049CEF /* Badge */,
+			);
+			path = Example;
+			sourceTree = "<group>";
+		};
+		367264E12653B51C00049CEF /* Background */ = {
+			isa = PBXGroup;
+			children = (
+				367264E22653B51C00049CEF /* BackgroundViewController.swift */,
+				367264E32653B51C00049CEF /* BackgroundTabBarController.swift */,
+			);
+			path = Background;
+			sourceTree = "<group>";
+		};
+		367264E72653B51C00049CEF /* DynamicHeight */ = {
+			isa = PBXGroup;
+			children = (
+				367264E82653B51C00049CEF /* DynamicHeightTabBarController.swift */,
+				367264E92653B51C00049CEF /* DynamicHeightViewController.swift */,
+			);
+			path = DynamicHeight;
+			sourceTree = "<group>";
+		};
+		367264EA2653B51C00049CEF /* Mix */ = {
+			isa = PBXGroup;
+			children = (
+				367264EB2653B51C00049CEF /* MixTabBarController.swift */,
+				367264EC2653B51C00049CEF /* MixViewController.swift */,
+			);
+			path = Mix;
+			sourceTree = "<group>";
+		};
+		367264ED2653B51C00049CEF /* Irregular Item */ = {
+			isa = PBXGroup;
+			children = (
+				367264EE2653B51C00049CEF /* Irregular_1_TabBarController.swift */,
+				367264EF2653B51C00049CEF /* IrregularViewController.swift */,
+			);
+			path = "Irregular Item";
+			sourceTree = "<group>";
+		};
+		367264F02653B51C00049CEF /* HideOrShow */ = {
+			isa = PBXGroup;
+			children = (
+				367264F12653B51C00049CEF /* HideOrShowViewController.swift */,
+				367264F22653B51C00049CEF /* HideOrShowTabBarController.swift */,
+			);
+			path = HideOrShow;
+			sourceTree = "<group>";
+		};
+		367264F32653B51C00049CEF /* DynamicWidth */ = {
+			isa = PBXGroup;
+			children = (
+				367264F42653B51C00049CEF /* DynamicWidthViewController.swift */,
+				367264F52653B51C00049CEF /* DynamicWidthTabBarController.swift */,
+			);
+			path = DynamicWidth;
+			sourceTree = "<group>";
+		};
+		367264F62653B51C00049CEF /* Hijack */ = {
+			isa = PBXGroup;
+			children = (
+				367264F72653B51C00049CEF /* HijackViewController.swift */,
+				367264F82653B51C00049CEF /* HijackTabBarController.swift */,
+			);
+			path = Hijack;
+			sourceTree = "<group>";
+		};
+		367264F92653B51C00049CEF /* Animation Badge */ = {
+			isa = PBXGroup;
+			children = (
+				367264FA2653B51C00049CEF /* AnimationBadgeTabBarController.swift */,
+				367264FB2653B51C00049CEF /* AnimationBadgeViewController.swift */,
+			);
+			path = "Animation Badge";
+			sourceTree = "<group>";
+		};
+		367264FC2653B51C00049CEF /* Only Image */ = {
+			isa = PBXGroup;
+			children = (
+				367264FD2653B51D00049CEF /* OnlyImageViewController.swift */,
+				367264FE2653B51D00049CEF /* OnlyImageTabBarController.swift */,
+			);
+			path = "Only Image";
+			sourceTree = "<group>";
+		};
+		367264FF2653B51D00049CEF /* Background Item */ = {
+			isa = PBXGroup;
+			children = (
+				367265002653B51D00049CEF /* BackgroundItemController.swift */,
+				367265012653B51D00049CEF /* BackgroundItemTabBarController.swift */,
+			);
+			path = "Background Item";
+			sourceTree = "<group>";
+		};
+		367265022653B51D00049CEF /* Badge */ = {
+			isa = PBXGroup;
+			children = (
+				367265032653B51D00049CEF /* BadgeTabBarController.swift */,
+				367265042653B51D00049CEF /* BadgeViewController.swift */,
+			);
+			path = Badge;
 			sourceTree = "<group>";
 		};
 		369F462326421E55002D8566 = {
@@ -177,9 +340,7 @@
 			isa = PBXGroup;
 			children = (
 				369F466026421EAD002D8566 /* ViewController.swift */,
-				369F468226423F44002D8566 /* TFYSwiftHomeController.swift */,
-				369F468426423F61002D8566 /* TFYSwiftTradeController.swift */,
-				369F468626423F7A002D8566 /* TFYSwiftProfileController.swift */,
+				367264E02653B51C00049CEF /* Example */,
 			);
 			path = Class;
 			sourceTree = "<group>";
@@ -208,6 +369,7 @@
 			isa = PBXGroup;
 			children = (
 				369F468026423E2F002D8566 /* TFYTabbarController.swift */,
+				367264DE2653B45F00049CEF /* TFYSwiftNaviController.swift */,
 			);
 			path = Tabbar;
 			sourceTree = "<group>";
@@ -217,7 +379,10 @@
 			children = (
 				369F46752642218B002D8566 /* TFYSwiftTabbarController.swift */,
 				369F467C26422E62002D8566 /* TFYSwiftTabBarItem.swift */,
-				369F467E26423A48002D8566 /* TFYSwiftTabBarView.swift */,
+				367264D62653AE3200049CEF /* TFYSwiftTabBarBadgeView.swift */,
+				367264D82653AEAC00049CEF /* TFYSwiftTabBarItemWrapView.swift */,
+				367264DA2653AF0000049CEF /* TFYSwiftTabBarItemContainerView.swift */,
+				367264DC2653B1BA00049CEF /* TFYSwiftTabBar.swift */,
 			);
 			path = TFYSwiftTabbarKit;
 			sourceTree = "<group>";
@@ -480,16 +645,39 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				369F468526423F61002D8566 /* TFYSwiftTradeController.swift in Sources */,
+				367265172653B51D00049CEF /* OnlyImageViewController.swift in Sources */,
+				367265122653B51D00049CEF /* DynamicWidthTabBarController.swift in Sources */,
+				3672650B2653B51D00049CEF /* MixTabBarController.swift in Sources */,
+				3672651B2653B51D00049CEF /* BadgeTabBarController.swift in Sources */,
+				3672650D2653B51D00049CEF /* Irregular_1_TabBarController.swift in Sources */,
+				3672650F2653B51D00049CEF /* HideOrShowViewController.swift in Sources */,
+				367265052653B51D00049CEF /* BackgroundViewController.swift in Sources */,
+				367264D72653AE3200049CEF /* TFYSwiftTabBarBadgeView.swift in Sources */,
 				369F468126423E2F002D8566 /* TFYTabbarController.swift in Sources */,
+				3672650A2653B51D00049CEF /* DynamicHeightViewController.swift in Sources */,
+				3672651C2653B51D00049CEF /* BadgeViewController.swift in Sources */,
+				3672650C2653B51D00049CEF /* MixViewController.swift in Sources */,
+				367265132653B51D00049CEF /* HijackViewController.swift in Sources */,
+				367265192653B51D00049CEF /* BackgroundItemController.swift in Sources */,
+				367265062653B51D00049CEF /* BackgroundTabBarController.swift in Sources */,
+				367264DB2653AF0000049CEF /* TFYSwiftTabBarItemContainerView.swift in Sources */,
 				369F466B26421EAE002D8566 /* ViewController.swift in Sources */,
-				369F468726423F7A002D8566 /* TFYSwiftProfileController.swift in Sources */,
+				367264D92653AEAC00049CEF /* TFYSwiftTabBarItemWrapView.swift in Sources */,
+				367264DF2653B45F00049CEF /* TFYSwiftNaviController.swift in Sources */,
+				367265102653B51D00049CEF /* HideOrShowTabBarController.swift in Sources */,
 				369F46762642218B002D8566 /* TFYSwiftTabbarController.swift in Sources */,
+				367265152653B51D00049CEF /* AnimationBadgeTabBarController.swift in Sources */,
 				369F466C26421EAE002D8566 /* AppDelegate.swift in Sources */,
-				369F468326423F44002D8566 /* TFYSwiftHomeController.swift in Sources */,
+				367264DD2653B1BA00049CEF /* TFYSwiftTabBar.swift in Sources */,
+				367265092653B51D00049CEF /* DynamicHeightTabBarController.swift in Sources */,
 				369F467D26422E62002D8566 /* TFYSwiftTabBarItem.swift in Sources */,
-				369F467F26423A48002D8566 /* TFYSwiftTabBarView.swift in Sources */,
+				3672651A2653B51D00049CEF /* BackgroundItemTabBarController.swift in Sources */,
 				369F466D26421EAE002D8566 /* SceneDelegate.swift in Sources */,
+				3672650E2653B51D00049CEF /* IrregularViewController.swift in Sources */,
+				367265162653B51D00049CEF /* AnimationBadgeViewController.swift in Sources */,
+				367265182653B51D00049CEF /* OnlyImageTabBarController.swift in Sources */,
+				367265112653B51D00049CEF /* DynamicWidthViewController.swift in Sources */,
+				367265142653B51D00049CEF /* HijackTabBarController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

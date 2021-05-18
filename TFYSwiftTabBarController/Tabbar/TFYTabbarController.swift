@@ -7,70 +7,140 @@
 
 import UIKit
 
+extension Notification.Name {
+    fileprivate static let name = Notification.Name(rawValue: "notification")
+}
+
+fileprivate class _ItemContainerView: TFYSwiftTabBarItemContainerView {
+    override init() {
+        super.init()
+    }
+    
+    required public init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func select() {
+        let newFrame = self.convert(self.frame, to: self.tabBar) // frame转换
+        print("\(newFrame)")
+        NotificationCenter.default.post(name: .name, object: nil, userInfo: ["frame": newFrame])
+    }
+    override func reselect() {
+        let newFrame = self.convert(self.frame, to: self.tabBar) // frame转换
+        print("\(newFrame)")
+        NotificationCenter.default.post(name: .name, object: nil, userInfo: ["frame": newFrame])
+    }
+}
+
+fileprivate class _BackgroundView: UIView {
+    
+    lazy var gradientLayer: CAGradientLayer = {
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = [UIColor.red.cgColor, UIColor.orange.cgColor]
+        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 1, y: 0)
+        return gradientLayer
+    }()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        initUI()
+    }
+    
+    init() {
+        super.init(frame: .zero)
+        initUI()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    func initUI() {
+        
+        self.layer.addSublayer(self.gradientLayer)
+        NotificationCenter.default.addObserver(self, selector: #selector(change(noti:)), name: .name, object: nil)
+    }
+    
+    @objc func change(noti: Notification) {
+        guard let frame = noti.userInfo?["frame"] as? CGRect else { return }
+        //CATransaction.begin()
+        //CATransaction.setDisableActions(true)
+        self.gradientLayer.frame = frame.inset(by: UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10))
+        self.gradientLayer.cornerRadius = frame.height / 2.0
+        self.gradientLayer.masksToBounds = true
+        //CATransaction.commit()
+    }
+}
+
 class TFYTabbarController: TFYSwiftTabbarController {
 
-    override func viewDidLoad() {
+    deinit {
+        print("\(NSStringFromClass(self.classForCoder)) deinit")
+    }
+    
+    private lazy var quanquanItemContainerView: _ItemContainerView = {
+        let quanquanItemContainerView = _ItemContainerView()
+        quanquanItemContainerView.normalImage = UIImage(named: "tab_bar_quanquan_normal")
+        quanquanItemContainerView.selectedImage = UIImage(named: "tab_bar_quanquan_selected")
+        quanquanItemContainerView.title = "圈圈"
+        return quanquanItemContainerView
+    }()
+    
+    private lazy var tantanItemContainerView: _ItemContainerView = {
+        let tantanItemContainerView = _ItemContainerView()
+        tantanItemContainerView.normalImage = UIImage(named: "tab_bar_tantan_normal")
+        tantanItemContainerView.selectedImage = UIImage(named: "tab_bar_tantan_selected")
+        tantanItemContainerView.title = "摊摊"
+        return tantanItemContainerView
+    }()
+    
+    private lazy var messageeItemContainerView: _ItemContainerView = {
+        let messageeItemContainerView = _ItemContainerView()
+        messageeItemContainerView.normalImage = UIImage(named: "tab_bar_message_normal")
+        messageeItemContainerView.selectedImage = UIImage(named: "tab_bar_message_selected")
+        messageeItemContainerView.title = "消息"
+        return messageeItemContainerView
+    }()
+    
+    private lazy var meItemContainerView: _ItemContainerView = {
+        let meItemContainerView = _ItemContainerView()
+        meItemContainerView.normalImage = UIImage(named: "tab_bar_me_normal")
+        meItemContainerView.selectedImage = UIImage(named: "tab_bar_me_selected")
+        meItemContainerView.title = "我的"
+        return meItemContainerView
+    }()
+    
+    
+    public override func viewDidLoad() {
         super.viewDidLoad()
-
-        localTabbar()
-        // Do any additional setup after loading the view.
-        // 请忽略这个，这是我测试小火箭用的
-        NotificationCenter.default.addObserver(self, selector: #selector(changeTabbarIcon), name: NSNotification.Name(rawValue: "changeTabbarIcon"), object: nil)
-    }
-    
-    override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
-        super.tabBar(tabBar, didSelect: item)
         
-        guard let index = tabBar.items?.firstIndex(of: item) else { return }
-        print("当前是：\(index)")
-    }
-    
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
-    
-    /// - Parameter nofi: 通知参数
-    @objc func changeTabbarIcon(nofi: Notification) {
-        guard let value = nofi.userInfo!["value"] as? String else {
-            return
-        }
-        tabBarView.changeHomeTabbarIcon(value: value)
-    }
-    
-    // 移除通知
-    deinit{
-        NotificationCenter.default.removeObserver(self)
-    }
-}
-
-extension TFYTabbarController {
-    // MARK: 本地TabBar的配置
-    /// 本地TabBar的配置
-    func localTabbar() {
-        let vc1 = TFYSwiftHomeController()
-        vc1.view.backgroundColor = UIColor.purple
+        let quanquanItem = TFYSwiftTabBarItem(containerView: self.quanquanItemContainerView)
+        let tantanItem = TFYSwiftTabBarItem(containerView: self.tantanItemContainerView)
+        let messageItem = TFYSwiftTabBarItem(containerView: self.messageeItemContainerView)
+        let meItem = TFYSwiftTabBarItem(containerView: self.meItemContainerView)
         
-        let vc2 = TFYSwiftTradeController()
-        vc2.view.backgroundColor = UIColor.white
-        
-        let vc3 = TFYSwiftProfileController()
-        vc3.view.backgroundColor = UIColor.yellow
-        
+        let vc1 = ViewController()
+        let vc2 = ViewController()
+        let vc3 = ViewController()
         let vc4 = ViewController()
-        vc4.view.backgroundColor = UIColor.orange
+        let navi1 = TFYSwiftNaviController(rootViewController: vc1)
+        let navi2 = TFYSwiftNaviController(rootViewController: vc2)
+        let navi3 = TFYSwiftNaviController(rootViewController: vc3)
+        let navi4 = TFYSwiftNaviController(rootViewController: vc4)
         
-        viewControllers = [UINavigationController(rootViewController: vc1), UINavigationController(rootViewController: vc2), UINavigationController(rootViewController: vc3),UINavigationController(rootViewController: vc4)]
+        navi1.tabBarItem = quanquanItem
+        navi2.tabBarItem = tantanItem
+        navi3.tabBarItem = messageItem
+        navi4.tabBarItem = meItem
         
-        let titleColor = UIColor.red
-        let selectedColor = UIColor.orange
-        // 测试读取本地图片
-        let tabBarItemOne = TFYSwiftTabBarItem(localImageCount: 5, duration: 0.5, title: "行情", titleColor: titleColor, selectedTitleColor: selectedColor, defaultImageName: "tabbar_quotation")
-        let tabBarItemTwo = TFYSwiftTabBarItem(title: "交易", titleColor: titleColor, selectedTitleColor: selectedColor, defaultImageName: "tabbar_trade")
-        let tabBarItemThree = TFYSwiftTabBarItem(title: "我的", titleColor: titleColor, selectedTitleColor: selectedColor, defaultImageName: "tabbar_profile")
+        if let myTabBar = self.tabBar as? TFYSwiftTabBar {
+            myTabBar.isTranslucent = false
+            myTabBar.barTintColor = .white
+            myTabBar.backgroundView = _BackgroundView()
+        }
         
-        let tabBarItemfour = TFYSwiftTabBarItem(title: "测试", titleColor: titleColor, selectedTitleColor: selectedColor, defaultImageName: "new_tabbar_community")
-        
-        tabBarView.barButtonItems = [tabBarItemOne, tabBarItemTwo, tabBarItemThree,tabBarItemfour]
-        tabBarView.tabBarItem = tabBarItemTwo
+        self.viewControllers = [navi1, navi2, navi3, navi4]
     }
 }
+

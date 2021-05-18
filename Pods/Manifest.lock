@@ -1,16 +1,45 @@
 PODS:
   - SnapKit (5.0.1)
+  - TFYSwiftCategoryUtil (2.0.4):
+    - TFYSwiftCategoryUtil/Base (= 2.0.4)
+    - TFYSwiftCategoryUtil/Category (= 2.0.4)
+    - TFYSwiftCategoryUtil/Foundation (= 2.0.4)
+    - TFYSwiftCategoryUtil/Gesture (= 2.0.4)
+    - TFYSwiftCategoryUtil/Utils (= 2.0.4)
+  - TFYSwiftCategoryUtil/Base (2.0.4)
+  - TFYSwiftCategoryUtil/Category (2.0.4):
+    - TFYSwiftCategoryUtil/Base
+    - TFYSwiftCategoryUtil/Utils
+  - TFYSwiftCategoryUtil/Foundation (2.0.4):
+    - TFYSwiftCategoryUtil/Base
+    - TFYSwiftCategoryUtil/Utils
+  - TFYSwiftCategoryUtil/Gesture (2.0.4):
+    - TFYSwiftCategoryUtil/Base
+    - TFYSwiftCategoryUtil/Utils
+  - TFYSwiftCategoryUtil/Utils (2.0.4)
+  - TFYSwiftNavigationKit (2.0.2):
+    - TFYSwiftNavigationKit/Base (= 2.0.2)
+    - TFYSwiftNavigationKit/Extension (= 2.0.2)
+  - TFYSwiftNavigationKit/Base (2.0.2)
+  - TFYSwiftNavigationKit/Extension (2.0.2):
+    - TFYSwiftNavigationKit/Base
 
 DEPENDENCIES:
   - SnapKit
+  - TFYSwiftCategoryUtil
+  - TFYSwiftNavigationKit
 
 SPEC REPOS:
   trunk:
     - SnapKit
+    - TFYSwiftCategoryUtil
+    - TFYSwiftNavigationKit
 
 SPEC CHECKSUMS:
   SnapKit: 97b92857e3df3a0c71833cce143274bf6ef8e5eb
+  TFYSwiftCategoryUtil: 9a6965912b52cf74bbd3dc49caa87e1edc4d8085
+  TFYSwiftNavigationKit: d3ebb1ae9fc182337196e09d0500b69d6b8cabe3
 
-PODFILE CHECKSUM: 07255e9366a50c29840a0df73c12379f4070f88f
+PODFILE CHECKSUM: ee32239a498cd9ea0c2a95a885d52b0e59bbae26
 
 COCOAPODS: 1.10.1

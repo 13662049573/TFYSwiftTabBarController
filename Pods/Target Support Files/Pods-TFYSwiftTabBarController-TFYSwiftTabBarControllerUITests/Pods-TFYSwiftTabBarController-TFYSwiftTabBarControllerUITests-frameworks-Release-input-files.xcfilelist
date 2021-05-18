@@ -1,2 +1,4 @@
 ${PODS_ROOT}/Target Support Files/Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests/Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests-frameworks.sh
 ${BUILT_PRODUCTS_DIR}/SnapKit/SnapKit.framework
+${BUILT_PRODUCTS_DIR}/TFYSwiftCategoryUtil/TFYSwiftCategoryUtil.framework
+${BUILT_PRODUCTS_DIR}/TFYSwiftNavigationKit/TFYSwiftNavigationKit.framework
