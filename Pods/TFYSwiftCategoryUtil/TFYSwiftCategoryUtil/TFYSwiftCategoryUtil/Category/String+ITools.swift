@@ -81,9 +81,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         return regexIdCard.evaluate(with: (base as! String))
     }
 
-    /**
-     根据字体、CGSize来计算字符串的高度
-     */
+    /// 根据字体、CGSize来计算字符串的高度
     func calculateSize(with size: CGSize, font: UIFont) -> CGSize {
         return ((base as! String) as NSString).boundingRect(with: size,
                                         options: [.usesLineFragmentOrigin, .usesFontLeading],
