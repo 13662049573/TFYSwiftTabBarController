@@ -21,8 +21,9 @@ public class BadgeViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = UIColor.white
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(dismissAction))
-        self.navigationItem.title = "badge的各种样式"
+        
+        navigation.item.rightBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(dismissAction))
+        navigation.item.title = "badge的各种样式"
         
         self.view.addSubview(self.messageLabel)
     }

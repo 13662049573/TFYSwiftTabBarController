@@ -12,8 +12,9 @@ public class IrregularViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .white
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(dismissAction))
-        self.navigationItem.title = "不规则tabbar"
+        
+        navigation.item.rightBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(dismissAction))
+        navigation.item.title = "不规则tabbar"
     }
     
     @objc private func dismissAction() {

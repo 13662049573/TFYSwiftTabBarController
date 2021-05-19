@@ -79,68 +79,38 @@ class TFYTabbarController: TFYSwiftTabbarController {
         print("\(NSStringFromClass(self.classForCoder)) deinit")
     }
     
-    private lazy var quanquanItemContainerView: _ItemContainerView = {
-        let quanquanItemContainerView = _ItemContainerView()
-        quanquanItemContainerView.normalImage = UIImage(named: "tab_bar_quanquan_normal")
-        quanquanItemContainerView.selectedImage = UIImage(named: "tab_bar_quanquan_selected")
-        quanquanItemContainerView.title = "圈圈"
-        return quanquanItemContainerView
-    }()
+    var itemArr = [
+        ["normalImage":"tabbar_profile","selectedImage":"tabbar_profile_selected","title":"圈圈","vc":ViewController()],
+        ["normalImage":"tabbar_quotation","selectedImage":"tabbar_quotation_selected","title":"摊摊","vc":ViewController()],
+        ["normalImage":"tabbar_trade","selectedImage":"tabbar_trade_selected","title":"消息","vc":ViewController()]
+    ]
     
-    private lazy var tantanItemContainerView: _ItemContainerView = {
-        let tantanItemContainerView = _ItemContainerView()
-        tantanItemContainerView.normalImage = UIImage(named: "tab_bar_tantan_normal")
-        tantanItemContainerView.selectedImage = UIImage(named: "tab_bar_tantan_selected")
-        tantanItemContainerView.title = "摊摊"
-        return tantanItemContainerView
-    }()
-    
-    private lazy var messageeItemContainerView: _ItemContainerView = {
-        let messageeItemContainerView = _ItemContainerView()
-        messageeItemContainerView.normalImage = UIImage(named: "tab_bar_message_normal")
-        messageeItemContainerView.selectedImage = UIImage(named: "tab_bar_message_selected")
-        messageeItemContainerView.title = "消息"
-        return messageeItemContainerView
-    }()
-    
-    private lazy var meItemContainerView: _ItemContainerView = {
-        let meItemContainerView = _ItemContainerView()
-        meItemContainerView.normalImage = UIImage(named: "tab_bar_me_normal")
-        meItemContainerView.selectedImage = UIImage(named: "tab_bar_me_selected")
-        meItemContainerView.title = "我的"
-        return meItemContainerView
-    }()
-    
+    var vcArr = [UIViewController]()
     
     public override func viewDidLoad() {
         super.viewDidLoad()
         
-        let quanquanItem = TFYSwiftTabBarItem(containerView: self.quanquanItemContainerView)
-        let tantanItem = TFYSwiftTabBarItem(containerView: self.tantanItemContainerView)
-        let messageItem = TFYSwiftTabBarItem(containerView: self.messageeItemContainerView)
-        let meItem = TFYSwiftTabBarItem(containerView: self.meItemContainerView)
+        for dict in itemArr {
+            
+            let itemsView = _ItemContainerView()
+            itemsView.normalImage = UIImage(named: dict["normalImage"] as! String)
+            itemsView.selectedImage = UIImage(named: dict["selectedImage"] as! String)
+            itemsView.title = dict["title"] as? String
+            
+            let item = TFYSwiftTabBarItem(containerView: itemsView)
+            let nav = TFYSwiftNaviController(rootViewController: dict["vc"] as! UIViewController)
+            nav.tabBarItem = item
+            
+            vcArr.append(nav)
+        }
         
-        let vc1 = ViewController()
-        let vc2 = ViewController()
-        let vc3 = ViewController()
-        let vc4 = ViewController()
-        let navi1 = TFYSwiftNaviController(rootViewController: vc1)
-        let navi2 = TFYSwiftNaviController(rootViewController: vc2)
-        let navi3 = TFYSwiftNaviController(rootViewController: vc3)
-        let navi4 = TFYSwiftNaviController(rootViewController: vc4)
-        
-        navi1.tabBarItem = quanquanItem
-        navi2.tabBarItem = tantanItem
-        navi3.tabBarItem = messageItem
-        navi4.tabBarItem = meItem
-        
+        viewControllers = vcArr
+                
         if let myTabBar = self.tabBar as? TFYSwiftTabBar {
             myTabBar.isTranslucent = false
             myTabBar.barTintColor = .white
             myTabBar.backgroundView = _BackgroundView()
         }
-        
-        self.viewControllers = [navi1, navi2, navi3, navi4]
     }
 }
 

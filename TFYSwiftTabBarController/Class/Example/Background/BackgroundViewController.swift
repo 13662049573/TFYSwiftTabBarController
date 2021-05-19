@@ -12,8 +12,9 @@ public class BackgroundViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .white
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(dismissAction))
-        self.navigationItem.title = "Tabbar渐变背景"
+        
+        navigation.item.rightBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(dismissAction))
+        navigation.item.title = "Tabbar渐变背景"
     }
     
     @objc private func dismissAction() {

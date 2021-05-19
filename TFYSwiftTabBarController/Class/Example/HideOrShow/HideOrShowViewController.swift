@@ -29,8 +29,9 @@ public class HideOrShowViewController: UIViewController {
         } else {
             self.automaticallyAdjustsScrollViewInsets = false
         }
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(dismissAction))
-        self.navigationItem.title = "tabbar的显示与隐藏"
+        
+        navigation.item.rightBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(dismissAction))
+        navigation.item.title = "tabbar的显示与隐藏"
         
         self.view.addSubview(self.tableView)
         

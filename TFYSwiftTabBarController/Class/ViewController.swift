@@ -31,6 +31,8 @@ class ViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .white
+        navigation.item.title = "首页"
+        
         if #available(iOS 11.0, *) {
             self.tableView.contentInsetAdjustmentBehavior = .always
         } else {
