@@ -114,6 +114,16 @@ public class TFYSwiftTabBar: UITabBar {
     
     public override func layoutSubviews() {
         super.layoutSubviews()
+        
+        if #available(iOS 15, *) {
+            let color = UIColor.white
+            ///修复uitabbar 顶部视图莫名横线消失
+            let tabBarAppearance = UITabBarAppearance()
+            tabBarAppearance.backgroundColor = color
+            self.standardAppearance = tabBarAppearance
+            self.scrollEdgeAppearance = tabBarAppearance
+        }
+        
         //
         self.updateLayout()
         //
