@@ -7,7 +7,9 @@ target 'TFYSwiftTabBarController' do
   pod 'SnapKit'
   pod 'TFYSwiftNavigationKit'
   pod 'TFYSwiftCategoryUtil'
-
+  pod 'lottie-ios'
+  pod 'pop'
+  
   target 'TFYSwiftTabBarControllerTests' do
     inherit! :search_paths
     # Pods for testing

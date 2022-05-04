@@ -7,162 +7,128 @@
 
 import UIKit
 
-/// 是否可以拦截点击事件
-public typealias TFYSwiftTabBarControllerCanHijackHandler = ((_ tabBarController: TFYSwiftTabbarController, _ viewController: UIViewController, _ index: Int) -> (Bool))
-/// 拦截点击事件的回调
-public typealias TFYSwiftTabBarControllerDidHijackHandler = ((_ tabBarController: TFYSwiftTabbarController, _ viewController: UIViewController, _ index: Int) -> (Void))
+/// 是否需要自定义点击事件回调类型
+public typealias TFYSwiftTabBarControllerShouldHijackHandler = ((_ tabBarController: UITabBarController, _ viewController: UIViewController, _ index: Int) -> (Bool))
+/// 自定义点击事件回调类型
+public typealias TFYSwiftTabBarControllerDidHijackHandler = ((_ tabBarController: UITabBarController, _ viewController: UIViewController, _ index: Int) -> (Void))
 
-open class TFYSwiftTabbarController: UITabBarController {
-
-    deinit {
-        self.removeNotification()
+open class TFYSwiftTabbarController: UITabBarController, TFYSwiftTabBarDelegate {
+    
+    /// 打印异常
+    public static func printError(_ description: String) {
+        #if DEBUG
+            print("ERROR: ESTabBarController catch an error '\(description)' \n")
+        #endif
     }
     
-    /// 是否可以拦截点击事件
-    public var canHijackHandler: TFYSwiftTabBarControllerCanHijackHandler?
-    /// 拦截点击事件的回调
-    public var didHijackHandler: TFYSwiftTabBarControllerDidHijackHandler?
+    /// 当前tabBarController是否存在"More"tab
+    public static func isShowingMore(_ tabBarController: UITabBarController?) -> Bool {
+        return tabBarController?.moreNavigationController.parent != nil
+    }
+
+    /// Ignore next selection or not.
+    fileprivate var ignoreNextSelection = false
+
+    /// Should hijack select action or not.
+    open var shouldHijackHandler: TFYSwiftTabBarControllerShouldHijackHandler?
+    /// Hijack select action.
+    open var didHijackHandler: TFYSwiftTabBarControllerDidHijackHandler?
     
-    /// 设置选中的`viewController`
-    public override var selectedViewController: UIViewController? {
+    /// Observer tabBarController's selectedViewController. change its selection when it will-set.
+    open override var selectedViewController: UIViewController? {
         willSet {
             guard let newValue = newValue else {
+                // if newValue == nil ...
                 return
             }
-            if !self.shouldNext {
-                self.shouldNext = true
+            guard !ignoreNextSelection else {
+                ignoreNextSelection = false
                 return
             }
-            self.shouldNext = false
-            
-            guard let tabBar = self.tabBar as? TFYSwiftTabBar, let _ = tabBar.items, let index = self.viewControllers?.firstIndex(of: newValue) else {
+            guard let tabBar = self.tabBar as? TFYSwiftTabBar, let items = tabBar.items, let index = viewControllers?.firstIndex(of: newValue) else {
                 return
             }
-            tabBar._select(newIndex: index)
+            let value = (TFYSwiftTabbarController.isShowingMore(self) && index > items.count - 1) ? items.count - 1 : index
+            tabBar.select(itemAtIndex: value, animated: false)
         }
     }
     
-    /// 设置选中的索引
-    public override var selectedIndex: Int {
+    /// Observer tabBarController's selectedIndex. change its selection when it will-set.
+    open override var selectedIndex: Int {
         willSet {
-            if !self.shouldNext {
-                self.shouldNext = true
+            guard !ignoreNextSelection else {
+                ignoreNextSelection = false
                 return
             }
-            self.shouldNext = false
-            guard let tabBar = self.tabBar as? TFYSwiftTabBar, let _ = tabBar.items else {
+            guard let tabBar = self.tabBar as? TFYSwiftTabBar, let items = tabBar.items else {
                 return
             }
-            
-            let count = tabBar.items?.count ?? 0
-            if count <= 0 {
-                return
-            }
-            var _selectedIndex = newValue
-            if newValue < 0 {
-                _selectedIndex = 0
-            }
-            if newValue >= count {
-                _selectedIndex = count - 1
-            }
-            tabBar._select(newIndex: _selectedIndex)
+            let value = (TFYSwiftTabbarController.isShowingMore(self) && newValue > items.count - 1) ? items.count - 1 : newValue
+            tabBar.select(itemAtIndex: value, animated: false)
         }
     }
     
-    /// 设置`viewControllers`
-    public override var viewControllers: [UIViewController]? {
-        willSet {
-            if let newValue = newValue, newValue.count > 5 {
-                // 不能超过5个
-                fatalError("The number of items count cannot exceed 5.")
-            }
-            super.viewControllers = newValue
-        }
-    }
-    
-    /// 设置`tabBar`的高度
-    public var tabBarHeight: CGFloat? {
-        didSet {
-            if let _ = self.tabBarHeight {
-                self.view.setNeedsLayout()
-                self.view.layoutIfNeeded()
-            }
-        }
-    }
-    
-    private var shouldNext: Bool = true
-    
+    /// Customize set tabBar use KVC.
     open override func viewDidLoad() {
         super.viewDidLoad()
-        let tabBar = TFYSwiftTabBar()
-        tabBar._tabBarelegate = self
+        let tabBar = { () -> TFYSwiftTabBar in
+            let tabBar = TFYSwiftTabBar()
+            tabBar.delegate = self
+            tabBar.customDelegate = self
+            tabBar.tabBarController = self
+            return tabBar
+        }()
         self.setValue(tabBar, forKey: "tabBar")
-        
-        self.addNotification()
-        
-        
-        tabBar.didSelectIndexClosure = { [weak self] (idx) in
-            guard let self = self else { return }
-            guard let vc = self.viewControllers?[idx] else {
-                return
-            }
-            self.shouldNext = false
-            self.selectedIndex = idx // 避免无限循环
-            self.delegate?.tabBarController?(self, didSelect: vc)
+    }
+
+    // MARK: - UITabBar delegate
+    open override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+        guard let idx = tabBar.items?.firstIndex(of: item) else {
+            return;
+        }
+        if idx == tabBar.items!.count - 1, TFYSwiftTabbarController.isShowingMore(self) {
+            ignoreNextSelection = true
+            selectedViewController = moreNavigationController
+            return;
+        }
+        if let vc = viewControllers?[idx] {
+            ignoreNextSelection = true
+            selectedIndex = idx
+            delegate?.tabBarController?(self, didSelect: vc)
         }
     }
     
-    open override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        if let _tabBarHeight = self.tabBarHeight {
-            var frame = self.tabBar.frame
-            let beforeHeight: CGFloat = frame.size.height
-            frame.size.height = _tabBarHeight
-            frame.origin.y = frame.origin.y - (_tabBarHeight - beforeHeight)
-            self.tabBar.frame = frame
+    open override func tabBar(_ tabBar: UITabBar, willBeginCustomizing items: [UITabBarItem]) {
+        if let tabBar = tabBar as? TFYSwiftTabBar {
+            tabBar.updateLayout()
         }
     }
     
-    open override func value(forUndefinedKey key: String) -> Any? {
-        return nil
-    }
-}
-
-extension TFYSwiftTabbarController {
-    private func addNotification() {
-        NotificationCenter.default.addObserver(self, selector: #selector(orientationDidChangeNotification), name: UIDevice.orientationDidChangeNotification, object: nil)
+    open override func tabBar(_ tabBar: UITabBar, didEndCustomizing items: [UITabBarItem], changed: Bool) {
+        if let tabBar = tabBar as? TFYSwiftTabBar {
+            tabBar.updateLayout()
+        }
     }
     
-    private func removeNotification() {
-        NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
-    }
-    
-    @objc private func orientationDidChangeNotification() {
-        // 屏幕旋转时，重新设置`selectedIndex`，会触发`tabBar`的`_select`方法，然后出发`_reselect`方法
-        let index = self.selectedIndex
-        self.selectedIndex = index
-    }
-}
-
-extension TFYSwiftTabbarController: TFYSwiftTabBarDelegate {
-    internal func tabBar(_ tabBar: TFYSwiftTabBar, shouldSelect item: UITabBarItem) -> Bool {
-        if let idx = tabBar.items?.firstIndex(of: item), let vc = self.viewControllers?[idx] {
+    // MARK: - ESTabBar delegate
+    internal func tabBar(_ tabBar: UITabBar, shouldSelect item: UITabBarItem) -> Bool {
+        if let idx = tabBar.items?.firstIndex(of: item), let vc = viewControllers?[idx] {
             return delegate?.tabBarController?(self, shouldSelect: vc) ?? true
         }
         return true
     }
     
-    internal func tabBar(_ tabBar: TFYSwiftTabBar, canHijack item: UITabBarItem) -> Bool {
+    internal func tabBar(_ tabBar: UITabBar, shouldHijack item: UITabBarItem) -> Bool {
         if let idx = tabBar.items?.firstIndex(of: item), let vc = viewControllers?[idx] {
-            return self.canHijackHandler?(self, vc, idx) ?? false
+            return shouldHijackHandler?(self, vc, idx) ?? false
         }
         return false
     }
     
-    internal func tabBar(_ tabBar: TFYSwiftTabBar, didHijack item: UITabBarItem) {
+    internal func tabBar(_ tabBar: UITabBar, didHijack item: UITabBarItem) {
         if let idx = tabBar.items?.firstIndex(of: item), let vc = viewControllers?[idx] {
-            self.didHijackHandler?(self, vc, idx)
+            didHijackHandler?(self, vc, idx)
         }
     }
+    
 }
-
