@@ -10,7 +10,6 @@
 		3666A5542822000E0054F22E /* TFYSwiftTabBarItemContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3666A5532822000E0054F22E /* TFYSwiftTabBarItemContainer.swift */; };
 		3666A556282200580054F22E /* TFYSwiftTabBarItemContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3666A555282200580054F22E /* TFYSwiftTabBarItemContentView.swift */; };
 		3666A5582822015F0054F22E /* TFYSwiftTabBarItemMoreContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3666A5572822015F0054F22E /* TFYSwiftTabBarItemMoreContentView.swift */; };
-		3666A55A282201940054F22E /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3666A559282201940054F22E /* Localizable.strings */; };
 		3666A55E282204FA0054F22E /* ExampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3666A55B282204FA0054F22E /* ExampleViewController.swift */; };
 		3666A55F282204FA0054F22E /* ExampleNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3666A55C282204FA0054F22E /* ExampleNavigationController.swift */; };
 		3666A560282204FA0054F22E /* ExampleProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3666A55D282204FA0054F22E /* ExampleProvider.swift */; };
@@ -65,7 +64,6 @@
 		3666A5532822000E0054F22E /* TFYSwiftTabBarItemContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarItemContainer.swift; sourceTree = "<group>"; };
 		3666A555282200580054F22E /* TFYSwiftTabBarItemContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarItemContentView.swift; sourceTree = "<group>"; };
 		3666A5572822015F0054F22E /* TFYSwiftTabBarItemMoreContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarItemMoreContentView.swift; sourceTree = "<group>"; };
-		3666A559282201940054F22E /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		3666A55B282204FA0054F22E /* ExampleViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleViewController.swift; sourceTree = "<group>"; };
 		3666A55C282204FA0054F22E /* ExampleNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleNavigationController.swift; sourceTree = "<group>"; };
 		3666A55D282204FA0054F22E /* ExampleProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleProvider.swift; sourceTree = "<group>"; };
@@ -319,7 +317,6 @@
 		369F46742642213B002D8566 /* TFYSwiftTabbarKit */ = {
 			isa = PBXGroup;
 			children = (
-				3666A559282201940054F22E /* Localizable.strings */,
 				369F46752642218B002D8566 /* TFYSwiftTabbarController.swift */,
 				369F467C26422E62002D8566 /* TFYSwiftTabBarItem.swift */,
 				367264D62653AE3200049CEF /* TFYSwiftTabBarBadgeView.swift */,
@@ -463,7 +460,6 @@
 				3666A57F282205190054F22E /* LottieLogo1.json in Resources */,
 				3666A57E282205190054F22E /* IconTransitions.json in Resources */,
 				3666A582282205190054F22E /* WebView.storyboard in Resources */,
-				3666A55A282201940054F22E /* Localizable.strings in Resources */,
 				369F466F26421EAE002D8566 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
