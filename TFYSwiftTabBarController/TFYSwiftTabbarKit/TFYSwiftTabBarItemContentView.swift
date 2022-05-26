@@ -217,10 +217,22 @@ open class TFYSwiftTabBarItemContentView: UIView {
             var f: CGFloat = 0.0 // font
             var isLandscape = false
             
-            let keyWindow = UIApplication.shared.connectedScenes
-                .map({$0 as? UIWindowScene})
-                .compactMap({$0})
-                .first?.windows.first
+            var keyWindow:UIWindow?
+            if #available(iOS 13.0, *) {
+                keyWindow = UIApplication.shared.connectedScenes
+                    .map({$0 as? UIWindowScene})
+                    .compactMap({$0})
+                    .first?.windows.first
+            } else {
+                if let window = UIApplication.shared.delegate?.window as? UIWindow {
+                    keyWindow = window
+                } else {
+                    for window in UIApplication.shared.windows where window.windowLevel == .normal && !window.isHidden {
+                        keyWindow = window
+                    }
+                    keyWindow = UIApplication.shared.windows.first
+                }
+            }
             
             if let keyWindow = keyWindow {
                 isLandscape = keyWindow.bounds.width > keyWindow.bounds.height

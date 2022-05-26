@@ -7,6 +7,7 @@
 
 import UIKit
 
+@available(iOS 13.0, *)
 let TFY = UIApplication.shared.windows.first?.windowScene?.delegate as! SceneDelegate
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
@@ -14,6 +15,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     let mainViewController = ViewController()
     
+    @available(iOS 13.0, *)
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         
         if let windowScene = scene as? UIWindowScene {
