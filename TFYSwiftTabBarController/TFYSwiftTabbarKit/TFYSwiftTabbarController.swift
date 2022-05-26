@@ -26,19 +26,18 @@ open class TFYSwiftTabbarController: UITabBarController, TFYSwiftTabBarDelegate 
         return tabBarController?.moreNavigationController.parent != nil
     }
 
-    /// Ignore next selection or not.
+    /// 忽略下一个选择或不。
     fileprivate var ignoreNextSelection = false
 
-    /// Should hijack select action or not.
+    /// 劫机是否应该选择行动。
     open var shouldHijackHandler: TFYSwiftTabBarControllerShouldHijackHandler?
-    /// Hijack select action.
+    /// 劫持行动选择。
     open var didHijackHandler: TFYSwiftTabBarControllerDidHijackHandler?
     
-    /// Observer tabBarController's selectedViewController. change its selection when it will-set.
+    /// 观察者选项selectedViewController。当它将设置时更改它的选择。
     open override var selectedViewController: UIViewController? {
         willSet {
             guard let newValue = newValue else {
-                // if newValue == nil ...
                 return
             }
             guard !ignoreNextSelection else {
@@ -53,7 +52,7 @@ open class TFYSwiftTabbarController: UITabBarController, TFYSwiftTabBarDelegate 
         }
     }
     
-    /// Observer tabBarController's selectedIndex. change its selection when it will-set.
+    /// 观察者选项的selectedIndex。当它将设置时更改它的选择。
     open override var selectedIndex: Int {
         willSet {
             guard !ignoreNextSelection else {
@@ -68,7 +67,7 @@ open class TFYSwiftTabbarController: UITabBarController, TFYSwiftTabBarDelegate 
         }
     }
     
-    /// Customize set tabBar use KVC.
+    /// 自定义设置选项卡使用KVC。
     open override func viewDidLoad() {
         super.viewDidLoad()
         let tabBar = { () -> TFYSwiftTabBar in

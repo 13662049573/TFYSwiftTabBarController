@@ -21,7 +21,6 @@
 		3666A57C282205190054F22E /* ExampleAnimateTipsContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3666A56D282205190054F22E /* ExampleAnimateTipsContentView.swift */; };
 		3666A57D282205190054F22E /* ExampleTipsContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3666A56E282205190054F22E /* ExampleTipsContentView.swift */; };
 		3666A57E282205190054F22E /* IconTransitions.json in Resources */ = {isa = PBXBuildFile; fileRef = 3666A570282205190054F22E /* IconTransitions.json */; };
-		3666A57F282205190054F22E /* LottieLogo1.json in Resources */ = {isa = PBXBuildFile; fileRef = 3666A571282205190054F22E /* LottieLogo1.json */; };
 		3666A580282205190054F22E /* ExampleLottieAnimateContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3666A572282205190054F22E /* ExampleLottieAnimateContentView.swift */; };
 		3666A582282205190054F22E /* WebView.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3666A575282205190054F22E /* WebView.storyboard */; };
 		3666A583282205190054F22E /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3666A576282205190054F22E /* WebViewController.swift */; };
@@ -75,7 +74,6 @@
 		3666A56D282205190054F22E /* ExampleAnimateTipsContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleAnimateTipsContentView.swift; sourceTree = "<group>"; };
 		3666A56E282205190054F22E /* ExampleTipsContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleTipsContentView.swift; sourceTree = "<group>"; };
 		3666A570282205190054F22E /* IconTransitions.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = IconTransitions.json; sourceTree = "<group>"; };
-		3666A571282205190054F22E /* LottieLogo1.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = LottieLogo1.json; sourceTree = "<group>"; };
 		3666A572282205190054F22E /* ExampleLottieAnimateContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleLottieAnimateContentView.swift; sourceTree = "<group>"; };
 		3666A575282205190054F22E /* WebView.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = WebView.storyboard; sourceTree = "<group>"; };
 		3666A576282205190054F22E /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
@@ -214,7 +212,6 @@
 			isa = PBXGroup;
 			children = (
 				3666A570282205190054F22E /* IconTransitions.json */,
-				3666A571282205190054F22E /* LottieLogo1.json */,
 				3666A572282205190054F22E /* ExampleLottieAnimateContentView.swift */,
 			);
 			path = Lottie;
@@ -457,7 +454,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				369F466E26421EAE002D8566 /* Assets.xcassets in Resources */,
-				3666A57F282205190054F22E /* LottieLogo1.json in Resources */,
 				3666A57E282205190054F22E /* IconTransitions.json in Resources */,
 				3666A582282205190054F22E /* WebView.storyboard in Resources */,
 				369F466F26421EAE002D8566 /* LaunchScreen.storyboard in Resources */,

@@ -17,28 +17,28 @@ open class TFYSwiftTabBarBadgeView: UIView {
     /// 默认颜色
     public static var defaultBadgeColor = UIColor(red: 255.0/255.0, green: 59.0/255.0, blue: 48.0/255.0, alpha: 1.0)
     
-    /// Badge color
+    /// 徽章的颜色
     open var badgeColor: UIColor? = defaultBadgeColor {
         didSet {
             imageView.backgroundColor = badgeColor
         }
     }
     
-    /// Badge value, supprot nil, "", "1", "someText". Hidden when nil. Show Little dot style when "".
+    /// 徽章值，支持nil，“”，“1”，“someText”。隐藏在零。显示小点样式时""。
     open var badgeValue: String? {
         didSet {
             badgeLabel.text = badgeValue
         }
     }
     
-    /// Image view
+    ///图像视图
     open var imageView: UIImageView = {
         let imageView = UIImageView.init(frame: CGRect.zero)
         imageView.backgroundColor = .clear
         return imageView
     }()
     
-    /// 显示badgeValue的Label
+    /// 显示badgvalue的Label
     open var badgeLabel: UILabel = {
         let badgeLabel = UILabel.init(frame: CGRect.zero)
         badgeLabel.backgroundColor = .clear

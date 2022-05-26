@@ -7,13 +7,6 @@
 
 import UIKit
 
-/// 对原生的UITabBarItemPositioning进行扩展，通过UITabBarItemPositioning设置时，系统会自动添加insets，这使得添加背景样式的需求变得不可能实现。ESTabBarItemPositioning完全支持原有的item Position 类型，除此之外还支持完全fill模式。
-///
-/// - automatic: UITabBarItemPositioning.automatic
-/// - fill: UITabBarItemPositioning.fill
-/// - centered: UITabBarItemPositioning.centered
-/// - fillExcludeSeparator: 完全fill模式，布局不覆盖tabBar顶部分割线
-/// - fillIncludeSeparator: 完全fill模式，布局覆盖tabBar顶部分割线
 public enum TFYSwiftTabBarItemPositioning : Int {
     case automatic
     case fill
@@ -50,7 +43,7 @@ internal protocol TFYSwiftTabBarDelegate: NSObjectProtocol {
     func tabBar(_ tabBar: UITabBar, didHijack item: UITabBarItem)
 }
 
-/// ESTabBar是高度自定义的UITabBar子类，通过添加UIControl的方式实现自定义tabBarItem的效果。目前支持tabBar的大部分属性的设置，例如delegate,items,selectedImge,itemPositioning,itemWidth,itemSpacing等，以后会更加细致的优化tabBar原有属性的设置效果。
+/// TFYSwiftTabBar是高度自定义的UITabBar子类，通过添加UIControl的方式实现自定义tabBarItem的效果。目前支持tabBar的大部分属性的设置，例如delegate,items,selectedImge,itemPositioning,itemWidth,itemSpacing等，以后会更加细致的优化tabBar原有属性的设置效果。
 open class TFYSwiftTabBar: UITabBar {
 
     internal weak var customDelegate: TFYSwiftTabBarDelegate?
@@ -79,7 +72,7 @@ open class TFYSwiftTabBar: UITabBar {
     internal var containers = [TFYSwiftTabBarItemContainer]()
     /// 缓存当前tabBarController用来判断是否存在"More"Tab
     internal weak var tabBarController: UITabBarController?
-    /// 自定义'More'按钮样式，继承自ESTabBarItemContentView
+    /// 自定义'More'按钮样式，继承自TFYSwiftTabBarItemContentView
     open var moreContentView: TFYSwiftTabBarItemContentView? = TFYSwiftTabBarItemMoreContentView.init() {
         didSet { self.reload() }
     }
@@ -247,7 +240,7 @@ internal extension TFYSwiftTabBar /* Actions */ {
                 container.addSubview(moreContentView)
             }
         }
-        
+        self.isTranslucent = false
         self.updateAccessibilityLabels()
         self.setNeedsLayout()
     }

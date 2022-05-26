@@ -8,15 +8,15 @@
 import UIKit
 
 public enum TFYSwiftTabBarItemContentMode : Int {
-    case alwaysOriginal // Always set the original image size
-    case alwaysTemplate // Always set the image as a template image size
+    case alwaysOriginal // 始终设置原始图像的大小
+    case alwaysTemplate // 始终将图像设置为模板图像大小
 }
 
 open class TFYSwiftTabBarItemContentView: UIView {
 
     // MARK: - PROPERTY SETTING
     
-    /// The title displayed on the item, default is `nil`
+    /// 项目上显示的标题，默认为' nil '
     open var title: String? {
         didSet {
             self.titleLabel.text = title
@@ -24,93 +24,93 @@ open class TFYSwiftTabBarItemContentView: UIView {
         }
     }
     
-    /// The image used to represent the item, default is `nil`
+    /// 用于表示项目的图像，默认为' nil '
     open var image: UIImage? {
         didSet {
             if !selected { self.updateDisplay() }
         }
     }
     
-    /// The image displayed when the tab bar item is selected, default is `nil`.
+    /// 当选项卡栏项被选中时显示的图像，默认为' nil '。
     open var selectedImage: UIImage? {
         didSet {
             if selected { self.updateDisplay() }
         }
     }
     
-    /// A Boolean value indicating whether the item is enabled, default is `YES`.
+    /// 一个布尔值，指示该项是否启用，默认为“YES”。
     open var enabled = true
     
-    /// A Boolean value indicating whether the item is selected, default is `NO`.
+    /// 一个布尔值，指示项目是否被选中，默认为“NO”。
     open var selected = false
     
-    /// A Boolean value indicating whether the item is highlighted, default is `NO`.
+    /// 一个布尔值，指示项目是否高亮显示，默认为“NO”。
     open var highlighted = false
     
-    /// Text color, default is `UIColor(white: 0.57254902, alpha: 1.0)`.
+    ///文本颜色，默认为' UIColor(白色:0.57254902,alpha: 1.0) '。
     open var textColor = UIColor(white: 0.57254902, alpha: 1.0) {
         didSet {
             if !selected { titleLabel.textColor = textColor }
         }
     }
     
-    /// Text color when highlighted, default is `UIColor(red: 0.0, green: 0.47843137, blue: 1.0, alpha: 1.0)`.
+    /// 文本颜色高亮显示时，默认为' UIColor(红色:0.0，绿色:0.47843137，蓝色:1.0,alpha: 1.0) '。
     open var highlightTextColor = UIColor(red: 0.0, green: 0.47843137, blue: 1.0, alpha: 1.0) {
         didSet {
             if selected { titleLabel.textColor = highlightTextColor }
         }
     }
     
-    /// Icon color, default is `UIColor(white: 0.57254902, alpha: 1.0)`.
+    /// 图标颜色，默认为“UIColor(白色:0.57254902,alpha: 1.0)”。
     open var iconColor = UIColor(white: 0.57254902, alpha: 1.0) {
         didSet {
             if !selected { imageView.tintColor = iconColor }
         }
     }
     
-    /// Icon color when highlighted, default is `UIColor(red: 0.0, green: 0.47843137, blue: 1.0, alpha: 1.0)`.
+    /// 图标颜色高亮显示时，默认为“UIColor(红色:0.0，绿色:0.47843137，蓝色:1.0,alpha: 1.0)”。
     open var highlightIconColor = UIColor(red: 0.0, green: 0.47843137, blue: 1.0, alpha: 1.0) {
         didSet {
             if selected { imageView.tintColor = highlightIconColor }
         }
     }
     
-    /// Background color, default is `UIColor.clear`.
+    ///背景颜色，默认为' uiccolor .clear '。
     open var backdropColor = UIColor.clear {
         didSet {
             if !selected { backgroundColor = backdropColor }
         }
     }
     
-    /// Background color when highlighted, default is `UIColor.clear`.
+    /// 背景颜色被突出显示时，默认为' UIColor.clear '。
     open var highlightBackdropColor = UIColor.clear {
         didSet {
             if selected { backgroundColor = highlightBackdropColor }
         }
     }
     
-    /// Icon imageView renderingMode, default is `.alwaysTemplate`.
+    ///图标imageView renderingMode，默认为' . alwaystemplate '。
     open var renderingMode: UIImage.RenderingMode = .alwaysTemplate {
         didSet {
             self.updateDisplay()
         }
     }
     
-    /// Item content mode, default is `.alwaysTemplate`
+    /// 项目内容模式，默认为' .alwaysTemplate '
     open var itemContentMode: TFYSwiftTabBarItemContentMode = .alwaysTemplate {
         didSet {
             self.updateDisplay()
         }
     }
     
-    /// The offset to use to adjust the title position, default is `UIOffset.zero`.
+    /// 用于调整标题位置的偏移量，默认为' UIOffset.zero '。
     open var titlePositionAdjustment: UIOffset = UIOffset.zero {
         didSet {
             self.updateLayout()
         }
     }
     
-    /// The insets that you use to determine the insets edge for contents, default is `UIEdgeInsets.zero`
+    /// 你用来确定内容的insets边缘的insets，默认为' uiedgeinsets。zero '
     open var insets = UIEdgeInsets.zero
     {
         didSet {
@@ -132,7 +132,7 @@ open class TFYSwiftTabBarItemContentView: UIView {
         return titleLabel
     }()
     
-    /// Badge value, default is `nil`.
+    /// 徽章值，默认为' nil '。
     open var badgeValue: String? {
         didSet {
             if let _ = badgeValue {
@@ -147,7 +147,7 @@ open class TFYSwiftTabBarItemContentView: UIView {
         }
     }
     
-    /// Badge color, default is `nil`.
+    /// 徽章颜色，默认为' nil '。
     open var badgeColor: UIColor? {
         didSet {
             if let _ = badgeColor {
@@ -158,7 +158,7 @@ open class TFYSwiftTabBarItemContentView: UIView {
         }
     }
     
-    /// Badge view, default is `TFYSwiftTabBarBadgeView()`.
+    ///Badge视图，默认为' TFYSwiftTabBarBadgeView() '。
     open var badgeView: TFYSwiftTabBarBadgeView = TFYSwiftTabBarBadgeView() {
         willSet {
             if let _ = badgeView.superview {
