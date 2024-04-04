@@ -86,20 +86,18 @@ class ExampleIrregularityContentView: TFYSwiftTabBarItemContentView {
     }
     
     public override func highlightAnimation(animated: Bool, completion: (() -> ())?) {
-        UIView.beginAnimations("small", context: nil)
-        UIView.setAnimationDuration(0.2)
-        let transform = self.imageView.transform.scaledBy(x: 0.8, y: 0.8)
-        self.imageView.transform = transform
-        UIView.commitAnimations()
+        UIView.animate(withDuration: 0.35) {
+            let transform = self.imageView.transform.scaledBy(x: 0.8, y: 0.8)
+            self.imageView.transform = transform
+        };
         completion?()
     }
     
     public override func dehighlightAnimation(animated: Bool, completion: (() -> ())?) {
-        UIView.beginAnimations("big", context: nil)
-        UIView.setAnimationDuration(0.2)
-        let transform = CGAffineTransform.identity
-        self.imageView.transform = transform
-        UIView.commitAnimations()
+        UIView.animate(withDuration: 0.35) {
+            let transform = CGAffineTransform.identity
+            self.imageView.transform = transform
+        }
         completion?()
     }
     

@@ -9,12 +9,10 @@ import CoreGraphics
 import Foundation
 import QuartzCore
 
-// MARK: - Vector1D + Codable
+// MARK: - LottieVector1D + Codable
 
-/**
- Single value container. Needed because lottie sometimes wraps a Double in an array.
- */
-extension Vector1D: Codable {
+/// Single value container. Needed because lottie sometimes wraps a Double in an array.
+extension LottieVector1D: Codable {
 
   // MARK: Lifecycle
 
@@ -43,18 +41,35 @@ extension Vector1D: Codable {
 
 }
 
+// MARK: - LottieVector1D + AnyInitializable
+
+extension LottieVector1D: AnyInitializable {
+
+  init(value: Any) throws {
+    if
+      let array = value as? [Double],
+      let double = array.first
+    {
+      self.value = double
+    } else if let double = value as? Double {
+      self.value = double
+    } else {
+      throw InitializableError.invalidInput()
+    }
+  }
+
+}
+
 extension Double {
-  var vectorValue: Vector1D {
-    Vector1D(self)
+  var vectorValue: LottieVector1D {
+    LottieVector1D(self)
   }
 }
 
-// MARK: - Vector2D
+// MARK: - LottieVector2D
 
-/**
- Needed for decoding json {x: y:} to a CGPoint
- */
-struct Vector2D: Codable {
+/// Needed for decoding json {x: y:} to a CGPoint
+public struct LottieVector2D: Codable, Hashable, Sendable {
 
   // MARK: Lifecycle
 
@@ -63,8 +78,8 @@ struct Vector2D: Codable {
     self.y = y
   }
 
-  init(from decoder: Decoder) throws {
-    let container = try decoder.container(keyedBy: Vector2D.CodingKeys.self)
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: LottieVector2D.CodingKeys.self)
 
     do {
       let xValue: [Double] = try container.decode([Double].self, forKey: .x)
@@ -81,6 +96,14 @@ struct Vector2D: Codable {
     }
   }
 
+  // MARK: Public
+
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: LottieVector2D.CodingKeys.self)
+    try container.encode(x, forKey: .x)
+    try container.encode(y, forKey: .y)
+  }
+
   // MARK: Internal
 
   var x: Double
@@ -88,12 +111,6 @@ struct Vector2D: Codable {
 
   var pointValue: CGPoint {
     CGPoint(x: x, y: y)
-  }
-
-  func encode(to encoder: Encoder) throws {
-    var container = encoder.container(keyedBy: Vector2D.CodingKeys.self)
-    try container.encode(x, forKey: .x)
-    try container.encode(y, forKey: .y)
   }
 
   // MARK: Private
@@ -104,24 +121,50 @@ struct Vector2D: Codable {
   }
 }
 
-extension Vector2D {
+// MARK: AnyInitializable
 
-}
+extension LottieVector2D: AnyInitializable {
 
-extension CGPoint {
-  var vector2dValue: Vector2D {
-    Vector2D(x: Double(x), y: Double(y))
+  init(value: Any) throws {
+    guard let dictionary = value as? [String: Any] else {
+      throw InitializableError.invalidInput()
+    }
+
+    if
+      let array = dictionary[CodingKeys.x.rawValue] as? [Double],
+      let double = array.first
+    {
+      x = double
+    } else if let double = dictionary[CodingKeys.x.rawValue] as? Double {
+      x = double
+    } else {
+      throw InitializableError.invalidInput()
+    }
+    if
+      let array = dictionary[CodingKeys.y.rawValue] as? [Double],
+      let double = array.first
+    {
+      y = double
+    } else if let double = dictionary[CodingKeys.y.rawValue] as? Double {
+      y = double
+    } else {
+      throw InitializableError.invalidInput()
+    }
   }
 }
 
-// MARK: - Vector3D + Codable
+extension CGPoint {
+  var vector2dValue: LottieVector2D {
+    LottieVector2D(x: Double(x), y: Double(y))
+  }
+}
 
-/**
- A three dimensional vector.
- These vectors are encoded and decoded from [Double]
- */
+// MARK: - LottieVector3D + Codable
 
-extension Vector3D: Codable {
+/// A three dimensional vector.
+/// These vectors are encoded and decoded from [Double]
+
+extension LottieVector3D: Codable {
 
   // MARK: Lifecycle
 
@@ -164,7 +207,22 @@ extension Vector3D: Codable {
 
 }
 
-extension Vector3D {
+// MARK: - LottieVector3D + AnyInitializable
+
+extension LottieVector3D: AnyInitializable {
+
+  init(value: Any) throws {
+    guard var array = value as? [Double] else {
+      throw InitializableError.invalidInput()
+    }
+    x = array.count > 0 ? array.removeFirst() : 0
+    y = array.count > 0 ? array.removeFirst() : 0
+    z = array.count > 0 ? array.removeFirst() : 0
+  }
+
+}
+
+extension LottieVector3D {
   public var pointValue: CGPoint {
     CGPoint(x: x, y: y)
   }
@@ -175,18 +233,22 @@ extension Vector3D {
 }
 
 extension CGPoint {
-  var vector3dValue: Vector3D {
-    Vector3D(x: x, y: y, z: 0)
+  var vector3dValue: LottieVector3D {
+    LottieVector3D(x: x, y: y, z: 0)
   }
 }
 
 extension CGSize {
-  var vector3dValue: Vector3D {
-    Vector3D(x: width, y: height, z: 1)
+  var vector3dValue: LottieVector3D {
+    LottieVector3D(x: width, y: height, z: 1)
   }
 }
 
 extension CATransform3D {
+
+  enum Axis {
+    case x, y, z
+  }
 
   static func makeSkew(skew: CGFloat, skewAxis: CGFloat) -> CATransform3D {
     let mCos = cos(skewAxis.toRadians())
@@ -253,20 +315,37 @@ extension CATransform3D {
     anchor: CGPoint,
     position: CGPoint,
     scale: CGSize,
-    rotation: CGFloat,
+    rotationX: CGFloat,
+    rotationY: CGFloat,
+    rotationZ: CGFloat,
     skew: CGFloat?,
     skewAxis: CGFloat?)
     -> CATransform3D
   {
-    if let skew = skew, let skewAxis = skewAxis {
-      return CATransform3DMakeTranslation(position.x, position.y, 0).rotated(rotation).skewed(skew: -skew, skewAxis: skewAxis)
-        .scaled(scale * 0.01).translated(anchor * -1)
+    if let skew, let skewAxis {
+      return CATransform3DMakeTranslation(position.x, position.y, 0)
+        .rotated(rotationX, axis: .x)
+        .rotated(rotationY, axis: .y)
+        .rotated(rotationZ, axis: .z)
+        .skewed(skew: -skew, skewAxis: skewAxis)
+        .scaled(scale * 0.01)
+        .translated(anchor * -1)
     }
-    return CATransform3DMakeTranslation(position.x, position.y, 0).rotated(rotation).scaled(scale * 0.01).translated(anchor * -1)
+    return CATransform3DMakeTranslation(position.x, position.y, 0)
+      .rotated(rotationX, axis: .x)
+      .rotated(rotationY, axis: .y)
+      .rotated(rotationZ, axis: .z)
+      .scaled(scale * 0.01)
+      .translated(anchor * -1)
   }
 
-  func rotated(_ degrees: CGFloat) -> CATransform3D {
-    CATransform3DRotate(self, degrees.toRadians(), 0, 0, 1)
+  func rotated(_ degrees: CGFloat, axis: Axis) -> CATransform3D {
+    CATransform3DRotate(
+      self,
+      degrees.toRadians(),
+      axis == .x ? 1 : 0,
+      axis == .y ? 1 : 0,
+      axis == .z ? 1 : 0)
   }
 
   func translated(_ translation: CGPoint) -> CATransform3D {
@@ -280,4 +359,5 @@ extension CATransform3D {
   func skewed(skew: CGFloat, skewAxis: CGFloat) -> CATransform3D {
     CATransform3DConcat(CATransform3D.makeSkew(skew: skew, skewAxis: skewAxis), self)
   }
+
 }

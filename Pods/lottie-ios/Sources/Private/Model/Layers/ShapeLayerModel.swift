@@ -5,8 +5,6 @@
 //  Created by Brandon Withrow on 1/8/19.
 //
 
-import Foundation
-
 /// A layer that holds vector shape objects.
 final class ShapeLayerModel: LayerModel {
 
@@ -16,6 +14,12 @@ final class ShapeLayerModel: LayerModel {
     let container = try decoder.container(keyedBy: ShapeLayerModel.CodingKeys.self)
     items = try container.decode([ShapeItem].self, ofFamily: ShapeType.self, forKey: .items)
     try super.init(from: decoder)
+  }
+
+  required init(dictionary: [String: Any]) throws {
+    let itemDictionaries: [[String: Any]] = try dictionary.value(for: CodingKeys.items)
+    items = try [ShapeItem].fromDictionaries(itemDictionaries)
+    try super.init(dictionary: dictionary)
   }
 
   // MARK: Internal

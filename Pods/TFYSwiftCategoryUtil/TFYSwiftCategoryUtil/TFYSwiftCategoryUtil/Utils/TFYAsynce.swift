@@ -7,28 +7,28 @@
 
 import Foundation
 
-public typealias Block = () -> Void
+public typealias TFYSwiftBlock = () -> Void
 
 public struct TFYAsynce {
     /// 异步处理数据
-    public static func async(_ block: @escaping Block) {
+    public static func async(_ block: @escaping TFYSwiftBlock) {
         _async(block)
     }
     
     /// 异步 主线程 处理数据
-    public static func async(_ block: @escaping Block, _ mainblock: @escaping Block) {
+    public static func async(_ block: @escaping TFYSwiftBlock, _ mainblock: @escaping TFYSwiftBlock) {
         _async(block,mainblock)
     }
     
     /// 异步延迟
     @discardableResult
-    public static func asyncDelay(_ seconds: Double, _ block: @escaping Block) -> DispatchWorkItem {
+    public static func asyncDelay(_ seconds: Double, _ block: @escaping TFYSwiftBlock) -> DispatchWorkItem {
         return _asyncDelay(seconds, block)
     }
     
     /// 主线程延迟
     @discardableResult
-    public static func asyncDelay(_ seconds: Double, _ block: @escaping Block, _ mainblock: @escaping Block) -> DispatchWorkItem {
+    public static func asyncDelay(_ seconds: Double, _ block: @escaping TFYSwiftBlock, _ mainblock: @escaping TFYSwiftBlock) -> DispatchWorkItem {
         return _asyncDelay(seconds, block, mainblock)
     }
     
@@ -36,7 +36,7 @@ public struct TFYAsynce {
 
 extension TFYAsynce {
     
-    private static func _async(_ block: @escaping Block, _ mainblock: Block? = nil) {
+    private static func _async(_ block: @escaping TFYSwiftBlock, _ mainblock: TFYSwiftBlock? = nil) {
         let item = DispatchWorkItem(block: block)
         DispatchQueue.global().async(execute: item)
         if let main = mainblock {
@@ -44,7 +44,7 @@ extension TFYAsynce {
         }
     }
     
-    private static func _asyncDelay(_ seconds: Double, _ block: @escaping Block, _ mainblock: Block? = nil) -> DispatchWorkItem {
+    private static func _asyncDelay(_ seconds: Double, _ block: @escaping TFYSwiftBlock, _ mainblock: TFYSwiftBlock? = nil) -> DispatchWorkItem {
         let item = DispatchWorkItem(block: block)
         DispatchQueue.global().asyncAfter(deadline: DispatchTime.now() + seconds, execute: item)
         if let main = mainblock {

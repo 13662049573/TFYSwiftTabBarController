@@ -5,8 +5,6 @@
 //  Created by Brandon Withrow on 1/8/19.
 //
 
-import Foundation
-
 /// A layer that holds a solid color.
 final class SolidLayerModel: LayerModel {
 
@@ -18,6 +16,13 @@ final class SolidLayerModel: LayerModel {
     width = try container.decode(Double.self, forKey: .width)
     height = try container.decode(Double.self, forKey: .height)
     try super.init(from: decoder)
+  }
+
+  required init(dictionary: [String: Any]) throws {
+    colorHex = try dictionary.value(for: CodingKeys.colorHex)
+    width = try dictionary.value(for: CodingKeys.width)
+    height = try dictionary.value(for: CodingKeys.height)
+    try super.init(dictionary: dictionary)
   }
 
   // MARK: Internal

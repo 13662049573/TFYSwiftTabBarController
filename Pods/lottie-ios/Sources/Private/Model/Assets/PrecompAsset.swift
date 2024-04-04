@@ -5,8 +5,6 @@
 //  Created by Brandon Withrow on 1/9/19.
 //
 
-import Foundation
-
 final class PrecompAsset: Asset {
 
   // MARK: Lifecycle
@@ -15,6 +13,12 @@ final class PrecompAsset: Asset {
     let container = try decoder.container(keyedBy: PrecompAsset.CodingKeys.self)
     layers = try container.decode([LayerModel].self, ofFamily: LayerType.self, forKey: .layers)
     try super.init(from: decoder)
+  }
+
+  required init(dictionary: [String: Any]) throws {
+    let layerDictionaries: [[String: Any]] = try dictionary.value(for: CodingKeys.layers)
+    layers = try [LayerModel].fromDictionaries(layerDictionaries)
+    try super.init(dictionary: dictionary)
   }
 
   // MARK: Internal

@@ -5,11 +5,9 @@
 //  Created by Brandon Withrow on 1/8/19.
 //
 
-import Foundation
-
 // MARK: - MergeMode
 
-enum MergeMode: Int, Codable {
+enum MergeMode: Int, Codable, Sendable {
   case none
   case merge
   case add
@@ -20,7 +18,6 @@ enum MergeMode: Int, Codable {
 
 // MARK: - Merge
 
-/// An item that define an ellipse shape
 final class Merge: ShapeItem {
 
   // MARK: Lifecycle
@@ -29,6 +26,15 @@ final class Merge: ShapeItem {
     let container = try decoder.container(keyedBy: Merge.CodingKeys.self)
     mode = try container.decode(MergeMode.self, forKey: .mode)
     try super.init(from: decoder)
+  }
+
+  required init(dictionary: [String: Any]) throws {
+    let modeRawType: Int = try dictionary.value(for: CodingKeys.mode)
+    guard let mode = MergeMode(rawValue: modeRawType) else {
+      throw InitializableError.invalidInput()
+    }
+    self.mode = mode
+    try super.init(dictionary: dictionary)
   }
 
   // MARK: Internal

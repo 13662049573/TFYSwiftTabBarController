@@ -5,8 +5,6 @@
 //  Created by Brandon Withrow on 1/8/19.
 //
 
-import Foundation
-
 /// A layer that holds text.
 final class TextLayerModel: LayerModel {
 
@@ -18,6 +16,15 @@ final class TextLayerModel: LayerModel {
     text = try textContainer.decode(KeyframeGroup<TextDocument>.self, forKey: .text)
     animators = try textContainer.decode([TextAnimator].self, forKey: .animators)
     try super.init(from: decoder)
+  }
+
+  required init(dictionary: [String: Any]) throws {
+    let containerDictionary: [String: Any] = try dictionary.value(for: CodingKeys.textGroup)
+    let textDictionary: [String: Any] = try containerDictionary.value(for: TextCodingKeys.text)
+    text = try KeyframeGroup<TextDocument>(dictionary: textDictionary)
+    let animatorDictionaries: [[String: Any]] = try containerDictionary.value(for: TextCodingKeys.animators)
+    animators = try animatorDictionaries.map { try TextAnimator(dictionary: $0) }
+    try super.init(dictionary: dictionary)
   }
 
   // MARK: Internal

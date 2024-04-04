@@ -7,8 +7,11 @@
 
 import CoreGraphics
 import Foundation
+
+// MARK: - PointValueProvider
+
 /// A `ValueProvider` that returns a CGPoint Value
-public final class PointValueProvider: AnyValueProvider {
+public final class PointValueProvider: ValueProvider {
 
   // MARK: Lifecycle
 
@@ -16,6 +19,7 @@ public final class PointValueProvider: AnyValueProvider {
   public init(block: @escaping PointValueBlock) {
     self.block = block
     point = .zero
+    identity = UUID()
   }
 
   /// Initializes with a single point.
@@ -23,6 +27,7 @@ public final class PointValueProvider: AnyValueProvider {
     self.point = point
     block = nil
     hasUpdate = true
+    identity = [point.x, point.y]
   }
 
   // MARK: Public
@@ -39,7 +44,19 @@ public final class PointValueProvider: AnyValueProvider {
   // MARK: ValueProvider Protocol
 
   public var valueType: Any.Type {
-    Vector3D.self
+    LottieVector3D.self
+  }
+
+  public var storage: ValueProviderStorage<LottieVector3D> {
+    if let block {
+      return .closure { frame in
+        self.hasUpdate = false
+        return block(frame).vector3dValue
+      }
+    } else {
+      hasUpdate = false
+      return .singleValue(point.vector3dValue)
+    }
   }
 
   public func hasUpdate(frame _: CGFloat) -> Bool {
@@ -49,20 +66,18 @@ public final class PointValueProvider: AnyValueProvider {
     return hasUpdate
   }
 
-  public func value(frame: CGFloat) -> Any {
-    hasUpdate = false
-    let newPoint: CGPoint
-    if let block = block {
-      newPoint = block(frame)
-    } else {
-      newPoint = point
-    }
-    return newPoint.vector3dValue
-  }
-
   // MARK: Private
 
-  private var hasUpdate: Bool = true
+  private var hasUpdate = true
 
   private var block: PointValueBlock?
+  private let identity: AnyHashable
+}
+
+// MARK: Equatable
+
+extension PointValueProvider: Equatable {
+  public static func ==(_ lhs: PointValueProvider, _ rhs: PointValueProvider) -> Bool {
+    lhs.identity == rhs.identity
+  }
 }

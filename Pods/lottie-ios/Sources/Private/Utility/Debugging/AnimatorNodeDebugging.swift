@@ -5,20 +5,18 @@
 //  Created by Brandon Withrow on 1/18/19.
 //
 
-import Foundation
-
 extension AnimatorNode {
 
   func printNodeTree() {
     parentNode?.printNodeTree()
-    print(String(describing: type(of: self)))
+    LottieLogger.shared.info(String(describing: type(of: self)))
 
     if let group = self as? GroupNode {
-      print("* |Children")
+      LottieLogger.shared.info("* |Children")
       group.rootNode?.printNodeTree()
-      print("*")
+      LottieLogger.shared.info("*")
     } else {
-      print("|")
+      LottieLogger.shared.info("|")
     }
   }
 

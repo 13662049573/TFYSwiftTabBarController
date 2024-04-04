@@ -36,8 +36,6 @@
 		369F466F26421EAE002D8566 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 369F466626421EAD002D8566 /* LaunchScreen.storyboard */; };
 		369F46762642218B002D8566 /* TFYSwiftTabbarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F46752642218B002D8566 /* TFYSwiftTabbarController.swift */; };
 		369F467D26422E62002D8566 /* TFYSwiftTabBarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F467C26422E62002D8566 /* TFYSwiftTabBarItem.swift */; };
-		4AC61B18A4D371C2A868B3FB /* Pods_TFYSwiftTabBarController_TFYSwiftTabBarControllerUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 088DD4451827A7B45B771F76 /* Pods_TFYSwiftTabBarController_TFYSwiftTabBarControllerUITests.framework */; };
-		7F087F441FDDBF00F8F18C6F /* Pods_TFYSwiftTabBarControllerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5959573B2BC2B8A4102F0AC8 /* Pods_TFYSwiftTabBarControllerTests.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,8 +56,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		088DD4451827A7B45B771F76 /* Pods_TFYSwiftTabBarController_TFYSwiftTabBarControllerUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TFYSwiftTabBarController_TFYSwiftTabBarControllerUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		258EDE6EE829CCAAA7901694 /* Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests.release.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests/Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests.release.xcconfig"; sourceTree = "<group>"; };
 		3666A5532822000E0054F22E /* TFYSwiftTabBarItemContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarItemContainer.swift; sourceTree = "<group>"; };
 		3666A555282200580054F22E /* TFYSwiftTabBarItemContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarItemContentView.swift; sourceTree = "<group>"; };
 		3666A5572822015F0054F22E /* TFYSwiftTabBarItemMoreContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarItemMoreContentView.swift; sourceTree = "<group>"; };
@@ -96,12 +92,8 @@
 		369F467826422BCA002D8566 /* TFYSwiftTabBarController-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TFYSwiftTabBarController-Bridging-Header.h"; sourceTree = "<group>"; };
 		369F467C26422E62002D8566 /* TFYSwiftTabBarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarItem.swift; sourceTree = "<group>"; };
 		3ED0DD7FF3393B7F53426101 /* Pods-TFYSwiftTabBarController.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarController.debug.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarController/Pods-TFYSwiftTabBarController.debug.xcconfig"; sourceTree = "<group>"; };
-		46275AE566470D99A19187DE /* Pods-TFYSwiftTabBarControllerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarControllerTests.release.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarControllerTests/Pods-TFYSwiftTabBarControllerTests.release.xcconfig"; sourceTree = "<group>"; };
-		5959573B2BC2B8A4102F0AC8 /* Pods_TFYSwiftTabBarControllerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TFYSwiftTabBarControllerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7225CA48D6E76B8327E2B824 /* Pods_TFYSwiftTabBarController.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TFYSwiftTabBarController.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		BD5F8271A03E02A3D830BE68 /* Pods-TFYSwiftTabBarControllerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarControllerTests.debug.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarControllerTests/Pods-TFYSwiftTabBarControllerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		E1977E78E9D9FFD0AE3A2D3A /* Pods-TFYSwiftTabBarController.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarController.release.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarController/Pods-TFYSwiftTabBarController.release.xcconfig"; sourceTree = "<group>"; };
-		F0AB4689CEFFE0BB9FD2BC4E /* Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests.debug.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests/Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,7 +109,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7F087F441FDDBF00F8F18C6F /* Pods_TFYSwiftTabBarControllerTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,7 +116,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4AC61B18A4D371C2A868B3FB /* Pods_TFYSwiftTabBarController_TFYSwiftTabBarControllerUITests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -137,10 +127,6 @@
 			children = (
 				3ED0DD7FF3393B7F53426101 /* Pods-TFYSwiftTabBarController.debug.xcconfig */,
 				E1977E78E9D9FFD0AE3A2D3A /* Pods-TFYSwiftTabBarController.release.xcconfig */,
-				F0AB4689CEFFE0BB9FD2BC4E /* Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests.debug.xcconfig */,
-				258EDE6EE829CCAAA7901694 /* Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests.release.xcconfig */,
-				BD5F8271A03E02A3D830BE68 /* Pods-TFYSwiftTabBarControllerTests.debug.xcconfig */,
-				46275AE566470D99A19187DE /* Pods-TFYSwiftTabBarControllerTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -337,8 +323,6 @@
 			isa = PBXGroup;
 			children = (
 				7225CA48D6E76B8327E2B824 /* Pods_TFYSwiftTabBarController.framework */,
-				088DD4451827A7B45B771F76 /* Pods_TFYSwiftTabBarController_TFYSwiftTabBarControllerUITests.framework */,
-				5959573B2BC2B8A4102F0AC8 /* Pods_TFYSwiftTabBarControllerTests.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -369,7 +353,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 369F465926421E56002D8566 /* Build configuration list for PBXNativeTarget "TFYSwiftTabBarControllerTests" */;
 			buildPhases = (
-				62E3661F97429B4CE879CF02 /* [CP] Check Pods Manifest.lock */,
 				369F463E26421E56002D8566 /* Sources */,
 				369F463F26421E56002D8566 /* Frameworks */,
 				369F464026421E56002D8566 /* Resources */,
@@ -388,11 +371,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 369F465C26421E56002D8566 /* Build configuration list for PBXNativeTarget "TFYSwiftTabBarControllerUITests" */;
 			buildPhases = (
-				369F46CFAA37B024B5ECB81D /* [CP] Check Pods Manifest.lock */,
 				369F464926421E56002D8566 /* Sources */,
 				369F464A26421E56002D8566 /* Frameworks */,
 				369F464B26421E56002D8566 /* Resources */,
-				8966F1CD68E888FB9555A8E6 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -477,50 +458,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		369F46CFAA37B024B5ECB81D /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		62E3661F97429B4CE879CF02 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-TFYSwiftTabBarControllerTests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
 		7D8CC08B1A2956DCD16644EC /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -541,23 +478,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		8966F1CD68E888FB9555A8E6 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests/Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests/Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests/Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		C72E2562D2AE99E11C13C2FC /* [CP] Embed Pods Frameworks */ = {
@@ -829,7 +749,6 @@
 		};
 		369F465A26421E56002D8566 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BD5F8271A03E02A3D830BE68 /* Pods-TFYSwiftTabBarControllerTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -852,7 +771,6 @@
 		};
 		369F465B26421E56002D8566 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 46275AE566470D99A19187DE /* Pods-TFYSwiftTabBarControllerTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -875,7 +793,6 @@
 		};
 		369F465D26421E56002D8566 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F0AB4689CEFFE0BB9FD2BC4E /* Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
@@ -896,7 +813,6 @@
 		};
 		369F465E26421E56002D8566 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 258EDE6EE829CCAAA7901694 /* Pods-TFYSwiftTabBarController-TFYSwiftTabBarControllerUITests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;

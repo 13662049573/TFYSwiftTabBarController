@@ -8,8 +8,10 @@
 import CoreGraphics
 import Foundation
 
+// MARK: - FloatValueProvider
+
 /// A `ValueProvider` that returns a CGFloat Value
-public final class FloatValueProvider: AnyValueProvider {
+public final class FloatValueProvider: ValueProvider {
 
   // MARK: Lifecycle
 
@@ -17,6 +19,7 @@ public final class FloatValueProvider: AnyValueProvider {
   public init(block: @escaping CGFloatValueBlock) {
     self.block = block
     float = 0
+    identity = UUID()
   }
 
   /// Initializes with a single float.
@@ -24,6 +27,7 @@ public final class FloatValueProvider: AnyValueProvider {
     self.float = float
     block = nil
     hasUpdate = true
+    identity = float
   }
 
   // MARK: Public
@@ -40,7 +44,19 @@ public final class FloatValueProvider: AnyValueProvider {
   // MARK: ValueProvider Protocol
 
   public var valueType: Any.Type {
-    Vector1D.self
+    LottieVector1D.self
+  }
+
+  public var storage: ValueProviderStorage<LottieVector1D> {
+    if let block {
+      return .closure { frame in
+        self.hasUpdate = false
+        return LottieVector1D(Double(block(frame)))
+      }
+    } else {
+      hasUpdate = false
+      return .singleValue(LottieVector1D(Double(float)))
+    }
   }
 
   public func hasUpdate(frame _: CGFloat) -> Bool {
@@ -50,20 +66,18 @@ public final class FloatValueProvider: AnyValueProvider {
     return hasUpdate
   }
 
-  public func value(frame: CGFloat) -> Any {
-    hasUpdate = false
-    let newCGFloat: CGFloat
-    if let block = block {
-      newCGFloat = block(frame)
-    } else {
-      newCGFloat = float
-    }
-    return Vector1D(Double(newCGFloat))
-  }
-
   // MARK: Private
 
-  private var hasUpdate: Bool = true
+  private var hasUpdate = true
 
   private var block: CGFloatValueBlock?
+  private var identity: AnyHashable
+}
+
+// MARK: Equatable
+
+extension FloatValueProvider: Equatable {
+  public static func ==(_ lhs: FloatValueProvider, _ rhs: FloatValueProvider) -> Bool {
+    lhs.identity == rhs.identity
+  }
 }

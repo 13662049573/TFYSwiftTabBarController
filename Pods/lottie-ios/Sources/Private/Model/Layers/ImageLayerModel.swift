@@ -5,8 +5,6 @@
 //  Created by Brandon Withrow on 1/8/19.
 //
 
-import Foundation
-
 /// A layer that holds an image.
 final class ImageLayerModel: LayerModel {
 
@@ -16,6 +14,11 @@ final class ImageLayerModel: LayerModel {
     let container = try decoder.container(keyedBy: ImageLayerModel.CodingKeys.self)
     referenceID = try container.decode(String.self, forKey: .referenceID)
     try super.init(from: decoder)
+  }
+
+  required init(dictionary: [String: Any]) throws {
+    referenceID = try dictionary.value(for: CodingKeys.referenceID)
+    try super.init(dictionary: dictionary)
   }
 
   // MARK: Internal
