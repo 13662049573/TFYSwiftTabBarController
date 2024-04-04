@@ -9,14 +9,20 @@ target 'TFYSwiftTabBarController' do
   pod 'TFYSwiftCategoryUtil'
   pod 'lottie-ios'
   pod 'pop'
-  
-  target 'TFYSwiftTabBarControllerTests' do
-    inherit! :search_paths
-    # Pods for testing
-  end
 
-  target 'TFYSwiftTabBarControllerUITests' do
-    # Pods for testing
-  end
+end
 
+post_install do |pi|
+  pi.pods_project.targets.each do |t|
+    t.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = "NO"
+      config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
+      config.build_settings['VALID_ARCHS'] = 'arm64 arm64e armv7 armv7s x86_64 i386'
+      xcconfig_path = config.base_configuration_reference.real_path
+      xcconfig = File.read(xcconfig_path)
+      xcconfig_mod = xcconfig.gsub(/DT_TOOLCHAIN_DIR/, "TOOLCHAIN_DIR")
+      File.open(xcconfig_path, "w") { |file| file << xcconfig_mod }
+    end
+  end
 end
