@@ -109,6 +109,7 @@ open class TFYSwiftTabBar: UITabBar {
     open override func layoutSubviews() {
         super.layoutSubviews()
         self.updateLayout()
+        self.hiddentabbarimageView()
     }
     
     open override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
@@ -121,6 +122,15 @@ open class TFYSwiftTabBar: UITabBar {
             }
         }
         return b
+    }
+    
+    func hiddentabbarimageView() {
+        let viewsArr = subviews
+        for views in viewsArr {
+            if views.isKind(of: NSClassFromString("_UIBarBackground")!) {
+                views.removeFromSuperview()
+            }
+        }
     }
     
 }
