@@ -89,7 +89,6 @@
 		369F466726421EAD002D8566 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		369F466A26421EAD002D8566 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		369F46752642218B002D8566 /* TFYSwiftTabbarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabbarController.swift; sourceTree = "<group>"; };
-		369F467826422BCA002D8566 /* TFYSwiftTabBarController-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TFYSwiftTabBarController-Bridging-Header.h"; sourceTree = "<group>"; };
 		369F467C26422E62002D8566 /* TFYSwiftTabBarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarItem.swift; sourceTree = "<group>"; };
 		3ED0DD7FF3393B7F53426101 /* Pods-TFYSwiftTabBarController.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarController.debug.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarController/Pods-TFYSwiftTabBarController.debug.xcconfig"; sourceTree = "<group>"; };
 		7225CA48D6E76B8327E2B824 /* Pods_TFYSwiftTabBarController.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TFYSwiftTabBarController.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -238,7 +237,6 @@
 		369F462E26421E55002D8566 /* TFYSwiftTabBarController */ = {
 			isa = PBXGroup;
 			children = (
-				369F467726422BAF002D8566 /* PCH */,
 				369F46742642213B002D8566 /* TFYSwiftTabbarKit */,
 				369F466126421EAD002D8566 /* AppDelegate */,
 				369F465F26421EAD002D8566 /* Class */,
@@ -309,14 +307,6 @@
 				3666A5572822015F0054F22E /* TFYSwiftTabBarItemMoreContentView.swift */,
 			);
 			path = TFYSwiftTabbarKit;
-			sourceTree = "<group>";
-		};
-		369F467726422BAF002D8566 /* PCH */ = {
-			isa = PBXGroup;
-			children = (
-				369F467826422BCA002D8566 /* TFYSwiftTabBarController-Bridging-Header.h */,
-			);
-			path = PCH;
 			sourceTree = "<group>";
 		};
 		97549CD3453ACE389340D529 /* Frameworks */ = {
@@ -698,6 +688,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = QH95759TSS;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/TFYSwiftTabBarController/Class/Content/Lottie",
@@ -711,7 +702,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.tfy.TFYSwiftTabBarController;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_OBJC_BRIDGING_HEADER = "TFYSwiftTabBarController/PCH/TFYSwiftTabBarController-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -728,6 +719,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = QH95759TSS;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/TFYSwiftTabBarController/Class/Content/Lottie",
@@ -741,7 +733,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.tfy.TFYSwiftTabBarController;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_OBJC_BRIDGING_HEADER = "TFYSwiftTabBarController/PCH/TFYSwiftTabBarController-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

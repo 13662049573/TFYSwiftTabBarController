@@ -31,24 +31,24 @@ class ViewController: UIViewController,UITabBarControllerDelegate  {
     public let titleArray = [
         [
             "UITabBarController style",
-            "ESTabBarController like system style",
-            "Mix ESTabBar and UITabBar",
+            "TFYTabBarController like system style",
+            "Mix TFYTabBar and UITabBar",
             "UITabBarController style with 'More'",
-            "ESTabBarController style with 'More'",
-            "Mix ESTabBar and UITabBar with 'More'",
+            "TFYTabBarController style with 'More'",
+            "Mix TFYTabBar and UITabBar with 'More'",
             "UITabBarController style with non-zero default index",
-            "ESTabBarController style with non-zero default index"
+            "TFYTabBarController style with non-zero default index"
         ],
         [
-            "ESTabBarController embeds the UINavigationController style",
-            "UINavigationController embeds the ESTabBarController style",
+            "TFYTabBarController embeds the UINavigationController style",
+            "UINavigationController embeds the TFYTabBarController style",
             ],
         [
             "Customize the selected color style",
             "Spring animation style",
             "Background color change style",
             "With a selected effect style",
-            "Suggested clicks style",
+            "SuggTFYted clicks style",
             ],
         [
             "In the middle with a larger button style",
@@ -72,13 +72,13 @@ class ViewController: UIViewController,UITabBarControllerDelegate  {
     public let subtitleArray = [
         [
             "UITabBarController样式",
-            "ESTabBarController仿系统样式",
-            "ESTabBar和UITabBar混合样式",
+            "TFYTabBarController仿系统样式",
+            "TFYTabBar和UITabBar混合样式",
             "带有'More'的UITabBarController样式",
-            "带有'More'的ESTabBarController样式",
-            "带有'More'的ESTabBar和UITabBar混合样式",
+            "带有'More'的TFYTabBarController样式",
+            "带有'More'的TFYTabBar和UITabBar混合样式",
             "默认index非0的UITabBarController样式",
-            "默认index非0的ESTabBarController样式"
+            "默认index非0的TFYTabBarController样式"
         ],
         [
             "UINavigationController内嵌UITabBarController样式",

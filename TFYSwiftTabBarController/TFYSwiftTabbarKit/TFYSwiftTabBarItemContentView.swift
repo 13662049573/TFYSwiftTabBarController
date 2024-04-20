@@ -17,9 +17,9 @@ open class TFYSwiftTabBarItemContentView: UIView {
     // MARK: - PROPERTY SETTING
     
     /// 项目上显示的标题，默认为' nil '
-    open var title: String? {
+    open var tabbarTitle: String? {
         didSet {
-            self.titleLabel.text = title
+            self.titleLabel.text = tabbarTitle
             self.updateLayout()
         }
     }

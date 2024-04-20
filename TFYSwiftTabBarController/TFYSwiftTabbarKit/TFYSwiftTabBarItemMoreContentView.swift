@@ -11,7 +11,7 @@ open class TFYSwiftTabBarItemMoreContentView: TFYSwiftTabBarItemContentView {
 
     public override init(frame: CGRect) {
         super.init(frame: frame)
-        self.title = NSLocalizedString("More_TabBarItem", bundle: Bundle(for:TFYSwiftTabbarController.self), comment: "")
+        self.tabbarTitle = NSLocalizedString("More_TabBarItem", bundle: Bundle(for:TFYSwiftTabbarController.self), comment: "")
         self.image = systemMore(highlighted: false)
         self.selectedImage = systemMore(highlighted: true)
     }

@@ -26,12 +26,6 @@ open class TFYSwiftTabBarItem: UITabBarItem {
         didSet { self.contentView.enabled = isEnabled }
     }
     
-    /// 项目上显示的标题，默认为' nil '
-    open override var title: String?
-    {
-        didSet { self.contentView.title = title }
-    }
-    
     /// 用于表示项目的图像，默认为' nil '
     open override var image: UIImage?
     {
@@ -83,7 +77,7 @@ open class TFYSwiftTabBarItem: UITabBarItem {
     public init(_ contentView: TFYSwiftTabBarItemContentView = TFYSwiftTabBarItemContentView(), title: String? = nil, image: UIImage? = nil, selectedImage: UIImage? = nil, tag: Int = 0) {
         super.init()
         self.contentView = contentView
-        self.contentView.title = title
+        self.contentView.tabbarTitle = title
         self.contentView.image = image
         self.contentView.selectedImage = selectedImage
         self.contentView.tag = tag

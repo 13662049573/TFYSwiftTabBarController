@@ -41,6 +41,8 @@ public class ExampleViewController: UIViewController {
     
     public override func viewDidLoad() {
         super.viewDidLoad()
+        self.title = "ssssssss"
+        
         self.view.backgroundColor = UIColor.init(red: 244.0 / 255.0, green: 245.0 / 255.0, blue: 245.0 / 255.0, alpha: 1.0)
         
         tip.textColor = UIColor.gray

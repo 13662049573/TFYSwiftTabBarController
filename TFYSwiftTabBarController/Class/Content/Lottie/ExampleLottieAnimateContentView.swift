@@ -8,6 +8,10 @@
 
 import UIKit
 import Lottie
+import TFYSwiftCategoryUtil
+import TFYSwiftNavigationKit
+import SnapKit
+import pop
 
 class ExampleLottieAnimateBasicContentView: TFYSwiftTabBarItemContentView {
     
@@ -28,8 +32,8 @@ class ExampleLottieAnimateBasicContentView: TFYSwiftTabBarItemContentView {
 
 class ExampleLottieAnimateContentView: ExampleLottieAnimateBasicContentView {
 
-    let lottieView: AnimationView! = {
-        let lottieView = AnimationView(name: "IconTransitions")
+    let lottieView: CompatibleAnimationView! = {
+        let lottieView = CompatibleAnimationView(compatibleAnimation: CompatibleAnimation(name: "IconTransitions"))
         lottieView.contentMode = .scaleAspectFit
         lottieView.play()
         return lottieView
