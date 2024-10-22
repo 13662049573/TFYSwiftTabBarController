@@ -3,7 +3,7 @@ Pod::Spec.new do |spec|
 
   spec.name         = "TFYSwiftTabbarKit"
 
-  spec.version      = "2.0.6.3"
+  spec.version      = "2.0.6.4"
 
   spec.summary      = "Swift版的tabbarController 满足基本使用，方便快捷。最低支持iOS 13  Swift5 以上"
 
@@ -17,7 +17,7 @@ Pod::Spec.new do |spec|
 
   spec.author       = { "田风有" => "420144542@qq.com" }
  
-  spec.platform     = :ios, "13.0"
+  spec.platform     = :ios, "14.0"
 
   spec.swift_version = '5.0'
 
