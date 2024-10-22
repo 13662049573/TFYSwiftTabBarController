@@ -7,7 +7,6 @@
 
 import UIKit
 
-@available(iOS 8.0, *)
 open class TFYSwiftTabBarItem: UITabBarItem {
     
     // MARK: UIView properties
