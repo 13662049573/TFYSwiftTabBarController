@@ -97,12 +97,12 @@ open class TFYSwiftTabBar: UITabBar {
     }
     
     open override func beginCustomizingItems(_ items: [UITabBarItem]) {
-        TFYSwiftTabbarController.printError("beginCustomizingItems(_:) is unsupported in ESTabBar.")
+        TFYSwiftTabbarController.printError("beginCustomizingItems(_:) is unsupported in TFYSwiftTabBar.")
         super.beginCustomizingItems(items)
     }
     
     open override func endCustomizing(animated: Bool) -> Bool {
-        TFYSwiftTabbarController.printError("endCustomizing(_:) is unsupported in ESTabBar.")
+        TFYSwiftTabbarController.printError("endCustomizing(_:) is unsupported in TFYSwiftTabBar.")
         return super.endCustomizing(animated: animated)
     }
     

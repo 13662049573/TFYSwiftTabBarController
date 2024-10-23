@@ -17,7 +17,7 @@ open class TFYSwiftTabbarController: UITabBarController, TFYSwiftTabBarDelegate 
     /// 打印异常
     public static func printError(_ description: String) {
         #if DEBUG
-            print("ERROR: ESTabBarController catch an error '\(description)' \n")
+            print("ERROR: TFYSwiftTabBarController catch an error '\(description)' \n")
         #endif
     }
     
@@ -109,7 +109,7 @@ open class TFYSwiftTabbarController: UITabBarController, TFYSwiftTabBarDelegate 
         }
     }
     
-    // MARK: - ESTabBar delegate
+    // MARK: - TFYSwiftTabBar delegate
     internal func tabBar(_ tabBar: UITabBar, shouldSelect item: UITabBarItem) -> Bool {
         if let idx = tabBar.items?.firstIndex(of: item), let vc = viewControllers?[idx] {
             return delegate?.tabBarController?(self, shouldSelect: vc) ?? true

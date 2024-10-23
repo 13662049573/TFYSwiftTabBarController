@@ -61,7 +61,7 @@ open class TFYSwiftTabBarItem: UITabBarItem {
         set(newValue) { contentView.badgeColor = newValue }
     }
     
-    // MARK: ESTabBarItem properties
+    // MARK: TFYSwiftTabBarItem properties
     
     /// 自定义内容视图，默认是' TFYSwiftTabBarItemContentView '
     open var contentView: TFYSwiftTabBarItemContentView = TFYSwiftTabBarItemContentView()
