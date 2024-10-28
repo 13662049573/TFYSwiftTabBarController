@@ -21,6 +21,7 @@ class ExampleLottieAnimateBasicContentView: TFYSwiftTabBarItemContentView {
         highlightTextColor = UIColor.init(red: 252/255.0, green: 13/255.0, blue: 27/255.0, alpha: 1.0)
         iconColor = UIColor.init(red: 61/255.0, green: 206/255.0, blue: 193/255.0, alpha: 1.0)
         highlightIconColor = UIColor.init(red: 252/255.0, green: 13/255.0, blue: 27/255.0, alpha: 1.0)
+        itemContentMode = .alwaysOriginal
     }
     
     public required init?(coder aDecoder: NSCoder) {
@@ -33,7 +34,7 @@ class ExampleLottieAnimateBasicContentView: TFYSwiftTabBarItemContentView {
 class ExampleLottieAnimateContentView: ExampleLottieAnimateBasicContentView {
 
     let lottieView: CompatibleAnimationView! = {
-        let lottieView = CompatibleAnimationView(compatibleAnimation: CompatibleAnimation(name: "IconTransitions"))
+        let lottieView = CompatibleAnimationView(compatibleAnimation: CompatibleAnimation(name: "data2"))
         lottieView.contentMode = .scaleAspectFit
         lottieView.play()
         return lottieView
@@ -55,12 +56,12 @@ class ExampleLottieAnimateContentView: ExampleLottieAnimateBasicContentView {
     
     override func selectAnimation(animated: Bool, completion: (() -> ())?) {
         super.selectAnimation(animated: animated, completion: nil)
-        lottieView.pause()
+        lottieView.play()
     }
     
     override func deselectAnimation(animated: Bool, completion: (() -> ())?) {
         super.deselectAnimation(animated: animated, completion: nil)
-        lottieView.play()
+        lottieView.pause()
     }
 
 }

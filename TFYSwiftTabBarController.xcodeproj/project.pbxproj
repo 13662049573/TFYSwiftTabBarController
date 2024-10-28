@@ -27,6 +27,7 @@
 		3666A58928220B0D0054F22E /* Pods_TFYSwiftTabBarController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7225CA48D6E76B8327E2B824 /* Pods_TFYSwiftTabBarController.framework */; };
 		367264D72653AE3200049CEF /* TFYSwiftTabBarBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264D62653AE3200049CEF /* TFYSwiftTabBarBadgeView.swift */; };
 		367264DD2653B1BA00049CEF /* TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367264DC2653B1BA00049CEF /* TFYSwiftTabBar.swift */; };
+		3685E2D32CCDC548009C8D47 /* data2.json in Resources */ = {isa = PBXBuildFile; fileRef = 3685E2D22CCDC548009C8D47 /* data2.json */; };
 		369F464726421E56002D8566 /* TFYSwiftTabBarControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F464626421E56002D8566 /* TFYSwiftTabBarControllerTests.swift */; };
 		369F465226421E56002D8566 /* TFYSwiftTabBarControllerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F465126421E56002D8566 /* TFYSwiftTabBarControllerUITests.swift */; };
 		369F466B26421EAE002D8566 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F466026421EAD002D8566 /* ViewController.swift */; };
@@ -75,6 +76,7 @@
 		3666A576282205190054F22E /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
 		367264D62653AE3200049CEF /* TFYSwiftTabBarBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarBadgeView.swift; sourceTree = "<group>"; };
 		367264DC2653B1BA00049CEF /* TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBar.swift; sourceTree = "<group>"; };
+		3685E2D22CCDC548009C8D47 /* data2.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = data2.json; sourceTree = "<group>"; };
 		369F462C26421E55002D8566 /* TFYSwiftTabBarController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TFYSwiftTabBarController.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		369F464226421E56002D8566 /* TFYSwiftTabBarControllerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TFYSwiftTabBarControllerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		369F464626421E56002D8566 /* TFYSwiftTabBarControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarControllerTests.swift; sourceTree = "<group>"; };
@@ -196,6 +198,7 @@
 		3666A56F282205190054F22E /* Lottie */ = {
 			isa = PBXGroup;
 			children = (
+				3685E2D22CCDC548009C8D47 /* data2.json */,
 				3666A570282205190054F22E /* IconTransitions.json */,
 				3666A572282205190054F22E /* ExampleLottieAnimateContentView.swift */,
 			);
@@ -425,6 +428,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3685E2D32CCDC548009C8D47 /* data2.json in Resources */,
 				369F466E26421EAE002D8566 /* Assets.xcassets in Resources */,
 				3666A57E282205190054F22E /* IconTransitions.json in Resources */,
 				3666A582282205190054F22E /* WebView.storyboard in Resources */,
