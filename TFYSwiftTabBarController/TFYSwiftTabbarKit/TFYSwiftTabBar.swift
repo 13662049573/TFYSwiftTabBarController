@@ -148,7 +148,7 @@ internal extension TFYSwiftTabBar /* Layout */ {
                 return subview.isKind(of: cls)
             }
             return false
-            } .sorted { (subview1, subview2) -> Bool in
+            }.sorted { (subview1, subview2) -> Bool in
                 return subview1.frame.origin.x < subview2.frame.origin.x
         }
         
