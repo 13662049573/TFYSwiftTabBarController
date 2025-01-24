@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import Lottie
 
 public class ExampleViewController: UIViewController {
     
@@ -39,9 +40,18 @@ public class ExampleViewController: UIViewController {
     let icon: UIButton = UIButton()
     let button: UIButton = UIButton()
     
+    let lottieView: CompatibleAnimationView! = {
+        let lottieView = CompatibleAnimationView(compatibleAnimation: CompatibleAnimation(name: "bgjson"))
+        lottieView.contentMode = .scaleAspectFit
+        lottieView.play()
+        return lottieView
+    }()
+    
     public override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "ssssssss"
+        
+        view.addSubview(lottieView)
         
         self.view.backgroundColor = UIColor.init(red: 244.0 / 255.0, green: 245.0 / 255.0, blue: 245.0 / 255.0, alpha: 1.0)
         
@@ -64,6 +74,8 @@ public class ExampleViewController: UIViewController {
         view.addSubview(icon)
         view.addSubview(tip)
         view.addSubview(button)
+        
+        
     }
     
     public override func viewDidLayoutSubviews() {
@@ -72,6 +84,7 @@ public class ExampleViewController: UIViewController {
         tip.frame = self.view.bounds.insetBy(dx: 12, dy: 0)
         let size = button.sizeThatFits(self.view.bounds.size)
         button.frame = CGRect.init(x: (self.view.bounds.size.width - size.width) / 2.0, y: self.view.bounds.size.height - 120, width: size.width, height: 42.0)
+        lottieView.frame = view.bounds
     }
     
     @objc public func homePageAction() {

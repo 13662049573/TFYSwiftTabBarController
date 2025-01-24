@@ -37,6 +37,7 @@
 		369F466F26421EAE002D8566 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 369F466626421EAD002D8566 /* LaunchScreen.storyboard */; };
 		369F46762642218B002D8566 /* TFYSwiftTabbarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F46752642218B002D8566 /* TFYSwiftTabbarController.swift */; };
 		369F467D26422E62002D8566 /* TFYSwiftTabBarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F467C26422E62002D8566 /* TFYSwiftTabBarItem.swift */; };
+		36DCD2992CD11C7700A10EEF /* bgjson.json in Resources */ = {isa = PBXBuildFile; fileRef = 36DCD2982CD11C7700A10EEF /* bgjson.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,6 +93,7 @@
 		369F466A26421EAD002D8566 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		369F46752642218B002D8566 /* TFYSwiftTabbarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabbarController.swift; sourceTree = "<group>"; };
 		369F467C26422E62002D8566 /* TFYSwiftTabBarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarItem.swift; sourceTree = "<group>"; };
+		36DCD2982CD11C7700A10EEF /* bgjson.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = bgjson.json; sourceTree = "<group>"; };
 		3ED0DD7FF3393B7F53426101 /* Pods-TFYSwiftTabBarController.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarController.debug.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarController/Pods-TFYSwiftTabBarController.debug.xcconfig"; sourceTree = "<group>"; };
 		7225CA48D6E76B8327E2B824 /* Pods_TFYSwiftTabBarController.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TFYSwiftTabBarController.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1977E78E9D9FFD0AE3A2D3A /* Pods-TFYSwiftTabBarController.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarController.release.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarController/Pods-TFYSwiftTabBarController.release.xcconfig"; sourceTree = "<group>"; };
@@ -198,6 +200,7 @@
 		3666A56F282205190054F22E /* Lottie */ = {
 			isa = PBXGroup;
 			children = (
+				36DCD2982CD11C7700A10EEF /* bgjson.json */,
 				3685E2D22CCDC548009C8D47 /* data2.json */,
 				3666A570282205190054F22E /* IconTransitions.json */,
 				3666A572282205190054F22E /* ExampleLottieAnimateContentView.swift */,
@@ -430,6 +433,7 @@
 			files = (
 				3685E2D32CCDC548009C8D47 /* data2.json in Resources */,
 				369F466E26421EAE002D8566 /* Assets.xcassets in Resources */,
+				36DCD2992CD11C7700A10EEF /* bgjson.json in Resources */,
 				3666A57E282205190054F22E /* IconTransitions.json in Resources */,
 				3666A582282205190054F22E /* WebView.storyboard in Resources */,
 				369F466F26421EAE002D8566 /* LaunchScreen.storyboard in Resources */,
