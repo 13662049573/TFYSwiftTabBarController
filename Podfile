@@ -5,7 +5,7 @@ target 'TFYSwiftTabBarController' do
   use_frameworks!
 
   pod 'SnapKit'
-  pod 'TFYSwiftNavigationKit',
+  pod 'TFYSwiftNavigationKit','2.1.6'
   pod 'TFYSwiftCategoryUtil'
   pod 'lottie-ios'
 
