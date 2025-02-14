@@ -1,21 +1,20 @@
 
-platform :ios, '13.0'
+platform :ios, '15.0'
 
 target 'TFYSwiftTabBarController' do
   use_frameworks!
 
   pod 'SnapKit'
-  pod 'TFYSwiftNavigationKit'
+  pod 'TFYSwiftNavigationKit',
   pod 'TFYSwiftCategoryUtil'
   pod 'lottie-ios'
-  pod 'pop'
 
 end
 
 post_install do |pi|
   pi.pods_project.targets.each do |t|
     t.build_configurations.each do |config|
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
       config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = "NO"
       config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
       config.build_settings['VALID_ARCHS'] = 'arm64 arm64e armv7 armv7s x86_64 i386'
