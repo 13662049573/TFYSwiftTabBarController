@@ -3,6 +3,7 @@
 //  TFYSwiftCategoryUtil
 //
 //  Created by 田风有 on 2022/12/9.
+//  优化：参数安全性检查、注释补全、健壮性提升
 //
 
 import Foundation
@@ -18,12 +19,12 @@ public extension UISearchBar {
         return recursiveFindSubview(of: "UISearchBarTextField") as? UITextField
     }
 
-    /// 🔍
+    /// 搜索图标
     var icon: UIImageView? {
         return searchField?.leftView as? UIImageView
     }
 
-    /// 🔍 和 占位文字 Label 和之间的间距的总宽度
+    /// 搜索图标和占位文字Label之间的间距的总宽度
     var placeholderWidth: CGFloat {
         let space = searchTextPositionAdjustment.horizontal
         if let font = searchField?.font, let icon = icon {
@@ -33,7 +34,7 @@ public extension UISearchBar {
         return space
     }
 
-    /// 🔍 颜色
+    /// 搜索图标颜色
     var iconColor: UIColor? {
         get {
             return icon?.tintColor
@@ -48,6 +49,7 @@ public extension UISearchBar {
     ///
     /// - Parameter serchBarWidth: 通过计算得出的 serchBar width
     func setPositionAtCenter(serchBarWidth: CGFloat) {
+        guard serchBarWidth > 0 else { return }
         if #available(iOS 11.0, *) {
             let originalIconX: CGFloat = 14.0
             let offset = (serchBarWidth - placeholderWidth)/2 - originalIconX

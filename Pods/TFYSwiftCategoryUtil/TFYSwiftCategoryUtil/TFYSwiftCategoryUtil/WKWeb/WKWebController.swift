@@ -55,12 +55,15 @@ open class WKWebController: UIViewController {
             $0 += progressView.anchor.height   == 2
         }
         
+        let preferences = WKWebpagePreferences()
+        preferences.allowsContentJavaScript = true
+        
         let config = WKWebViewConfiguration()
         let userContent = delegate?.userContentController ?? WKUserContentController()
-        
-        config.preferences.javaScriptEnabled = true
+    
         config.preferences.javaScriptCanOpenWindowsAutomatically = false
-
+        config.defaultWebpagePreferences = preferences
+        
         let manager = _manager
         let errorHandler = WKWebHandler("error") {
             [weak manager] (text:String) -> Void in

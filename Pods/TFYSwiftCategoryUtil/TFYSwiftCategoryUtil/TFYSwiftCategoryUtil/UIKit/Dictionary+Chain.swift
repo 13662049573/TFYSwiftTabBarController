@@ -27,27 +27,60 @@ public extension Dictionary {
     }
     
     // MARK: 1.3、JSON字符串 -> 字典
+    /// 本地JSON 转 字典
+    /// - Parameters:
+    ///   - name: 文件名
+    ///   - ofType: 文件类型
+    /// - Returns: 字典
+    static func pathForResource(name: String, ofType: String) -> Dictionary<String, Any>? {
+        // 安全获取Bundle路径，避免强制解包
+        guard let path = Bundle.main.path(forResource: name, ofType: ofType) else {
+            TFYUtils.Logger.log("未找到文件: \(name).\(ofType)", level: .warning)
+            return nil
+        }
+        
+        var encoding: String.Encoding = .utf8
+        
+        do {
+            let jsonString = try String(contentsOfFile: path, usedEncoding: &encoding)
+            let dict = Dictionary.jsonToDictionary(json: jsonString)
+            return dict
+        } catch {
+            TFYUtils.Logger.log("读取文件失败: \(error.localizedDescription)", level: .error)
+            return nil
+        }
+    }
+    // MARK: 1.3、JSON字符串 -> 字典
     /// JsonString转为字典
     /// - Parameter json: JSON字符串
     /// - Returns: 字典
     static func jsonToDictionary(json: String) -> Dictionary<String, Any>? {
-        if let data = (try? JSONSerialization.jsonObject(
-            with: json.data(using: String.Encoding.utf8,allowLossyConversion: true)!,
-            options: JSONSerialization.ReadingOptions.mutableContainers)) as? Dictionary<String, Any> {
-            return data
-        } else {
+        guard let data = json.data(using: .utf8) else {
+            TFYUtils.Logger.log("JSON字符串转Data失败")
+            return nil
+        }
+        
+        do {
+            let result = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? Dictionary<String, Any>
+            return result
+        } catch {
+            TFYUtils.Logger.log("JSON解析失败: \(error.localizedDescription)")
             return nil
         }
     }
     
     // MARK: 1.4、字典 -> JSON字符串
     /// 字典转换为JSONString
+    /// - Returns: JSON字符串，失败返回nil
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
     func toJSON() -> String? {
-        if let jsonData = try? JSONSerialization.data(withJSONObject: self, options: JSONSerialization.WritingOptions()) {
-            let jsonStr = String(data: jsonData, encoding: String.Encoding(rawValue: String.Encoding.utf8.rawValue))
-            return String(jsonStr ?? "")
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: self, options: [])
+            return String(data: jsonData, encoding: .utf8)
+        } catch {
+            TFYUtils.Logger.log("字典转JSON失败: \(error.localizedDescription)")
+            return nil
         }
-        return nil
     }
     
     // MARK: 1.5、字典里面所有的 key
@@ -153,7 +186,99 @@ public extension Dictionary {
     }
     
     func toModel<T>(_ type: T.Type) -> T? where T: Decodable {
-        return self.toData()?.tfy.toModel(T.self)
+        return self.toData()?.toModel(T.self)
+    }
+    
+    // MARK: 1.19、安全获取值
+    /// 安全获取值
+    /// - Parameters:
+    ///   - key: 键
+    ///   - defaultValue: 默认值
+    /// - Returns: 值或默认值
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    func safeValue<T>(for key: Key, defaultValue: T) -> T {
+        return self[key] as? T ?? defaultValue
+    }
+    
+    // MARK: 1.20、深度合并字典
+    /// 深度合并字典
+    /// - Parameter other: 要合并的字典
+    /// - Returns: 合并后的字典
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    func tfy_deepMerge(with other: [Key: Value]) -> [Key: Value] {
+        var result = self
+        
+        for (key, value) in other {
+            if let existingValue = result[key] as? [String: Any],
+               let newValue = value as? [String: Any] {
+                result[key] = (existingValue.tfy_deepMerge(with: newValue) as! Value)
+            } else {
+                result[key] = value
+            }
+        }
+        
+        return result
+    }
+    
+    // MARK: 1.21、过滤字典
+    /// 过滤字典
+    /// - Parameter predicate: 过滤条件
+    /// - Returns: 过滤后的字典
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    func filter(_ predicate: (Key, Value) -> Bool) -> [Key: Value] {
+        return self.filter { predicate($0.key, $0.value) }
+    }
+    
+    // MARK: 1.22、转换字典值
+    /// 转换字典值
+    /// - Parameter transform: 转换函数
+    /// - Returns: 转换后的字典
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    func tfy_mapValues<T>(_ transform: (Value) -> T) -> [Key: T] {
+        var result = [Key: T]()
+        for (k, v) in self {
+            result[k] = transform(v)
+        }
+        return result
+    }
+    
+    // MARK: 1.23、检查字典是否为空
+    /// 检查字典是否为空
+    /// - Returns: 是否为空
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    var isEmpty: Bool {
+        return self.count == 0
+    }
+    
+    // MARK: 1.24、获取字典大小
+    /// 获取字典大小
+    /// - Returns: 字典大小
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    var size: Int {
+        return self.count
+    }
+    
+    // MARK: 1.25、创建空字典
+    /// 创建空字典
+    /// - Returns: 空字典
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static func empty() -> [Key: Value] {
+        return [:]
+    }
+    
+    // MARK: 1.26、从数组创建字典
+    /// 从数组创建字典
+    /// - Parameters:
+    ///   - array: 数组
+    ///   - keyPath: 键路径
+    /// - Returns: 字典
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static func fromArray<T>(_ array: [T], keyPath: (T) -> Key, valuePath: (T) -> Value) -> [Key: Value] {
+        var result: [Key: Value] = [:]
+        for item in array {
+            result[keyPath(item)] = valuePath(item)
+        }
+        return result
     }
 }
 
@@ -165,14 +290,14 @@ public extension TFY where Base == Dictionary<String, Any> {
     @discardableResult
     func dictionaryToJson() -> String? {
         if (!JSONSerialization.isValidJSONObject(base)) {
-            TFYLog("无法解析出JSONString")
+            TFYUtils.Logger.log("无法解析出JSONString")
             return nil
         }
         if let data = try? JSONSerialization.data(withJSONObject: base) {
             let JSONString = NSString(data:data,encoding: String.Encoding.utf8.rawValue)
             return JSONString! as String
         } else {
-            TFYLog("无法解析出JSONString")
+            TFYUtils.Logger.log("无法解析出JSONString")
             return nil
         }
     }

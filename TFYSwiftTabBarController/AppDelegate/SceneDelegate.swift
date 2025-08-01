@@ -6,23 +6,26 @@
 //
 
 import UIKit
-
-@available(iOS 13.0, *)
-let TFY = UIApplication.shared.windows.first?.windowScene?.delegate as! SceneDelegate
+import TFYSwiftNavigationKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
-    let mainViewController = ViewController()
-    
+   
     @available(iOS 13.0, *)
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         
         if let windowScene = scene as? UIWindowScene {
             let window = UIWindow(windowScene: windowScene)
-            window.rootViewController = ExampleNavigationController(rootViewController: mainViewController)
-            self.window = window
+            
+            // 设置根视图控制器为TabBar演示控制器
+            let demoVC = TabBarDemoViewController()
+            let navigationController = TFYSwiftNavigationController(rootViewController: demoVC)
+            
+            window.rootViewController = navigationController
             window.makeKeyAndVisible()
+            
+            self.window = window
         }
         
         guard let _ = (scene as? UIWindowScene) else { return }

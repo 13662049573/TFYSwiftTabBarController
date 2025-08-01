@@ -3,6 +3,7 @@
 //  TFYSwiftCategoryUtil
 //
 //  Created by 田风有 on 2022/5/13.
+//  用途：String 链式编程扩展，支持加密、文本计算、类型转换等功能。
 //
 
 import Foundation
@@ -12,13 +13,15 @@ import CommonCrypto
 extension String: TFYCompatible {}
 
 public extension TFY where Base == String {
-    /// - Returns:  md5 加密
+    /// - Returns:  md5 加密 (deprecated, use sha256 instead)
+    @available(*, deprecated, message: "MD5 is cryptographically broken. Use sha256 instead.")
     var md5 : String {
-        
+        guard !base.isEmpty else { return "" }
         let str = base.cString(using: String.Encoding.utf8)
         let strLen = CUnsignedInt(base.lengthOfBytes(using: String.Encoding.utf8))
         let digestLen = Int(CC_MD5_DIGEST_LENGTH)
         let result = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
+        // swiftlint:disable:next deprecated_crypto
         CC_MD5(str!, strLen, result)
         let hash = NSMutableString()
         for i in 0 ..< digestLen {
@@ -26,6 +29,17 @@ public extension TFY where Base == String {
         }
         free(result)
         return String(format: hash as String)
+     }
+     
+     /// - Returns:  sha256 加密 (recommended)
+     var sha256 : String {
+         guard !base.isEmpty else { return "" }
+         let data = Data(base.utf8)
+         var hash = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
+         data.withUnsafeBytes { buffer in
+             _ = CC_SHA256(buffer.baseAddress, CC_LONG(buffer.count), &hash)
+         }
+         return hash.map { String(format: "%02x", $0) }.joined()
      }
 
     /// - Returns: 计算文本宽度
@@ -85,7 +99,7 @@ public extension String {
     
     /// 初始化 base64
     func toModel<T>(_ type: T.Type) -> T? where T: Decodable {
-        return self.data(using: .utf8)?.tfy.toModel(type)
+        return self.data(using: .utf8)?.toModel(type)
     }
     
     /// 文字高度
@@ -193,10 +207,13 @@ public extension String {
     }
     
     /**
-     return a md5 string
+     return a md5 string (deprecated, use sha256String instead)
      */
+    @available(*, deprecated, message: "MD5 is cryptographically broken. Use sha256String instead.")
     func md5String() -> String{
+        guard !self.isEmpty else { return "" }
         let result = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(CC_MD5_DIGEST_LENGTH))
+        // swiftlint:disable:next deprecated_crypto
         CC_MD5(Array(self.utf8), CC_LONG(self.count), result)
         let str = String(format: "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
                          result[0], result[1], result[2], result[3],
@@ -204,6 +221,19 @@ public extension String {
                          result[8], result[9], result[10], result[11],
                          result[12], result[13], result[14], result[15])
         return str
+    }
+    
+    /**
+     return a sha256 string (recommended)
+     */
+    func sha256String() -> String {
+        guard !self.isEmpty else { return "" }
+        let data = Data(self.utf8)
+        var hash = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
+        data.withUnsafeBytes { buffer in
+            _ = CC_SHA256(buffer.baseAddress, CC_LONG(buffer.count), &hash)
+        }
+        return hash.map { String(format: "%02x", $0) }.joined()
     }
     
     /// returns the size of the string if it were rendered with the specified constraints
@@ -255,7 +285,7 @@ public extension String {
     
     /// return Dictionary/Array which is decoded from receiver
     func jsonValueDecoded() -> Any? {
-        return self.dataValue()?.tfy.jsonValueDecoded()
+        return self.dataValue()?.jsonValueDecoded()
     }
     
     /// return string from local .txt file
@@ -1200,9 +1230,19 @@ extension TFY where Base: ExpressibleByStringLiteral {
     // MARK: 9.4、判断是否是Float,此处Float是包含Int的，即Int是特殊的Float
     /// 判断是否是Float，此处Float是包含Int的，即Int是特殊的Float
     public var isPureFloat: Bool {
-        let scan: Scanner = Scanner(string: (base as! String))
-        var n: Float = 0.0
-        return scan.scanFloat(&n) && scan.isAtEnd
+        if #available(iOS 13.0, *) {
+            let scan = Scanner(string: base as! String)
+            // scanFloat 被替换为 scanDouble
+            guard let _ = scan.scanDouble() else {
+                return false
+            }
+            return scan.isAtEnd
+        } else {
+            // 兼容 iOS 13.0 以下版本
+            let scan = Scanner(string: base as! String)
+            var n: Float = 0.0
+            return scan.scanFloat(&n) && scan.isAtEnd
+        }
     }
     
     // MARK: 9.5、判断是否全是字母，长度为0返回false
@@ -1221,8 +1261,8 @@ extension TFY where Base: ExpressibleByStringLiteral {
         return predicateValue(rgex: rgex)
     }
     
-    // MARK: 9.7、是否是有效昵称，即允许“中文”、“英文”、“数字”
-    /// 是否是有效昵称，即允许“中文”、“英文”、“数字”
+    // MARK: 9.7、是否是有效昵称，即允许"中文"、"英文"、"数字"
+    /// 是否是有效昵称，即允许"中文"、"英文"、"数字"
     public var isValidNickName: Bool {
         let rgex = "(^[\u{4e00}-\u{9faf}_a-zA-Z0-9]+$)"
         return predicateValue(rgex: rgex)
@@ -1431,13 +1471,13 @@ extension TFY where Base: ExpressibleByStringLiteral {
         if isSplit {
             for i in 0..<keyword.count {
                 let singleString = keyword.tfy.sub(start: i, length: 1)
-                let ranges = TFYRegexHelper.matchRange(totalString, pattern: singleString)
+                let ranges = TFYRegexHelper.matchRanges(totalString, pattern: singleString)
                 for range in ranges {
                     attributedString.addAttributes([.foregroundColor: keywordCololor], range: range)
                 }
             }
         } else {
-            let ranges = TFYRegexHelper.matchRange(totalString, pattern: keyword)
+            let ranges = TFYRegexHelper.matchRanges(totalString, pattern: keyword)
             for range in ranges {
                 attributedString.addAttributes([.foregroundColor: keywordCololor], range: range)
             }
@@ -1881,10 +1921,11 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         case uppercase16
     }
     
-    // MARK: 14.1、MD5加密 默认是32位小写加密
-    /// MD5加密 默认是32位小写加密
+    // MARK: 14.1、MD5加密 默认是32位小写加密 (deprecated)
+    /// MD5加密 默认是32位小写加密 (deprecated, use sha256Encrypt instead)
     /// - Parameter md5Type: 加密类型
     /// - Returns: MD5加密后的字符串
+    @available(*, deprecated, message: "MD5 is cryptographically broken. Use sha256Encrypt instead.")
     func md5Encrypt(_ md5Type: MD5EncryptType = .lowercase32) -> String {
         guard (self.base as! String).count > 0 else {
             return ""
@@ -1899,6 +1940,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
          第二个参数: 获取要加密字符串的长度
          第三个参数: 接收结果的数组
          */
+        // swiftlint:disable:next deprecated_crypto
         CC_MD5(cCharArray, CC_LONG(cCharArray!.count - 1), &uint8Array)
         
         switch md5Type {
@@ -1919,7 +1961,39 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
     }
     
-    // MARK: 14.2、Base64 编解码
+    // MARK: 14.2、SHA256加密 (recommended)
+    /// SHA256加密 (recommended)
+    /// - Parameter shaType: 加密类型
+    /// - Returns: SHA256加密后的字符串
+    func sha256Encrypt(_ shaType: MD5EncryptType = .lowercase32) -> String {
+        guard (self.base as! String).count > 0 else {
+            return ""
+        }
+        let data = Data((self.base as! String).utf8)
+        var hash = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
+        data.withUnsafeBytes { buffer in
+            _ = CC_SHA256(buffer.baseAddress, CC_LONG(buffer.count), &hash)
+        }
+        
+        switch shaType {
+        // 32位小写
+        case .lowercase32:
+            return hash.reduce("") { $0 + String(format: "%02x", $1)}
+        // 32位大写
+        case .uppercase32:
+            return hash.reduce("") { $0 + String(format: "%02X", $1)}
+        // 16位小写
+        case .lowercase16:
+            let tempStr = hash.reduce("") { $0 + String(format: "%02x", $1)}
+            return tempStr.tfy.slice(8..<24)
+        // 16位大写
+        case .uppercase16:
+            let tempStr = hash.reduce("") { $0 + String(format: "%02X", $1)}
+            return tempStr.tfy.slice(8..<24)
+        }
+    }
+    
+    // MARK: 14.3、Base64 编解码
     /// Base64 编解码
     /// - Parameter encode: true:编码 false:解码
     /// - Returns: 编解码结果
@@ -2156,6 +2230,217 @@ public extension TFY where Base == String {
             return nil
         }
         return attributedString.string
+    }
+}
+
+// MARK: - 十九、新增实用功能
+public extension TFY where Base == String {
+    
+    // MARK: 19.1、字符串验证
+    /// 验证邮箱格式
+    var isValidEmail: Bool {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
+        return emailPredicate.evaluate(with: base)
+    }
+    
+    /// 验证手机号格式（中国大陆）
+    var isValidPhoneNumber: Bool {
+        let phoneRegex = "^1[3-9]\\d{9}$"
+        let phonePredicate = NSPredicate(format: "SELF MATCHES %@", phoneRegex)
+        return phonePredicate.evaluate(with: base)
+    }
+    
+    /// 验证身份证号格式（中国大陆）
+    var isValidIDCard: Bool {
+        let idCardRegex = "^[1-9]\\d{5}(18|19|20)\\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\\d{3}[0-9Xx]$"
+        let idCardPredicate = NSPredicate(format: "SELF MATCHES %@", idCardRegex)
+        return idCardPredicate.evaluate(with: base)
+    }
+    
+    /// 验证URL格式
+    var isValidURL: Bool {
+        guard let url = URL(string: base) else { return false }
+        return UIApplication.shared.canOpenURL(url)
+    }
+    
+    // MARK: 19.2、字符串转换
+    /// 转换为拼音
+    func toPinyin() -> String {
+        let mutableString = NSMutableString(string: base)
+        CFStringTransform(mutableString, nil, kCFStringTransformToLatin, false)
+        CFStringTransform(mutableString, nil, kCFStringTransformStripDiacritics, false)
+        return String(mutableString)
+    }
+    
+    /// 转换为拼音首字母
+    func toPinyinInitials() -> String {
+        let pinyin = toPinyin()
+        let words = pinyin.components(separatedBy: " ")
+        return words.compactMap { $0.first }.map { String($0) }.joined()
+    }
+    
+    /// 转换为驼峰命名
+    func toCamelCase() -> String {
+        let words = base.components(separatedBy: CharacterSet.alphanumerics.inverted)
+        let camelCase = words.enumerated().map { index, word in
+            if index == 0 {
+                return word.lowercased()
+            } else {
+                return word.prefix(1).uppercased() + word.dropFirst().lowercased()
+            }
+        }.joined()
+        return camelCase
+    }
+    
+    /// 转换为蛇形命名
+    func toSnakeCase() -> String {
+        let pattern = "([a-z0-9])([A-Z])"
+        let regex = try! NSRegularExpression(pattern: pattern, options: [])
+        let range = NSRange(location: 0, length: base.count)
+        let snakeCase = regex.stringByReplacingMatches(in: base, options: [], range: range, withTemplate: "$1_$2")
+        return snakeCase.lowercased()
+    }
+    
+    // MARK: 19.3、字符串处理
+    /// 截取指定长度的字符串
+    /// - Parameter length: 长度
+    /// - Returns: 截取后的字符串
+    func truncate(to length: Int) -> String {
+        if base.count <= length {
+            return base
+        }
+        return String(base.prefix(length)) + "..."
+    }
+    
+    /// 移除HTML标签
+    func removeHTMLTags() -> String {
+        let pattern = "<[^>]*>"
+        let regex = try! NSRegularExpression(pattern: pattern, options: [])
+        let range = NSRange(location: 0, length: base.count)
+        return regex.stringByReplacingMatches(in: base, options: [], range: range, withTemplate: "")
+    }
+    
+    /// 移除特殊字符
+    func removeSpecialCharacters() -> String {
+        let pattern = "[^a-zA-Z0-9\\u4e00-\\u9fa5]"
+        let regex = try! NSRegularExpression(pattern: pattern, options: [])
+        let range = NSRange(location: 0, length: base.count)
+        return regex.stringByReplacingMatches(in: base, options: [], range: range, withTemplate: "")
+    }
+    
+    /// 提取数字
+    func extractNumbers() -> String {
+        let pattern = "[^0-9]"
+        let regex = try! NSRegularExpression(pattern: pattern, options: [])
+        let range = NSRange(location: 0, length: base.count)
+        return regex.stringByReplacingMatches(in: base, options: [], range: range, withTemplate: "")
+    }
+    
+    /// 提取字母
+    func extractLetters() -> String {
+        let pattern = "[^a-zA-Z]"
+        let regex = try! NSRegularExpression(pattern: pattern, options: [])
+        let range = NSRange(location: 0, length: base.count)
+        return regex.stringByReplacingMatches(in: base, options: [], range: range, withTemplate: "")
+    }
+    
+    // MARK: 19.4、字符串统计
+    /// 计算字符数（包括中文字符）
+    var characterCount: Int {
+        return base.count
+    }
+    
+    /// 计算字节数
+    var byteCount: Int {
+        return base.utf8.count
+    }
+    
+    /// 计算单词数
+    var wordCount: Int {
+        let words = base.components(separatedBy: .whitespacesAndNewlines)
+        return words.filter { !$0.isEmpty }.count
+    }
+    
+    /// 计算行数
+    var lineCount: Int {
+        let lines = base.components(separatedBy: .newlines)
+        return lines.count
+    }
+    
+    // MARK: 19.5、字符串格式化
+    /// 格式化文件大小
+    func formatFileSize() -> String {
+        guard let size = Double(base) else { return "0 B" }
+        
+        let units = ["B", "KB", "MB", "GB", "TB"]
+        var index = 0
+        var fileSize = size
+        
+        while fileSize >= 1024 && index < units.count - 1 {
+            fileSize /= 1024
+            index += 1
+        }
+        
+        return String(format: "%.2f %@", fileSize, units[index])
+    }
+    
+    /// 格式化时间间隔
+    func formatTimeInterval() -> String {
+        guard let interval = TimeInterval(base) else { return "0秒" }
+        
+        let hours = Int(interval) / 3600
+        let minutes = Int(interval) % 3600 / 60
+        let seconds = Int(interval) % 60
+        
+        if hours > 0 {
+            return String(format: "%d小时%d分钟%d秒", hours, minutes, seconds)
+        } else if minutes > 0 {
+            return String(format: "%d分钟%d秒", minutes, seconds)
+        } else {
+            return String(format: "%d秒", seconds)
+        }
+    }
+    
+    /// 格式化金额
+    func formatCurrency() -> String {
+        guard let amount = Double(base) else { return "¥0.00" }
+        return String(format: "¥%.2f", amount)
+    }
+    
+    // MARK: 19.6、字符串加密
+    /// 简单加密（异或）
+    /// - Parameter key: 密钥
+    /// - Returns: 加密后的字符串
+    func simpleEncrypt(key: String) -> String {
+        let keyData = key.data(using: .utf8) ?? Data()
+        let stringData = base.data(using: .utf8) ?? Data()
+        
+        var encryptedData = Data()
+        for (index, byte) in stringData.enumerated() {
+            let keyByte = keyData[index % keyData.count]
+            let encryptedByte = byte ^ keyByte
+            encryptedData.append(encryptedByte)
+        }
+        
+        return encryptedData.base64EncodedString()
+    }
+    
+    /// 简单解密（异或）
+    /// - Parameter key: 密钥
+    /// - Returns: 解密后的字符串
+    func simpleDecrypt(key: String) -> String? {
+        guard let encryptedData = Data(base64Encoded: base) else { return nil }
+        let keyData = key.data(using: .utf8) ?? Data()
+        
+        var decryptedData = Data()
+        for (index, byte) in encryptedData.enumerated() {
+            let keyByte = keyData[index % keyData.count]
+            let decryptedByte = byte ^ keyByte
+            decryptedData.append(decryptedByte)
+        }
+        
+        return String(data: decryptedData, encoding: .utf8)
     }
 }
 

@@ -3,152 +3,153 @@
 //  TFYSwiftCategoryUtil
 //
 //  Created by 田风有 on 2021/5/10.
+//  优化：参数安全性检查、注释补全、健壮性提升
 //
 
 import UIKit
 
 public extension TFY where Base: UITableView {
-    
+    /// 设置背景视图
     @discardableResult
-    func backgroundView(_ backgroundView: UIView?) -> TFY {
+    func backgroundView(_ backgroundView: UIView?) -> Self {
         base.backgroundView = backgroundView
         return self
     }
-
+    /// 设置数据源
     @discardableResult
-    func dataSource(_ dataSource: UITableViewDataSource?) -> TFY {
+    func dataSource(_ dataSource: UITableViewDataSource?) -> Self {
         base.dataSource = dataSource
         return self
     }
-    
+    /// 设置代理
     @discardableResult
-    func delegate(_ delegate: UITableViewDelegate?) -> TFY {
+    func delegate(_ delegate: UITableViewDelegate?) -> Self {
         base.delegate = delegate
         return self
     }
-    
+    /// 设置行高
     @discardableResult
-    func rowHeight(_ rowHeight: CGFloat) -> TFY {
-        base.rowHeight = rowHeight
+    func rowHeight(_ rowHeight: CGFloat) -> Self {
+        base.rowHeight = max(0, rowHeight)
         return self
     }
-    
+    /// 设置Section头部高度
     @discardableResult
-    func sectionHeaderHeight(_ sectionHeaderHeight: CGFloat) -> TFY {
-        base.sectionHeaderHeight = sectionHeaderHeight
+    func sectionHeaderHeight(_ sectionHeaderHeight: CGFloat) -> Self {
+        base.sectionHeaderHeight = max(0, sectionHeaderHeight)
         return self
     }
-    
+    /// 设置Section底部高度
     @discardableResult
-    func sectionFooterHeight(_ sectionFooterHeight: CGFloat) -> TFY {
-        base.sectionFooterHeight = sectionFooterHeight
+    func sectionFooterHeight(_ sectionFooterHeight: CGFloat) -> Self {
+        base.sectionFooterHeight = max(0, sectionFooterHeight)
         return self
     }
-    
+    /// 设置预估行高
     @discardableResult
-    func estimatedRowHeight(_ estimatedRowHeight: CGFloat) -> TFY {
-        base.estimatedRowHeight = estimatedRowHeight
+    func estimatedRowHeight(_ estimatedRowHeight: CGFloat) -> Self {
+        base.estimatedRowHeight = max(0, estimatedRowHeight)
         return self
     }
-    
+    /// 设置预估Section头部高度
     @discardableResult
-    func estimatedSectionHeaderHeight(_ estimatedSectionHeaderHeight: CGFloat) -> TFY {
-        base.estimatedSectionHeaderHeight = estimatedSectionHeaderHeight
+    func estimatedSectionHeaderHeight(_ estimatedSectionHeaderHeight: CGFloat) -> Self {
+        base.estimatedSectionHeaderHeight = max(0, estimatedSectionHeaderHeight)
         return self
     }
-    
+    /// 设置预估Section底部高度
     @discardableResult
-    func estimatedSectionFooterHeight(_ estimatedSectionFooterHeight: CGFloat) -> TFY {
-        base.estimatedSectionFooterHeight = estimatedSectionFooterHeight
+    func estimatedSectionFooterHeight(_ estimatedSectionFooterHeight: CGFloat) -> Self {
+        base.estimatedSectionFooterHeight = max(0, estimatedSectionFooterHeight)
         return self
     }
-    
+    /// 设置索引颜色
     @discardableResult
-    func sectionIndexColor(_ sectionIndexColor: UIColor?) -> TFY {
+    func sectionIndexColor(_ sectionIndexColor: UIColor?) -> Self {
         base.sectionIndexColor = sectionIndexColor
         return self
     }
-    
+    /// 设置索引背景颜色
     @discardableResult
-    func sectionIndexBackgroundColor(_ sectionIndexBackgroundColor: UIColor?) -> TFY {
+    func sectionIndexBackgroundColor(_ sectionIndexBackgroundColor: UIColor?) -> Self {
         base.sectionIndexBackgroundColor = sectionIndexBackgroundColor
         return self
     }
-    
+    /// 设置索引跟踪背景颜色
     @discardableResult
-    func sectionIndexTrackingBackgroundColor(_ sectionIndexTrackingBackgroundColor: UIColor?) -> TFY {
+    func sectionIndexTrackingBackgroundColor(_ sectionIndexTrackingBackgroundColor: UIColor?) -> Self {
         base.sectionIndexTrackingBackgroundColor = sectionIndexTrackingBackgroundColor
         return self
     }
-    
+    /// 设置索引最小显示行数
     @discardableResult
-    func sectionIndexMinimumDisplayRowCount(_ sectionIndexMinimumDisplayRowCount: Int) -> TFY {
-        base.sectionIndexMinimumDisplayRowCount = sectionIndexMinimumDisplayRowCount
+    func sectionIndexMinimumDisplayRowCount(_ sectionIndexMinimumDisplayRowCount: Int) -> Self {
+        base.sectionIndexMinimumDisplayRowCount = max(0, sectionIndexMinimumDisplayRowCount)
         return self
     }
-    
+    /// 设置分割线样式
     @discardableResult
-    func separatorStyle(_ separatorStyle: UITableViewCell.SeparatorStyle) -> TFY {
+    func separatorStyle(_ separatorStyle: UITableViewCell.SeparatorStyle) -> Self {
         base.separatorStyle = separatorStyle
         return self
     }
-
+    /// 设置分割线颜色
     @discardableResult
-    func separatorColor(_ separatorColor: UIColor?) -> TFY {
+    func separatorColor(_ separatorColor: UIColor?) -> Self {
         base.separatorColor = separatorColor
         return self
     }
-    
+    /// 设置分割线内边距
     @discardableResult
-    func separatorInset(_ separatorInset: UIEdgeInsets) -> TFY {
+    func separatorInset(_ separatorInset: UIEdgeInsets) -> Self {
         base.separatorInset = separatorInset
         return self
     }
-    
+    /// 设置分割线内边距（分开设置）
     @discardableResult
-    func separatorInset(top: CGFloat, left: CGFloat, bottom: CGFloat, right: CGFloat) -> TFY {
+    func separatorInset(top: CGFloat, left: CGFloat, bottom: CGFloat, right: CGFloat) -> Self {
         base.separatorInset = UIEdgeInsets(top: top, left: left, bottom: bottom, right: right)
         return self
     }
-    
+    /// 设置表格头部视图
     @discardableResult
-    func tableHeaderView(_ tableHeaderView: UIView?) -> TFY {
+    func tableHeaderView(_ tableHeaderView: UIView?) -> Self {
         base.tableHeaderView = tableHeaderView
         return self
     }
-    
+    /// 设置表格底部视图
     @discardableResult
-    func tableFooterView(_ tableFooterView: UIView?) -> TFY {
+    func tableFooterView(_ tableFooterView: UIView?) -> Self {
         base.tableFooterView = tableFooterView
         return self
     }
-    
+    /// 注册Nib Cell
     @discardableResult
-    func registerNibCell(_ nib: UITableViewCell.Type) -> TFY {
+    func registerNibCell(_ nib: UITableViewCell.Type) -> Self {
         base.register(nibCell: nib)
         return self
     }
-    
+    /// 注册Cell类
     @discardableResult
-    func registerCell(_ cellClass: UITableViewCell.Type) -> TFY {
+    func registerCell(_ cellClass: UITableViewCell.Type) -> Self {
         base.register(cell: cellClass)
         return self
     }
-    
+    /// 注册Nib头部或底部视图
     @discardableResult
-    func registerNibHeaderOrFooter(_ nib: UITableViewHeaderFooterView.Type) -> TFY {
+    func registerNibHeaderOrFooter(_ nib: UITableViewHeaderFooterView.Type) -> Self {
         base.register(nibHeaderOrFooter: nib)
         return self
     }
-    
+    /// 注册头部或底部视图类
     @discardableResult
-    func registerHeaderOrFooter(_ aClass: UITableViewHeaderFooterView.Type) -> TFY {
+    func registerHeaderOrFooter(_ aClass: UITableViewHeaderFooterView.Type) -> Self {
         base.register(headerOrFooter: aClass)
         return self
     }
-    
+    /// 设置所有预估高度
     @discardableResult
-    func estimatedAll(_ height:CGFloat = CGFloat.leastNormalMagnitude) -> TFY {
+    func estimatedAll(_ height:CGFloat = CGFloat.leastNormalMagnitude) -> Self {
         if #available(iOS 11.0, *) {
             base.contentInsetAdjustmentBehavior = .never
             base.estimatedRowHeight = height
@@ -165,140 +166,161 @@ public extension TFY where Base: UITableView {
         base.sectionFooterHeight = UITableView.automaticDimension
         return self
     }
-    
+    /// 设置预取数据源（iOS 10.0+）
     @available(iOS 10.0, *)
     @discardableResult
-    func prefetchDataSource(dataSource d: UITableViewDataSourcePrefetching?) -> TFY {
+    func prefetchDataSource(dataSource d: UITableViewDataSourcePrefetching?) -> Self {
         base.prefetchDataSource = d
         return self
     }
-    
+    /// 设置拖拽代理（iOS 11.0+）
     @available(iOS 11.0, *)
     @discardableResult
-    func dropDelegate(delegate d: UITableViewDropDelegate?) -> TFY {
+    func dropDelegate(delegate d: UITableViewDropDelegate?) -> Self {
         base.dropDelegate = d
         return self
     }
-
+    /// 设置分割线内边距参考（iOS 11.0+）
     @available(iOS 11.0, *)
     @discardableResult
-    func separatorInsetReference(insetReference i: UITableView.SeparatorInsetReference) -> TFY {
+    func separatorInsetReference(insetReference i: UITableView.SeparatorInsetReference) -> Self {
         base.separatorInsetReference = i
         return self
     }
-    
 }
 
 extension UITableView {
-
-    public func register<C>(nibHeaderOrFooter reused:C) where C : RawRepresentable, C.RawValue == String {
+    // MARK: - 注册方法
+    public func register<C: RawRepresentable>(nibHeaderOrFooter reused: C) where C.RawValue == String {
         register(reused.nib(), forHeaderFooterViewReuseIdentifier: reused.rawValue)
     }
-    public func register<C>(headerOrFooter clz:C.Type) where C : UITableViewHeaderFooterView {
-        let identifier = NSStringFromClass(clz as AnyClass).split(separator: ".").last!.description
-        register(clz as AnyClass, forHeaderFooterViewReuseIdentifier: identifier)
-    }
-    public func register<C>(nibHeaderOrFooter clz:C.Type) where C : UITableViewHeaderFooterView {
-        let identifier = NSStringFromClass(clz as AnyClass).split(separator: ".").last!.description
-        register(identifier.nib(), forHeaderFooterViewReuseIdentifier: identifier)
+    
+    public func register<C: UITableViewHeaderFooterView>(headerOrFooter clz: C.Type) {
+        register(clz, forHeaderFooterViewReuseIdentifier: identifier(for: clz))
     }
     
-    public func register<C>(nibCell reused:C) where C : RawRepresentable, C.RawValue == String {
+    public func register<C: UITableViewHeaderFooterView>(nibHeaderOrFooter clz: C.Type) {
+        register(identifier(for: clz).nib(), forHeaderFooterViewReuseIdentifier: identifier(for: clz))
+    }
+    
+    public func register<C: RawRepresentable>(nibCell reused: C) where C.RawValue == String {
         register(reused.nib(), forCellReuseIdentifier: reused.rawValue)
     }
-    public func register<C>(cell clz:C.Type) where C : UITableViewCell {
-        let identifier = NSStringFromClass(clz as AnyClass).split(separator: ".").last!.description
-        register(clz as AnyClass, forCellReuseIdentifier: identifier)
-    }
-    public func register<C>(nibCell clz:C.Type) where C : UITableViewCell {
-        let identifier = NSStringFromClass(clz as AnyClass).split(separator: ".").last!.description
-        register(identifier.nib(), forCellReuseIdentifier: identifier)
+    
+    public func register<C: UITableViewCell>(cell clz: C.Type) {
+        register(clz, forCellReuseIdentifier: identifier(for: clz))
     }
     
-    public func dequeueReusable<C>(cell reused: C, for indexPath: IndexPath) -> UITableViewCell where C : RawRepresentable, C.RawValue == String {
-        return dequeueReusableCell(withIdentifier: reused.rawValue, for: indexPath)
-    }
-    public func dequeueReusable<C>(cell clz: C.Type, for indexPath: IndexPath) -> C where C : UITableViewCell {
-        let identifier = NSStringFromClass(clz as AnyClass).split(separator: ".").last!.description
-        return dequeueReusableCell(withIdentifier: identifier, for: indexPath) as! C
+    public func register<C: UITableViewCell>(nibCell clz: C.Type) {
+        register(identifier(for: clz).nib(), forCellReuseIdentifier: identifier(for: clz))
     }
     
-    public func dequeueReusable<C>(headerOrFooter reused: C) -> UITableViewHeaderFooterView? where C : RawRepresentable, C.RawValue == String {
-        return dequeueReusableHeaderFooterView(withIdentifier: reused.rawValue)
-    }
-    public func dequeueReusable<C>(headerOrFooter clz: C.Type) -> C? where C : UITableViewHeaderFooterView {
-        let identifier = NSStringFromClass(clz as AnyClass).split(separator: ".").last!.description
-        return dequeueReusableHeaderFooterView(withIdentifier: identifier) as? C
+    // MARK: - 复用方法
+    public func dequeueReusable<C: RawRepresentable>(cell reused: C, for indexPath: IndexPath) -> UITableViewCell where C.RawValue == String {
+        dequeueReusableCell(withIdentifier: reused.rawValue, for: indexPath)
     }
     
-    public func update(with block: (_ tableView: UITableView) -> ()) {
-        self.beginUpdates()
+    public func dequeueReusable<C: UITableViewCell>(cell clz: C.Type, for indexPath: IndexPath) -> C {
+        guard let cell = dequeueReusableCell(withIdentifier: identifier(for: clz), for: indexPath) as? C else {
+            fatalError("Failed to dequeue cell with identifier: \(identifier(for: clz))")
+        }
+        return cell
+    }
+    
+    public func dequeueReusable<C: RawRepresentable>(headerOrFooter reused: C) -> UITableViewHeaderFooterView? where C.RawValue == String {
+        dequeueReusableHeaderFooterView(withIdentifier: reused.rawValue)
+    }
+    
+    public func dequeueReusable<C: UITableViewHeaderFooterView>(headerOrFooter clz: C.Type) -> C? {
+        dequeueReusableHeaderFooterView(withIdentifier: identifier(for: clz)) as? C
+    }
+    
+    // MARK: - 更新操作
+    public func update(with block: (_ tableView: UITableView) -> Void) {
+        beginUpdates()
         block(self)
-        self.endUpdates()
+        endUpdates()
     }
     
-    public func scrollTo(row: NSInteger, in section: NSInteger, at ScrollPosition: UITableView.ScrollPosition, animated: Bool){
+    // MARK: - 滚动操作
+    public func scrollTo(row: Int, in section: Int, at position: UITableView.ScrollPosition, animated: Bool) {
+        guard section >= 0, section < numberOfSections, row >= 0, row < numberOfRows(inSection: section) else { return }
         let indexPath = IndexPath(row: row, section: section)
-        self.scrollToRow(at: indexPath, at: ScrollPosition, animated: animated)
+        scrollToRow(at: indexPath, at: position, animated: animated)
     }
     
-    public func insert(row: NSInteger, in section: NSInteger, with rowAnimation: UITableView.RowAnimation) {
-        let indexPath = IndexPath(row: row, section: section)
-        self.insertRows(at: [indexPath], with: rowAnimation)
+    // MARK: - 增删改操作
+    public func insert(row: Int, in section: Int, with rowAnimation: UITableView.RowAnimation) {
+        guard section >= 0, section < numberOfSections, row >= 0, row <= numberOfRows(inSection: section) else { return }
+        insert(at: IndexPath(row: row, section: section), with: rowAnimation)
     }
     
-    public func reload(row: NSInteger, in section: NSInteger, with rowAnimation: UITableView.RowAnimation) {
-        let indexPath = IndexPath(row: row, section: section)
-        self.reloadRows(at: [indexPath], with: rowAnimation)
+    public func reload(row: Int, in section: Int, with rowAnimation: UITableView.RowAnimation) {
+        guard section >= 0, section < numberOfSections, row >= 0, row < numberOfRows(inSection: section) else { return }
+        reload(at: IndexPath(row: row, section: section), with: rowAnimation)
     }
     
-    public func delete(row: NSInteger, in section: NSInteger, with rowAnimation: UITableView.RowAnimation) {
-        let indexPath = IndexPath(row: row, section: section)
-        self.deleteRows(at: [indexPath], with: rowAnimation)
+    public func delete(row: Int, in section: Int, with rowAnimation: UITableView.RowAnimation) {
+        guard section >= 0, section < numberOfSections, row >= 0, row < numberOfRows(inSection: section) else { return }
+        delete(at: IndexPath(row: row, section: section), with: rowAnimation)
     }
     
     public func insert(at indexPath: IndexPath, with rowAnimation: UITableView.RowAnimation) {
-        self.insertRows(at: [indexPath], with: rowAnimation)
+        guard isValid(indexPath: indexPath) else { return }
+        insertRows(at: [indexPath], with: rowAnimation)
     }
     
     public func reload(at indexPath: IndexPath, with rowAnimation: UITableView.RowAnimation) {
-        self.reloadRows(at: [indexPath], with: rowAnimation)
+        guard isValid(indexPath: indexPath) else { return }
+        reloadRows(at: [indexPath], with: rowAnimation)
     }
     
     public func delete(at indexPath: IndexPath, with rowAnimation: UITableView.RowAnimation) {
-        self.deleteRows(at: [indexPath], with: rowAnimation)
+        guard isValid(indexPath: indexPath) else { return }
+        deleteRows(at: [indexPath], with: rowAnimation)
     }
     
-    public func reload(section: NSInteger, with rowAnimation: UITableView.RowAnimation) {
-        self.reloadSections([section], with: rowAnimation)
+    public func reload(section: Int, with rowAnimation: UITableView.RowAnimation) {
+        guard section >= 0, section < numberOfSections else { return }
+        reloadSections(IndexSet(integer: section), with: rowAnimation)
     }
     
+    // MARK: - 选择操作
     public func clearSelectedRows(animated: Bool) {
-        guard let indexs = self.indexPathsForSelectedRows else { return }
-        for path in indexs {
-            self.deselectRow(at: path, animated: animated)
-        }
-    }
-
-    /// Reload cell  at index path
-    /// - Parameters:
-    ///   - cell: cell
-    ///   - animation: animation
-    func reloadCell(_ cell: UITableViewCell, with animation: UITableView.RowAnimation) {
-        if let indexPath = indexPath(for: cell) {
-            reloadRows(at: [indexPath], with: animation)
-        }
+        indexPathsForSelectedRows?.forEach { deselectRow(at: $0, animated: animated) }
     }
     
-    /// Scroll to last index in last section
-    /// - Parameters:
-    ///   - position: position
-    ///   - animated: animated
-    func scrollToBottom(position: UITableView.ScrollPosition = .bottom, animated: Bool = true) {
-        if let lastSection = (0 ..< numberOfSections).reversed().first(where: { numberOfRows(inSection: $0) > 0 }) {
-            let lastRow = numberOfRows(inSection: lastSection) - 1
-            let lastIndexPath = IndexPath(row: lastRow, section: lastSection)
-            scrollToRow(at: lastIndexPath, at: position, animated: animated)
-        }
+    // MARK: - 辅助方法
+    public func reloadCell(_ cell: UITableViewCell, with animation: UITableView.RowAnimation) {
+        guard let indexPath = indexPath(for: cell) else { return }
+        reloadRows(at: [indexPath], with: animation)
+    }
+    
+    public func scrollToBottom(position: UITableView.ScrollPosition = .bottom, animated: Bool = true) {
+        guard numberOfSections > 0 else { return }
+        
+        let lastSection = numberOfSections - 1
+        guard numberOfRows(inSection: lastSection) > 0 else { return }
+        
+        let lastRow = numberOfRows(inSection: lastSection) - 1
+        let lastIndexPath = IndexPath(row: lastRow, section: lastSection)
+        scrollToRow(at: lastIndexPath, at: position, animated: animated)
+    }
+    
+    // MARK: - 新增实用方法
+    public func reloadData(completion: @escaping () -> Void) {
+        CATransaction.begin()
+        CATransaction.setCompletionBlock(completion)
+        reloadData()
+        CATransaction.commit()
+    }
+    
+    public func isValid(indexPath: IndexPath) -> Bool {
+        indexPath.section >= 0 && indexPath.section < numberOfSections && indexPath.row >= 0 && indexPath.row < numberOfRows(inSection: indexPath.section)
+    }
+    
+    // MARK: - 私有方法
+    private func identifier(for clz: AnyClass) -> String {
+        String(describing: clz).components(separatedBy: ".").last ?? String(describing: clz)
     }
 }

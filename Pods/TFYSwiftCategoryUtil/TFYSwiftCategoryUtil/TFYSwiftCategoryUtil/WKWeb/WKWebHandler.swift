@@ -3,6 +3,7 @@
 //  TFYSwiftCategoryUtil
 //
 //  Created by 田风有 on 2021/5/10.
+//  用途：WKWebView 与 JS 通信的桥接处理，支持参数类型自动解码、错误处理等。
 //
 
 import WebKit
@@ -10,22 +11,22 @@ import WebKit
 // MARK: - JS注入接口
 open class WKWebHandler: NSObject, WKScriptMessageHandler {
     
-    private let script:String
-    private let callback:(_ body:Any) -> Void
+    private let script: String
+    private let callback: (_ body: Any) -> Void
     
-    open var name:String
+    open var name: String
 
-    open var javaScript:String { return script }
+    open var javaScript: String { return script }
     
-    public weak var controller:WKWebController?
+    public weak var controller: WKWebController?
 
-    public init(_ handle:String, javaScript:String, action: @escaping (_ body:Any) -> Void) {
+    public init(_ handle: String, javaScript: String, action: @escaping (_ body: Any) -> Void) {
         name = handle
         script = javaScript
         callback = action
     }
     
-    public init(_ handle:String, action: @escaping () -> Void) {
+    public init(_ handle: String, action: @escaping () -> Void) {
         name = handle
         script = """
         function iOS_make_\(handle)(){
@@ -39,12 +40,12 @@ open class WKWebHandler: NSObject, WKScriptMessageHandler {
         callback = { _ in action() }
     }
     
-    public init<T:Decodable>(_ handle:String, action: @escaping (_ body:T) -> Void) {
+    public init<T: Decodable>(_ handle: String, action: @escaping (_ body: T) -> Void) {
         
         let encoder = try! WKScriptHandlerParamsEncoder()
         let _ = try! T(from: encoder)
         
-        var js:String = """
+        var js: String = """
         function iOS_make_\(handle)(){
             if(arguments.length == \(encoder.paramsCount)){
                 window.webkit.messageHandlers.\(handle).postMessage(
@@ -73,18 +74,19 @@ open class WKWebHandler: NSObject, WKScriptMessageHandler {
         script = js
         
         name = handle
-        callback = { (body:Any) in
+        callback = { (body: Any) in
             do {
                 let decoder = try WKScriptHandlerParamsDecoder(body)
                 let value = try T(from: decoder)
                 action(value)
             } catch let error {
-                debugPrint("js handle[\(handle)] error body:", body, error.localizedDescription)
+                print("js handle[\(handle)] error body: \(body), error: \(error.localizedDescription)")
             }
         }
     }
     
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        // 直接调用回调，因为callback的类型已经在初始化时确定
         callback(message.body)
     }
 }

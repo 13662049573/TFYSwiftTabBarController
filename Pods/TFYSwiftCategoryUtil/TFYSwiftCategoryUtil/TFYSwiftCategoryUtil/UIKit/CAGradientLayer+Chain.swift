@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 // MARK: - 一、基本的扩展
-public enum JKViewGradientDirection {
+public enum GradientDirection {
     /// 水平从左到右
     case horizontal
     ///  垂直从上到下
@@ -41,19 +41,27 @@ public extension TFY where Base: CAGradientLayer {
     // MARK: 1.1、设置渐变色图层
     /// 设置渐变色图层
     /// - Parameters:
-    ///   - direction: 渐变方向
-    ///   - gradientColors: 渐变的颜色数组（颜色的数组）
-    ///   - gradientLocations: 设置渐变颜色的终止位置，这些值必须是递增的，数组的长度和 colors 的长度最好一致
-    func gradientLayer(_ direction: JKViewGradientDirection = .horizontal, _ gradientColors: [Any], _ gradientLocations: [NSNumber]? = nil) -> CAGradientLayer {
-       
+    ///   - direction: 渐变方向，默认水平
+    ///   - gradientColors: 渐变的颜色数组（不能为空，建议为UIColor或CGColor）
+    ///   - gradientLocations: 渐变颜色的终止位置（可选，必须递增，长度与colors一致）
+    /// - Returns: 配置好的CAGradientLayer
+    func gradientLayer(_ direction: GradientDirection = .horizontal, _ gradientColors: [Any], _ gradientLocations: [NSNumber]? = nil) -> CAGradientLayer {
+        // 参数安全检查
+        guard !gradientColors.isEmpty else {
+            print("⚠️ CAGradientLayer: 渐变颜色数组不能为空")
+            return self.base
+        }
+        if let locations = gradientLocations, locations.count != gradientColors.count {
+            print("⚠️ CAGradientLayer: locations数量与colors数量不一致")
+        }
         // 设置渐变的颜色数组
         self.base.colors = gradientColors
-        // 设置渐变颜色的终止位置，这些值必须是递增的，数组的长度和 colors 的长度最好一致
+        // 设置渐变颜色的终止位置
         self.base.locations = gradientLocations
         // 设置渲染的起始结束位置（渐变方向设置）
-        self.base.startPoint = direction.point().0
-        self.base.endPoint = direction.point().1
-        
+        let (start, end) = direction.point()
+        self.base.startPoint = start
+        self.base.endPoint = end
         return self.base
     }
 }

@@ -3,33 +3,34 @@
 //  TFYSwiftCategoryUtil
 //
 //  Created by 田风有 on 2021/5/10.
+//  优化：参数安全性检查、注释补全、健壮性提升
 //
 
 import UIKit
 import Foundation
 
 public extension TFY where Base: UIControl {
-    
+    /// 设置是否启用
     @discardableResult
-    func isEnabled(_ isEnabled: Bool) -> TFY {
+    func isEnabled(_ isEnabled: Bool) -> Self {
         base.isEnabled = isEnabled
         return self
     }
-    
+    /// 设置是否选中
     @discardableResult
-    func isSelected(_ isSelected: Bool) -> TFY {
+    func isSelected(_ isSelected: Bool) -> Self {
         base.isSelected = isSelected
         return self
     }
-    
+    /// 设置是否高亮
     @discardableResult
-    func isHighlighted(_ isHighlighted: Bool) -> TFY {
+    func isHighlighted(_ isHighlighted: Bool) -> Self {
         base.isHighlighted = isHighlighted
         return self
     }
-    
+    /// 添加目标动作
     @discardableResult
-    func addTarget(_ target: Any?, action: Selector, for controlEvents: UIControl.Event) -> TFY {
+    func addTarget(_ target: Any?, action: Selector, for controlEvents: UIControl.Event) -> Self {
         base.addTarget(target, action: action, for: controlEvents)
         return self
     }

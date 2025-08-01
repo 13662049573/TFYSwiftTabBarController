@@ -15,7 +15,7 @@ public extension CATextLayer {
     
     // MARK: 1.1、设置文字的内容
     /// 设置文字的内容
-    /// - Parameter text: 文字内容
+    /// - Parameter text: 文字内容，不能为空
     /// - Returns: 返回自身
     @discardableResult
     func text(_ text: String) -> Self {
@@ -25,7 +25,7 @@ public extension CATextLayer {
     
     // MARK: 1.2、设置 NSAttributedString 文字
     /// 设置 NSAttributedString 文字
-    /// - Parameter attributedText: NSAttributedString 文字
+    /// - Parameter attributedText: NSAttributedString 文字，不能为空
     /// - Returns: 返回自身
     @discardableResult
     func attributedText(_ attributedText: NSAttributedString) -> Self {
@@ -82,30 +82,38 @@ public extension CATextLayer {
     
     // MARK: 1.6、设置字体的颜色
     /// 设置字体的颜色
-    /// - Parameter color: 字体的颜色
+    /// - Parameter color: 字体的颜色，不能为空
     /// - Returns: 返回自身
     @discardableResult
     func color(_ color: UIColor) -> Self {
-        foregroundColor = color.cgColor
+        self.foregroundColor = color.cgColor
         return self
     }
     
     // MARK: 1.7、设置字体的颜色(十六进制)
     /// 设置字体的颜色(十六进制)
-    /// - Parameter hex: 十六进制字符串颜色
+    /// - Parameter hex: 十六进制字符串颜色，不能为空
     /// - Returns: 返回自身
     @discardableResult
     func color(_ hex: String) -> Self {
-        foregroundColor = UIColor(hexString: hex)?.cgColor
+        guard let cgColor = UIColor(hexString: hex)?.cgColor else {
+            TFYUtils.Logger.log("⚠️ CATextLayer: 颜色十六进制字符串无效")
+            return self
+        }
+        self.foregroundColor = cgColor
         return self
     }
     
     // MARK: 1.8、设置字体的大小
     /// 设置字体的大小
-    /// - Parameter fontSize: 字体的大小
+    /// - Parameter fontSize: 字体的大小，必须大于0
     /// - Returns: 返回自身
     @discardableResult
     func font(_ fontSize: CGFloat) -> Self {
+        guard fontSize > 0 else {
+            TFYUtils.Logger.log("⚠️ CATextLayer: 字体大小必须大于0")
+            return self
+        }
         self.fontSize = fontSize
         if #available(iOS 9.0, *) {
             self.font = CTFontCreateWithName("PingFangSC-Regular" as CFString, fontSize, nil)
@@ -114,9 +122,9 @@ public extension CATextLayer {
         return self
     }
     
-    // MARK: 1.9、设置字体的Font(暂时无效)
+    // MARK: 1.9、设置字体的Font
     /// 设置字体的Font
-    /// - Parameter font: 字体的Font
+    /// - Parameter font: 字体的Font，不能为空
     /// - Returns: 返回自身
     @discardableResult
     func font(_ font: UIFont) -> Self {
@@ -127,10 +135,14 @@ public extension CATextLayer {
     
     // MARK: 1.10、设置字体粗体
     /// 设置字体粗体
-    /// - Parameter boldfontSize: 粗体字体大小
+    /// - Parameter boldfontSize: 粗体字体大小，必须大于0
     /// - Returns: 返回自身
     @discardableResult
     func boldFont(_ boldfontSize: CGFloat) -> Self {
+        guard boldfontSize > 0 else {
+            TFYUtils.Logger.log("⚠️ CATextLayer: 粗体字体大小必须大于0")
+            return self
+        }
         self.fontSize = boldfontSize
         if #available(iOS 9.0, *) {
             self.font = CTFontCreateWithName("PingFangSC-Medium" as CFString, boldfontSize, nil)
@@ -138,6 +150,137 @@ public extension CATextLayer {
             self.font = CTFontCreateWithName("Helvetica-bold" as CFString, boldfontSize, nil)
         }
         self.contentsScale = UIScreen.main.scale
+        return self
+    }
+    
+    // MARK: 1.11、设置行间距
+    /// 设置行间距
+    /// - Parameter lineSpacing: 行间距
+    /// - Returns: 返回自身
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    @discardableResult
+    func lineSpacing(_ lineSpacing: CGFloat) -> Self {
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = lineSpacing
+        
+        if let attributedString = self.string as? NSAttributedString {
+            let mutableString = NSMutableAttributedString(attributedString: attributedString)
+            mutableString.addAttribute(.paragraphStyle, value: paragraphStyle, range: NSRange(location: 0, length: mutableString.length))
+            self.string = mutableString
+        } else if let string = self.string as? String {
+            let attributedString = NSAttributedString(string: string, attributes: [.paragraphStyle: paragraphStyle])
+            self.string = attributedString
+        }
+        
+        return self
+    }
+    
+    // MARK: 1.12、设置文本阴影
+    /// 设置文本阴影
+    /// - Parameters:
+    ///   - color: 阴影颜色
+    ///   - offset: 阴影偏移
+    ///   - radius: 阴影半径
+    /// - Returns: 返回自身
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    @discardableResult
+    func textShadow(color: UIColor, offset: CGSize, radius: CGFloat) -> Self {
+        self.shadowColor = color.cgColor
+        self.shadowOffset = offset
+        self.shadowRadius = radius
+        self.shadowOpacity = 1.0
+        return self
+    }
+    
+    // MARK: 1.13、设置背景色
+    /// 设置背景色
+    /// - Parameter color: 背景颜色
+    /// - Returns: 返回自身
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    @discardableResult
+    func backgroundColor(_ color: UIColor) -> Self {
+        self.backgroundColor = color.cgColor
+        return self
+    }
+    
+    // MARK: 1.14、设置边框
+    /// 设置边框
+    /// - Parameters:
+    ///   - color: 边框颜色
+    ///   - width: 边框宽度
+    /// - Returns: 返回自身
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    @discardableResult
+    func border(color: UIColor, width: CGFloat) -> Self {
+        self.borderColor = color.cgColor
+        self.borderWidth = width
+        return self
+    }
+    
+    // MARK: 1.15、设置圆角
+    /// 设置圆角
+    /// - Parameter radius: 圆角半径
+    /// - Returns: 返回自身
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    @discardableResult
+    func cornerRadius(_ radius: CGFloat) -> Self {
+        self.cornerRadius = radius
+        self.masksToBounds = true
+        return self
+    }
+    
+    // MARK: 1.16、设置透明度
+    /// 设置透明度
+    /// - Parameter opacity: 透明度值（0-1）
+    /// - Returns: 返回自身
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    @discardableResult
+    func opacity(_ opacity: Float) -> Self {
+        self.opacity = opacity
+        return self
+    }
+    
+    // MARK: 1.17、设置是否隐藏
+    /// 设置是否隐藏
+    /// - Parameter isHidden: 是否隐藏
+    /// - Returns: 返回自身
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    @discardableResult
+    func isHidden(_ isHidden: Bool) -> Self {
+        self.isHidden = isHidden
+        return self
+    }
+    
+    // MARK: 1.18、设置位置和大小
+    /// 设置位置和大小
+    /// - Parameter frame: 位置和大小
+    /// - Returns: 返回自身
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    @discardableResult
+    func frame(_ frame: CGRect) -> Self {
+        self.frame = frame
+        return self
+    }
+    
+    // MARK: 1.19、设置锚点
+    /// 设置锚点
+    /// - Parameter anchorPoint: 锚点
+    /// - Returns: 返回自身
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    @discardableResult
+    func anchorPoint(_ anchorPoint: CGPoint) -> Self {
+        self.anchorPoint = anchorPoint
+        return self
+    }
+    
+    // MARK: 1.20、设置变换
+    /// 设置变换
+    /// - Parameter transform: 变换矩阵
+    /// - Returns: 返回自身
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    @discardableResult
+    func transform(_ transform: CATransform3D) -> Self {
+        self.transform = transform
         return self
     }
 }
