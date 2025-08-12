@@ -3,6 +3,8 @@
 //  TFYSwiftCategoryUtil
 //
 //  Created by 田风有 on 2022/5/15.
+//  用途：UIImage 链式编程扩展，支持图片处理、GIF 动画、滤镜效果等功能。
+//  优化：参数安全性检查、注释补全、健壮性提升
 //
 
 import Foundation
@@ -10,7 +12,7 @@ import UIKit
 import Accelerate
 
 public extension UIImage {
-    
+    /// 圆角图片处理
     func image(corners:UIRectCorner = .allCorners, cornerRadii radii:CGSize) -> UIImage {
         let bounds = CGRect(origin: .zero, size: size)
         
@@ -36,7 +38,8 @@ public extension UIImage {
         return outputImage ?? self
     }
     
-    class func imageWithColor(color: UIColor) -> UIImage? {
+    /// 根据颜色生成图片
+    func imageWithColor(color: UIColor) -> UIImage? {
         let rect = CGRect.init(x: 0, y: 0, width: 2, height: 2)
         UIGraphicsBeginImageContextWithOptions(rect.size, false, 0)
         color.setFill()
@@ -49,6 +52,7 @@ public extension UIImage {
         return image
     }
 
+    /// 调整图片大小
     func resizeImage(reSize: CGSize) -> UIImage {
         UIGraphicsBeginImageContextWithOptions(reSize, false, UIScreen.main.scale)
         self.draw(in: CGRect(x: 0, y: 0, width: reSize.width, height: reSize.height))
@@ -57,12 +61,12 @@ public extension UIImage {
         return reSizeImage ?? self
     }
     
-    //压缩图片
+    /// 压缩图片
     func compressSize() -> UIImage {
         guard let data = self.jpegData(compressionQuality: 1) else { return self }
         let imageLength = data.count
         if imageLength > 300000 {
-            let rate = (300000 / (imageLength * 2))
+            let rate = max(0.1, min(1.0, 300000.0 / Double(imageLength)))
             guard let data = self.jpegData(compressionQuality: CGFloat(rate)) else { return self }
             let image = UIImage(data: data) ?? self
             return image
@@ -70,6 +74,23 @@ public extension UIImage {
         return self
     }
     
+    /// 压缩图片到指定大小
+    /// - Parameter maxSize: 最大文件大小（字节）
+    /// - Returns: 压缩后的图片
+    func compressToSize(_ maxSize: Int) -> UIImage {
+        guard maxSize > 0 else { return self }
+        guard let data = self.jpegData(compressionQuality: 1) else { return self }
+        let imageLength = data.count
+        if imageLength > maxSize {
+            let rate = max(0.1, min(1.0, Double(maxSize) / Double(imageLength)))
+            guard let data = self.jpegData(compressionQuality: CGFloat(rate)) else { return self }
+            let image = UIImage(data: data) ?? self
+            return image
+        }
+        return self
+    }
+
+    /// 从Data创建GIF图片
     class func gif(data: Data) -> UIImage? {
         // Create source from data
         guard let source = CGImageSourceCreateWithData(data as CFData, nil) else {
@@ -80,6 +101,7 @@ public extension UIImage {
         return UIImage.animatedImageWithSource(source)
     }
 
+    /// 从URL创建GIF图片
     class func gif(url: String) -> UIImage? {
         // Validate URL
         guard let bundleURL = URL(string: url) else {
@@ -96,6 +118,7 @@ public extension UIImage {
         return gif(data: imageData)
     }
 
+    /// 从Bundle创建GIF图片
     class func gif(name: String) -> UIImage? {
         // Check for existance of gif
         guard let bundleURL = Bundle.main
@@ -262,18 +285,22 @@ public extension UIImage {
 }
 
 public extension UIImage {
+    /// 应用亮光效果
     func applyLightEffect() -> UIImage? {
         return applyBlurWithRadius(30, tintColor: UIColor(white: 1.0, alpha: 0.3), saturationDeltaFactor: 1.8)
     }
     
+    /// 应用超亮效果
     func applyExtraLightEffect() -> UIImage? {
         return applyBlurWithRadius(20, tintColor: UIColor(white: 0.97, alpha: 0.82), saturationDeltaFactor: 1.8)
     }
     
+    /// 应用暗光效果
     func applyDarkEffect() -> UIImage? {
         return applyBlurWithRadius(20, tintColor: UIColor(white: 0.11, alpha: 0.73), saturationDeltaFactor: 1.8)
     }
     
+    /// 应用指定颜色的色调效果
     func applyTintEffectWithColor(_ tintColor: UIColor) -> UIImage? {
         let effectColorAlpha: CGFloat = 0.6
         var effectColor = tintColor
@@ -298,6 +325,7 @@ public extension UIImage {
         return applyBlurWithRadius(10, tintColor: effectColor, saturationDeltaFactor: -1.0, maskImage: nil)
     }
     
+    /// 应用模糊效果
     func applyBlurWithRadius(_ blurRadius: CGFloat, tintColor: UIColor?, saturationDeltaFactor: CGFloat, maskImage: UIImage? = nil) -> UIImage? {
         // Check pre-conditions.
         if (size.width < 1 || size.height < 1) {
@@ -437,6 +465,7 @@ public extension UIImage {
         return outputImage
     }
     
+    /// 根据系统主题创建适配图片
     static func image(light: UIImage?, dark: UIImage?) -> UIImage? {
         if #available(iOS 13.0, *) {
             guard let weakLight = light, let weakDark = dark, let config = weakLight.configuration else { return light }
@@ -448,9 +477,9 @@ public extension UIImage {
         }
     }
     
-    /// Create QR code from string
-    /// - Parameter string: String for QR code
+    /// 从字符串创建二维码
     convenience init?(qrCodeFrom string: String) {
+        guard !string.isEmpty else { return nil }
         if let data = string.data(using: .ascii), let filter = CIFilter(name: "CIQRCodeGenerator") {
             filter.setValue(data, forKey: "inputMessage")
             let transform = CGAffineTransform(scaleX: 10, y: 10)
@@ -464,13 +493,7 @@ public extension UIImage {
         }
     }
     
-    /// Draw a star
-    /// - Parameters:
-    ///   - size: Size
-    ///   - strokeColor: Stroke color
-    ///   - lineWidth: Line width
-    ///   - fillColor: Fill color
-    /// - Returns: Drawn star as UIImage
+    /// 绘制星形图片
     static func withStarShape(size: CGSize, strokeColor: UIColor = .clear, lineWidth: CGFloat = 2.0, fillColor: UIColor?) -> UIImage? {
         
         UIGraphicsBeginImageContextWithOptions(size, false, 0)
@@ -541,14 +564,7 @@ public extension UIImage {
     }
     
     
-    /// Returns an identical image with specified tint color. Note that the returned image is with rendering mode `.alwaysOriginal`
-    ///
-    /// - Reference
-    ///
-    ///   https://stackoverflow.com/questions/31803157/how-can-i-color-a-uiimage-in-swift
-    ///
-    /// - Parameter color: The tint color
-    /// - Returns: An identical image with specified tint color
+    /// 返回指定色调颜色的相同图片
     func withTintColor(_ color: UIColor) -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(size, false, 0)
         defer { UIGraphicsEndImageContext() }
@@ -565,14 +581,15 @@ public extension UIImage {
         return UIGraphicsGetImageFromCurrentImageContext()?.withRenderingMode(.alwaysOriginal)
     }
     
-    /// Is square aspect ratio
+    /// 是否为正方形
     var isSquare: Bool {
         return size.height == size.width
     }
     
-    /// Size in KB or MB
+    /// 磁盘上的大小（KB或MB）
     var sizeOnDisk: String {
-        var length = Double(self.jpegData(compressionQuality: 1.0)!.count) / 1024 / 1024
+        guard let data = self.jpegData(compressionQuality: 1.0) else { return "0KB" }
+        var length = Double(data.count) / 1024 / 1024
         if length < 1.0 {
             length *= 1024
             return "\(length)KB"
@@ -582,35 +599,26 @@ public extension UIImage {
     }
     
     
-    /// Height for screen width
+    /// 屏幕宽度对应的高度
     var heightForScreenWidth: CGFloat {
         return aspectHeight(for: UIScreen.main.bounds.width)
     }
     
-    /// Scale the height of the given width proportionally
-    ///
-    /// - parameter width: width
-    ///
-    /// - returns: New height
+    /// 按比例缩放给定宽度的高度
     func aspectHeight(for width: CGFloat) -> CGFloat {
+        guard width > 0 else { return 0 }
         return width / size.width * size.height
     }
     
     
-    /// Scale the width of the given height proportionally
-    ///
-    /// - parameter height: Height
-    ///
-    /// - returns: New width
+    /// 按比例缩放给定高度的宽度
     func aspectWidth(for height: CGFloat) -> CGFloat {
+        guard height > 0 else { return 0 }
         return height / size.height * size.width
     }
     
     
-    /// Keep the aspect ratio and return the fitting size of the given size
-    ///
-    /// - Parameter binding: Size
-    /// - Returns: New size
+    /// 保持宽高比并返回给定大小的适配尺寸
     func aspectFitSize(forBindingSize binding: CGSize) -> CGSize {
         let rw = size.width / binding.width
         let rh = size.height / binding.height
@@ -621,12 +629,7 @@ public extension UIImage {
         }
     }
     
-    /// Get an single-colored image
-    ///
-    /// - Parameters:
-    ///   - color: The color
-    ///   - rect: The rect to draw in a CGContext.
-    /// - Returns: An single-colored image object, nil if any problems occur, such as CGRect.zero got passed.
+    /// 获取纯色图片
     class func image(withPureColor color: UIColor, for rect: CGRect, rounded: Bool) -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(rect.size, false, 0)
         defer { UIGraphicsEndImageContext() }
@@ -641,9 +644,7 @@ public extension UIImage {
     }
     
     
-    /// Correct the direction of the picture so that it positioned correctly
-    ///
-    /// - Returns: Image
+    /// 修正图片方向
     var orientationFixed: UIImage {
         
         if imageOrientation == .up {
@@ -714,10 +715,7 @@ public extension UIImage {
     }
     
     
-    /// Get certain part of image
-    ///
-    /// - Parameter rect: Part of the image
-    /// - Returns: Image
+    /// 获取图片的特定部分
     func subImage(in rect: CGRect) -> UIImage? {
         if let cgimage = cgImage, let image = cgimage.cropping(to: rect) {
             return UIImage(cgImage: image, scale: 1.0, orientation: .up)
@@ -726,10 +724,7 @@ public extension UIImage {
     }
 
     
-    /// Redraw the image to the specified size
-    ///
-    /// - Parameter size: Size
-    /// - Returns: Image
+    /// 重绘图片到指定尺寸
     func resized(to size: CGSize) -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
         defer { UIGraphicsEndImageContext() }
@@ -742,9 +737,7 @@ public extension UIImage {
     }
     
     
-    /// Resize the image so that its width and height are equal.
-    ///
-    /// - Returns: A newly created image.
+    /// 调整图片大小使其宽高相等
     func square() -> UIImage? {
         let edgeLength = max(size.width, size.height)
         let contextSize = CGSize(width: edgeLength, height: edgeLength)
@@ -757,13 +750,7 @@ public extension UIImage {
         return UIGraphicsGetImageFromCurrentImageContext()
     }
 
-    /// Redraw a new image with the given requirements.
-    ///
-    /// - Parameters:
-    ///   - backgroundColor: The background color of the image.
-    ///   - cornerRadius: The corner radius of the image, pass 0.0 if you perfer a squared one.
-    ///   - insets: The inset to apply to the image.
-    /// - Returns: A newly created image.
+    /// 根据给定要求重绘新图片
     func with(backgroundColor: UIColor, cornerRadius: CGFloat, insets: UIEdgeInsets) -> UIImage? {
         let contextSize = CGSize(width: size.width + insets.left + insets.right,
                                  height: size.height + insets.top + insets.bottom)
@@ -784,6 +771,7 @@ public extension UIImage {
         case up, down, left, right
     }
     
+    /// 创建箭头图片
     static func arrowHead(direction: ArrowDirection, color: UIColor, size: CGSize, lineWidth: CGFloat = 2.0) -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
         defer { UIGraphicsEndImageContext() }
@@ -820,14 +808,7 @@ public extension UIImage {
     }
     
     
-    /// Draw a image with a border
-    /// - Parameters:
-    ///   - size: size
-    ///   - backgroundColor: color
-    ///   - borderColor: border color
-    ///   - borderWidth: border width
-    ///   - cornerRadius: radius
-    /// - Returns: New image
+    /// 绘制带边框的图片
     class func borderImage(size: CGSize, backgroundColor: UIColor, borderColor: UIColor, borderWidth: CGFloat, cornerRadius: CGFloat) -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(size, false, 0)
         defer { UIGraphicsEndImageContext() }
@@ -843,16 +824,126 @@ public extension UIImage {
     }
     
     
-    /// Draw background image
-    /// - Parameters:
-    ///   - backgroundColor: color
-    ///   - borderColor: border color
-    ///   - borderWidth: width
-    ///   - cornerRadius: radius
-    /// - Returns: New image
+    /// 绘制背景图片
     class func buttonBackgroundBorderImage(backgroundColor: UIColor, borderColor: UIColor, borderWidth: CGFloat, cornerRadius: CGFloat) -> UIImage? {
         let inset = borderWidth + cornerRadius + 2
         let width = inset * 2 + 1
         return borderImage(size: CGSize(width: width, height: width), backgroundColor: backgroundColor, borderColor: borderColor, borderWidth: borderWidth, cornerRadius: cornerRadius)?.resizableImage(withCapInsets: UIEdgeInsets(top: inset, left: inset, bottom: inset, right: inset), resizingMode: .stretch)
     }
+    
+    /// 高斯模糊
+    static func gaussianBlur(image: UIImage, sigma: Float) -> UIImage? {
+        guard let beginImage = CIImage(image: image) else { return nil }
+        let blurFilter = CIFilter(name: "CIGaussianBlur")!
+        blurFilter.setValue(beginImage, forKey: kCIInputImageKey)
+        blurFilter.setValue(sigma, forKey: "inputRadius")
+     
+        let resultImage = blurFilter.outputImage
+        let context = CIContext(options: nil)
+        if let cgImage = context.createCGImage(resultImage!, from: resultImage!.extent) {
+            return UIImage(cgImage: cgImage)
+        }
+        return nil
+    }
+    
+    /// 获取pod bundle图片资源
+    convenience init?(named name: String, podClass: AnyClass, bundleName: String? = nil) {
+        let bName = bundleName ?? "\(podClass)"
+        if let image = UIImage(named: "\(bName).bundle/\(name)"), let cgImage = image.cgImage{
+            self.init(cgImage: cgImage)
+        } else {
+            let filePath = Bundle(for: podClass).resourcePath! + "/\(bName).bundle"
+            guard let bundle = Bundle(path: filePath) else { return nil}
+            self.init(named: name, in: bundle, compatibleWith: nil)
+        }
+    }
+
+    /// 获取pod bundle图片资源
+    convenience init?(named name: String, podName: String, bundleName: String? = nil) {
+        let bName = bundleName ?? podName
+        if let image = UIImage(named: "\(bName).bundle/\(name)"), let cgImage = image.cgImage{
+            self.init(cgImage: cgImage)
+        } else {
+            let filePath = Bundle.main.resourcePath! + "/Frameworks/\(podName).framework/\(bName).bundle"
+            guard let bundle = Bundle(path: filePath) else { return nil}
+            self.init(named: name, in: bundle, compatibleWith: nil)
+        }
+    }
+    
+    /// 生成二维码图片
+    static func generateQRCode(_ string: String, width: CGFloat, height: CGFloat) -> UIImage? {
+        guard !string.isEmpty, width > 0, height > 0 else { return nil }
+        guard let data: Data = string.data(using: .isoLatin1, allowLossyConversion: false),
+            let filter = CIFilter(name: "CIQRCodeGenerator") else {
+                return nil
+        }
+        filter.setValue(data, forKey: "inputMessage")
+        filter.setValue("H", forKey: "inputCorrectionLevel")
+        
+        guard let qrcodeImage = filter.outputImage else {
+            return nil
+        }
+        
+        // 消除模糊
+        let scaleX: CGFloat = width/qrcodeImage.extent.size.width
+        // extent 返回图片的frame
+        let scaleY: CGFloat = height/qrcodeImage.extent.size.height
+        
+        let transformedImage = qrcodeImage.transformed(by: CGAffineTransform(scaleX: scaleX, y: scaleY))
+        return UIImage(ciImage: transformedImage)
+    }
+
+    /// 生成带Logo的二维码图片
+    static func generateQRCodeImage(_ string: String, size: CGSize, logo: UIImage?) -> UIImage? {
+        guard !string.isEmpty, size.width > 0, size.height > 0 else { return nil }
+        guard let data: Data = string.data(using: .isoLatin1, allowLossyConversion: false),
+            let filter = CIFilter(name: "CIQRCodeGenerator") else {
+                return nil
+        }
+
+        filter.setValue(data, forKey: "inputMessage")
+        filter.setValue("H", forKey: "inputCorrectionLevel")
+        guard let qrcodeImage = filter.outputImage else {
+            return nil
+        }
+        // 消除模糊
+        let scaleX: CGFloat = size.width/qrcodeImage.extent.size.width
+        // extent 返回图片的frame
+        let scaleY: CGFloat = size.height/qrcodeImage.extent.size.height
+        let transformedImage = qrcodeImage.transformed(by: CGAffineTransform(scaleX: scaleX, y: scaleY))
+        
+        // 返回二维码图片
+        var qrImage = UIImage(ciImage: transformedImage)
+        if let colorFilter = CIFilter(name: "CIFalseColor") {
+            // 创建颜色滤镜
+            colorFilter.setDefaults()
+            colorFilter.setValue(transformedImage, forKey: "inputImage")
+            colorFilter.setValue(CIColor(red: 0, green: 0, blue: 0), forKey: "inputColor0")
+            colorFilter.setValue(CIColor(red: 1, green: 1, blue: 1), forKey: "inputColor1")
+            
+            if let outputImage = colorFilter.outputImage {
+                qrImage = UIImage(ciImage: outputImage)
+            }
+        }
+                
+        let imageRect = size.width > size.height ?
+            CGRect(x: (size.width - size.height) / 2, y: 0, width: size.height, height: size.height) :
+            CGRect(x: 0, y: (size.height - size.width) / 2, width: size.width, height: size.width)
+            UIGraphicsBeginImageContextWithOptions(imageRect.size, false, UIScreen.main.scale)
+        defer {
+            UIGraphicsEndImageContext()
+        }
+        qrImage.draw(in: imageRect)
+        if let logo = logo {
+            let logoSize = size.width > size.height ?
+                CGSize(width: size.height * 0.25, height: size.height * 0.25) :
+                CGSize(width: size.width * 0.25, height: size.width * 0.25)
+            logo.draw(in: CGRect(x: (imageRect.size.width - logoSize.width)/2,
+                                 y: (imageRect.size.height - logoSize.height)/2,
+                                 width: logoSize.width,
+                                 height: logoSize.height))
+        }
+        return UIGraphicsGetImageFromCurrentImageContext()
+    }
+    
 }

@@ -311,3 +311,410 @@ public extension TFY where Base: UIDevice {
     }
 }
 
+public extension TFY where Base: UIDevice {
+    static var modelName: String {
+        var systemInfo = utsname()
+        uname(&systemInfo)
+        let machineMirror = Mirror(reflecting: systemInfo.machine)
+        let identifier = machineMirror.children.reduce("") { identifier, element in
+            guard let value = element.value as? Int8, value != 0 else { return identifier }
+            return identifier + String(UnicodeScalar(UInt8(value)))
+        }
+        switch identifier {
+        case "iPhone1,1": return "iPhone 2G"
+        case "iPhone1,2": return "iPhone 3G"
+        case "iPhone2,1": return "iPhone 3GS"
+        case "iPhone3,1", "iPhone3,2", "iPhone3,3": return "iPhone 4"
+        case "iPhone4,1": return "iPhone 4S"
+        case "iPhone5,1", "iPhone5,2": return "iPhone 5"
+        case "iPhone5,3", "iPhone5,4": return "iPhone 5C"
+        case "iPhone6,1", "iPhone6,2": return "iPhone 5S"
+        case "iPhone7,2": return "iPhone 6"
+        case "iPhone7,1": return "iPhone 6 Plus"
+        case "iPhone8,1": return "iPhone 6S"
+        case "iPhone8,2": return "iPhone 6S Plus"
+        case "iPhone8,4": return "iPhone SE"
+        case "iPhone9,1", "iPhone9,3": return "iPhone 7"
+        case "iPhone9,2", "iPhone9,4": return "iPhone 7 Plus"
+        case "iPhone10,1", "iPhone10,4": return "iPhone 8"
+        case "iPhone10,2", "iPhone10,5": return "iPhone 8 Plus"
+        case "iPhone10,3", "iPhone10,6": return "iPhone X"
+        case "iPhone11,2": return "iPhone XS"
+        case "iPhone11,4", "iPhone11,6": return "iPhone XS Max"
+        case "iPhone11,8": return "iPhone XR"
+        case "iPhone12,1": return "iPhone 11"
+        case "iPhone12,3": return "iPhone 11 Pro"
+        case "iPhone12,5": return "iPhone 11 Pro Max"
+        case "iPhone12,8": return "iPhone SE (2nd generation)"
+        case "iPhone13,1": return "iPhone 12 mini"
+        case "iPhone13,2": return "iPhone 12"
+        case "iPhone13,3": return "iPhone 12 Pro"
+        case "iPhone13,4": return "iPhone 12 Pro Max"
+        case "iPhone14,2": return "iPhone 13 Pro"
+        case "iPhone14,3": return "iPhone 13 Pro Max"
+        case "iPhone14,4": return "iPhone 13 mini"
+        case "iPhone14,5": return "iPhone 13"
+        case "iPhone14,6": return "iPhone SE 3"
+        case "iPhone14,7": return "iPhone 14"
+        case "iPhone14,8": return "iPhone 14 Plus"
+        case "iPhone15,2": return "iPhone 14 Pro"
+        case "iPhone15,3": return "iPhone 14 Pro Max"
+        case "iPhone15,4": return "iPhone 15"
+        case "iPhone15,5": return "iPhone 15 Plus"
+        case "iPhone16,1": return "iPhone 15 Pro"
+        case "iPhone16,2": return "iPhone 15 Pro Max"
+        case "iPhone17,3": return "iPhone 16"
+        case "iPhone17,4": return "iPhone 16 Plus"
+        case "iPhone17,1": return "iPhone 16 Pro"
+        case "iPhone17,2": return "iPhone 16 Pro Max"
+        //ipad
+        case "iPad1,1": return "iPad"
+        case "iPad1,2": return "iPad 3G"
+        case "iPad2,1": return "iPad 2 (WiFi)"
+        case "iPad2,2","iPad2,4": return "iPad 2"
+        case "iPad2,3": return "iPad 2 (CDMA)"
+        case "iPad2,5": return "iPad Mini (WiFi)"
+        case "iPad2,6": return "iPad Mini"
+        case "iPad2,7": return "iPad Mini (GSM+CDMA)"
+        case "iPad3,1": return "iPad 3 (WiFi)"
+        case "iPad3,2": return "iPad 3 (GSM+CDMA)"
+        case "iPad3,3": return "iPad 3"
+        case "iPad3,4": return "iPad 4 (WiFi)"
+        case "iPad3,5": return "iPad 4"
+        case "iPad3,6": return "iPad 4 (GSM+CDMA)"
+        case "iPad4,1": return "iPad Air (WiFi)"
+        case "iPad4,2": return "iPad Air (Cellular)"
+        case "iPad4,3": return "iPad Air"
+        case "iPad4,4": return "iPad Mini 2 (WiFi)"
+        case "iPad4,5": return "iPad Mini 2 (Cellular)"
+        case "iPad4,6": return "iPad Mini 2"
+        case "iPad4,7": return "iPad Mini 3"
+        case "iPad4,8": return "iPad Mini 3"
+        case "iPad4,9": return "iPad Mini 3"
+        case "iPad5,1": return "iPad Mini 4 (WiFi)"
+        case "iPad5,2": return "iPad Mini 4 (LTE)"
+        case "iPad5,3","iPad5,4": return "iPad Air 2"
+        case "iPad6,3","iPad6,4": return "iPad Pro 9.7"
+        case "iPad6,7","iPad6,8": return "iPad Pro 12.9"
+        case "iPad6,11","iPad6,12": return "iPad 5th"
+        case "iPad7,1","iPad7,2": return "iPad Pro 12.9 2nd"
+        case "iPad7,3","iPad7,4": return "iPad Pro 10.5"
+        case "iPad7,5","iPad7,6": return "iPad 6th"
+        case "iPad8,1","iPad8,2","iPad8,3","iPad8,4": return "iPad Pro 11"
+        case "iPad8,5","iPad8,6","iPad8,7","iPad8,8": return "iPad Pro 12.9 3rd"
+        case "iPad8,9","iPad8,10": return "iPad Pro 11 2nd"
+        case "iPad8,11","iPad8,12": return "iPad Pro 12.9 4rd"
+        case "iPad13,4","iPad13,5","iPad13,6","iPad13,7": return "iPad Pro 11 3rd"
+        case "iPad13,8","iPad13,9","iPad13,10","iPad13,11": return "iPad Pro 12.9 5rd"
+        case "iPad16,3","iPad16,4": return "iPad Pro 11 M4"
+        case "iPad16,5","iPad16,6": return "iPad Pro 13 M4"
+        case "iPod1,1": return "iPod Touch 1G"
+        case "iPod2,1": return "iPod Touch 2G"
+        case "iPod3,1": return "iPod Touch 3G"
+        case "iPod4,1": return "iPod Touch 4G"
+        case "iPod5,1": return "iPod Touch (5 Gen)"
+        case "iPod7,1": return "iPod Touch (6 Gen)"
+        case "iPod9,1": return "iPod Touch (7 Gen)"
+        case "i386", "x86_64": return "Simulator"
+        default: return identifier
+        }
+    }
+    
+    /// 获取设备标识符
+    /// - Returns: 设备标识符
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var deviceIdentifier: String {
+        var systemInfo = utsname()
+        uname(&systemInfo)
+        let machineMirror = Mirror(reflecting: systemInfo.machine)
+        let identifier = machineMirror.children.reduce("") { identifier, element in
+            guard let value = element.value as? Int8, value != 0 else { return identifier }
+            return identifier + String(UnicodeScalar(UInt8(value)))
+        }
+        return identifier
+    }
+    
+    /// 获取设备类型枚举
+    /// - Returns: 设备类型
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var deviceFamily: DeviceFamily {
+        let deviceType = UIDevice.current.model
+        switch deviceType {
+        case "iPhone":
+            return .iPhone
+        case "iPad":
+            return .iPad
+        case "iPod":
+            return .iPod
+        default:
+            return .unknown
+        }
+    }
+    
+    /// 检查是否为刘海屏设备
+    /// - Returns: 如果是刘海屏设备返回true
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var hasNotch: Bool {
+        if #available(iOS 15.0, *) {
+            let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+            let window = windowScene?.windows.first { $0.isKeyWindow }
+            return window?.safeAreaInsets.top ?? 0 > 20
+        } else {
+            let window = UIApplication.shared.windows.first { $0.isKeyWindow }
+            return window?.safeAreaInsets.top ?? 0 > 20
+        }
+    }
+    
+    /// 获取安全区域边距
+    /// - Returns: 安全区域边距
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var safeAreaInsets: UIEdgeInsets {
+        if #available(iOS 15.0, *) {
+            let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+            let window = windowScene?.windows.first { $0.isKeyWindow }
+            return window?.safeAreaInsets ?? .zero
+        } else {
+            let window = UIApplication.shared.windows.first { $0.isKeyWindow }
+            return window?.safeAreaInsets ?? .zero
+        }
+    }
+    
+    /// 获取状态栏高度
+    /// - Returns: 状态栏高度
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var statusBarHeight: CGFloat {
+        if #available(iOS 13.0, *) {
+            let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+            return windowScene?.statusBarManager?.statusBarFrame.height ?? 0
+        } else {
+            return UIApplication.shared.statusBarFrame.height
+        }
+    }
+    
+    /// 获取导航栏高度
+    /// - Returns: 导航栏高度
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var navigationBarHeight: CGFloat {
+        return 44.0
+    }
+    
+    /// 获取标签栏高度
+    /// - Returns: 标签栏高度
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var tabBarHeight: CGFloat {
+        return 49.0
+    }
+    
+    /// 获取屏幕尺寸
+    /// - Returns: 屏幕尺寸
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var screenSize: CGSize {
+        return UIScreen.main.bounds.size
+    }
+    
+    /// 获取屏幕宽度
+    /// - Returns: 屏幕宽度
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var screenWidth: CGFloat {
+        return UIScreen.main.bounds.width
+    }
+    
+    /// 获取屏幕高度
+    /// - Returns: 屏幕高度
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var screenHeight: CGFloat {
+        return UIScreen.main.bounds.height
+    }
+    
+    /// 获取屏幕比例
+    /// - Returns: 屏幕比例
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var screenScale: CGFloat {
+        return UIScreen.main.scale
+    }
+    
+    /// 检查是否为竖屏
+    /// - Returns: 如果是竖屏返回true
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var isPortrait: Bool {
+        return UIDevice.current.orientation.isPortrait
+    }
+    
+    /// 检查是否为横屏
+    /// - Returns: 如果是横屏返回true
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var isLandscape: Bool {
+        return UIDevice.current.orientation.isLandscape
+    }
+    
+    /// 获取设备方向
+    /// - Returns: 设备方向
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var deviceOrientation: UIDeviceOrientation {
+        return UIDevice.current.orientation
+    }
+    
+    /// 获取电池电量
+    /// - Returns: 电池电量 (0.0-1.0)
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var batteryLevel: Float {
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        return UIDevice.current.batteryLevel
+    }
+    
+    /// 获取电池状态
+    /// - Returns: 电池状态
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var batteryState: UIDevice.BatteryState {
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        return UIDevice.current.batteryState
+    }
+    
+    /// 检查是否正在充电
+    /// - Returns: 如果正在充电返回true
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var isCharging: Bool {
+        return batteryState == .charging || batteryState == .full
+    }
+    
+    /// 获取可用内存大小
+    /// - Returns: 可用内存大小（字节）
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var memoryAvailable: UInt64 {
+        var pagesize: vm_size_t = 0
+        var stats = vm_statistics64()
+        var count = mach_msg_type_number_t(MemoryLayout<vm_statistics64>.size / MemoryLayout<integer_t>.size)
+        
+        host_page_size(mach_host_self(), &pagesize)
+        _ = withUnsafeMutablePointer(to: &stats) { statsPointer in
+            statsPointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { integerPointer in
+                host_statistics64(mach_host_self(), HOST_VM_INFO64, integerPointer, &count)
+            }
+        }
+        
+        let free = UInt64(stats.free_count) * UInt64(pagesize)
+        return free
+    }
+    
+    /// 获取内存使用率
+    /// - Returns: 内存使用率 (0.0-1.0)
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var memoryUsage: Double {
+        let total = memoryTotal
+        let available = memoryAvailable
+        guard total > 0 else { return 0.0 }
+        return Double(total - available) / Double(total)
+    }
+    
+    /// 获取CPU使用率
+    /// - Returns: CPU使用率 (0.0-1.0)
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var cpuUsage: Double {
+        var totalUsageOfCPU: Double = 0.0
+        var threadList: thread_act_array_t?
+        var threadCount: mach_msg_type_number_t = 0
+        
+        let threadResult = task_threads(mach_task_self_, &threadList, &threadCount)
+        
+        if threadResult == KERN_SUCCESS, let threadList = threadList {
+            for index in 0..<threadCount {
+                var threadInfo = thread_basic_info()
+                var threadInfoCount = mach_msg_type_number_t(THREAD_INFO_MAX)
+                
+                let infoResult = withUnsafeMutablePointer(to: &threadInfo) {
+                    $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+                        thread_info(threadList[Int(index)], thread_flavor_t(THREAD_BASIC_INFO), $0, &threadInfoCount)
+                    }
+                }
+                
+                if infoResult == KERN_SUCCESS {
+                    totalUsageOfCPU += Double(threadInfo.cpu_usage) / Double(TH_USAGE_SCALE)
+                }
+            }
+            
+            vm_deallocate(mach_task_self_, vm_address_t(UInt(bitPattern: threadList)), vm_size_t(Int(threadCount) * MemoryLayout<thread_t>.size))
+        }
+        
+        return totalUsageOfCPU
+    }
+    
+    /// 获取网络类型
+    /// - Returns: 网络类型
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var networkType: NetworkType {
+        let reachability = Reachability()
+        switch reachability.connection {
+        case .wifi:
+            return .wifi
+        case .cellular:
+            return .cellular
+        case .unavailable:
+            return .none
+        }
+    }
+    
+    /// 获取格式化的大小字符串
+    /// - Parameter bytes: 字节数
+    /// - Returns: 格式化的大小字符串
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static func formatBytes(_ bytes: Int64) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = [.useKB, .useMB, .useGB, .useTB]
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: bytes)
+    }
+    
+    /// 获取设备信息字典
+    /// - Returns: 设备信息字典
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var deviceInfo: [String: Any] {
+        return [
+            "model": modelName,
+            "systemVersion": currentSystemVersion,
+            "systemName": currentSystemName,
+            "deviceType": deviceType,
+            "isSimulator": isSimulator(),
+            "isJailbroken": isJailbroken,
+            "hasNotch": hasNotch,
+            "screenSize": screenSize,
+            "screenScale": screenScale,
+            "batteryLevel": batteryLevel,
+            "isCharging": isCharging,
+            "memoryUsage": memoryUsage,
+            "diskSpace": formatBytes(diskSpace),
+            "diskSpaceFree": formatBytes(diskSpaceFree),
+            "diskSpaceUsed": formatBytes(diskSpaceUsed)
+        ]
+    }
+}
+
+// MARK: - 设备类型枚举
+public enum DeviceFamily {
+    case iPhone
+    case iPad
+    case iPod
+    case unknown
+}
+
+// MARK: - 网络类型枚举
+public enum NetworkType {
+    case wifi
+    case cellular
+    case none
+    case unknown
+}
+
+// MARK: - Reachability 类（简化版）
+public class Reachability {
+    public enum Connection {
+        case wifi
+        case cellular
+        case unavailable
+    }
+    
+    public var connection: Connection {
+        // 这里应该实现真正的网络可达性检测
+        // 为了简化，这里返回一个默认值
+        return .wifi
+    }
+}

@@ -3,141 +3,184 @@
 //  TFYSwiftCategoryUtil
 //
 //  Created by 田风有 on 2022/5/18.
+//  用途：正则表达式工具，支持常用字符串、数字、手机号等校验。
 //
 
 import Foundation
 
-// MARK: - 校验字符的表达式
-public enum TFYRegexCharacterType: String {
-    /// 汉字
-    case type1 = "^[\\u4e00-\\u9fa5]{0,}$"
-    /// 英文和数字 ^[A-Za-z0-9]+$ 或 ^[A-Za-z0-9]{4,40}$
-    case type2 = "^[A-Za-z0-9]{4,40}$"
-    /// 长度为3-20的所有字符
-    case type3 = "^.{3,20}$"
-    /// 由26个英文字母组成的字符串
-    case type4 = "^[A-Za-z]+$"
-    /// 由26个大写英文字母组成的字符串
-    case type5 = "^[A-Z]+$"
-    /// 由26个小写英文字母组成的字符串
-    case type6 = "^[a-z]+$"
-    /// 由数字和26个英文字母组成的字符串
-    case type7 = "^[A-Za-z0-9]+$"
-    /// 由数字、26个英文字母或者下划线组成的字符串 ^\w+$ 或 ^\w{3,20}$
-    case type8 = "^\\w+$"
-    /// 中文、英文、数字包括下划线
-    case type9 = "^[\\u4E00-\\u9FA5A-Za-z0-9_]+$"
-    /// 中文、英文、数字但不包括下划线等符号 ^[\u4E00-\u9FA5A-Za-z0-9]+$ 或 ^[\u4E00-\u9FA5A-Za-z0-9]{2,20}$
-    case type10 = "^[\\u4E00-\\u9FA5A-Za-z0-9]+$"
-    /// 可以输入含有^%&',;=?$\"等字符
-    case type11 = "[^%&',;=?$\\x22]+"
-    /// 禁止输入含有~的字符
-    case type12 = "[^~\\x22]+"
+/// 字符校验类型
+public enum TFYRegexCharacterType: String, CaseIterable {
+    /// 汉字校验
+    case chinese = "^[\\u4e00-\\u9fa5]{0,}$"
+    /// 英文和数字，长度4-40
+    case alphaNumeric = "^[A-Za-z0-9]{4,40}$"
+    /// 任意字符，长度3-20
+    case anyCharacter = "^.{3,20}$"
+    /// 纯英文字母
+    case alpha = "^[A-Za-z]+$"
+    /// 大写英文字母
+    case upperAlpha = "^[A-Z]+$"
+    /// 小写英文字母
+    case lowerAlpha = "^[a-z]+$"
+    /// 英文和数字组合
+    case alphaNum = "^[A-Za-z0-9]+$"
+    /// 英文、数字和下划线
+    case alphaNumUnderscore = "^\\w+$"
+    /// 中文、英文、数字和下划线
+    case chineseAlphaNumUnderscore = "^[\\u4E00-\\u9FA5A-Za-z0-9_]+$"
+    /// 中文、英文和数字（不含符号）
+    case chineseAlphaNum = "^[\\u4E00-\\u9FA5A-Za-z0-9]+$"
+    /// 允许特殊字符（除^%&',;=?$\"外）
+    case allowSpecial = "[^%&',;=?$\\x22]+"
+    /// 禁止波浪号
+    case noTilde = "[^~\\x22]+"
 }
 
-// MARK: - 校验数字的表达式
-public enum TFYRegexDigitalType: String {
-    /// 数字
-    case type1 = "^[0-9]*$"
-    /// 零和非零开头的数字
-    case type2 = "^(0|[1-9][0-9]*)$"
-    /// 非零开头的最多带两位小数的数字
-    case type3 = "^([1-9][0-9]*)+(\\.[0-9]{1,2})?$"
-    /// 非零的正整数：^[1-9]\d*$ 或 ^([1-9][0-9]*){1,3}$ 或 ^\+?[1-9][0-9]*$
-    case type4 = "^[1-9]\\d*$"
-    /// 非零的负整数：^\-[1-9][]0-9"*$ 或 ^-[1-9]\d*$
-    case type5 = "^-[1-9]\\d*$"
-    /// 非负整数：^\d+$ 或 ^[1-9]\d*|0$
-    case type6 = "^\\d+$"
-    /// 非正整数：^-[1-9]\d*|0$ 或 ^((-\d+)|(0+))$
-    case type7 = "^((-\\d+)|(0+))$"
-    /// 非负浮点数：^\d+(\.\d+)?$ 或 ^[1-9]\d*\.\d*|0\.\d*[1-9]\d*|0?\.0+|0$
-    case type8 = "^\\d+(\\.\\d+)?$"
-    /// 非正浮点数：^((-\d+(\.\d+)?)|(0+(\.0+)?))$ 或 ^(-([1-9]\d*\.\d*|0\.\d*[1-9]\d*))|0?\.0+|0$
-    case type9 = "^((-\\d+(\\.\\d+)?)|(0+(\\.0+)?))$"
-    /// 正浮点数：^[1-9]\d*\.\d*|0\.\d*[1-9]\d*$ 或 ^(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*))$
-    case type10 = "^[1-9]\\d*\\.\\d*|0\\.\\d*[1-9]\\d*$"
-    /// 负浮点数：^-([1-9]\d*\.\d*|0\.\d*[1-9]\d*)$ 或 ^(-(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*)))$
-    case type11 = "^-([1-9]\\d*\\.\\d*|0\\.\\d*[1-9]\\d*)$"
-    /// 浮点数：^(-?\d+)(\.\d+)?$ 或 ^-?([1-9]\d*\.\d*|0\.\d*[1-9]\d*|0?\.0+|0)$
-    case type12 = "^(-?\\d+)(\\.\\d+)?$"
-    /// 手机号
-    case type13 = "^((13[0-9])|(14[5,7])|(15[0-3,5-9])|(17[0,3,5-8])|(18[0-9])|166|198|199)\\d{8}$"
+/// 数字校验类型
+public enum TFYRegexDigitalType: String, CaseIterable {
+    /// 纯数字
+    case number = "^[0-9]*$"
+    /// 零或非零开头的数字
+    case validNumber = "^(0|[1-9][0-9]*)$"
+    /// 非零开头的最多两位小数
+    case decimal = "^([1-9][0-9]*)+(\\.[0-9]{1,2})?$"
+    /// 正整数
+    case positiveInteger = "^[1-9]\\d*$"
+    /// 负整数
+    case negativeInteger = "^-[1-9]\\d*$"
+    /// 非负整数（正整数和0）
+    case nonNegativeInteger = "^\\d+$"
+    /// 非正整数（负整数和0）
+    case nonPositiveInteger = "^((-\\d+)|(0+))$"
+    /// 非负浮点数
+    case nonNegativeFloat = "^\\d+(\\.\\d+)?$"
+    /// 非正浮点数
+    case nonPositiveFloat = "^((-\\d+(\\.\\d+)?)|(0+(\\.0+)?))$"
+    /// 正浮点数
+    case positiveFloat = "^[1-9]\\d*\\.\\d*|0\\.\\d*[1-9]\\d*$"
+    /// 负浮点数
+    case negativeFloat = "^-([1-9]\\d*\\.\\d*|0\\.\\d*[1-9]\\d*)$"
+    /// 浮点数
+    case float = "^(-?\\d+)(\\.\\d+)?$"
+    /// 手机号码（支持166、198、199等）
+    case phone = "^((13[0-9])|(14[5,7])|(15[0-3,5-9])|(17[0,3,5-8])|(18[0-9])|166|198|199)\\d{8}$"
 }
 
-// MARK: - 一、正则匹配的使用
+/// 正则表达式工具类
 public struct TFYRegexHelper {
-
-    // MARK: 1.1、通用匹配
-    /// 通用匹配
+    
+    // MARK: - 基础匹配方法
+    
+    /// 通用正则匹配
     /// - Parameters:
-    ///   - input: 匹配的字符串
-    ///   - pattern: 匹配规则
-    /// - Returns: 返回匹配的结果
-    public static func match(_ input: String, pattern: String, options: NSRegularExpression.Options = []) -> Bool {
-        guard let regex: NSRegularExpression = try? NSRegularExpression(pattern: pattern, options: options) else {
+    ///   - input: 需要匹配的字符串
+    ///   - pattern: 正则表达式
+    ///   - options: 匹配选项，默认为空数组
+    /// - Returns: 是否匹配成功
+    public static func match(
+        _ input: String,
+        pattern: String,
+        options: NSRegularExpression.Options = []
+    ) -> Bool {
+        do {
+            let regex = try NSRegularExpression(pattern: pattern, options: options)
+            let matches = regex.matches(in: input, range: NSRange(input.startIndex..., in: input))
+            return !matches.isEmpty
+        } catch {
+            print("TFYRegexHelper: 正则表达式错误 pattern=\(pattern), error=\(error)")
             return false
         }
-        let matches = regex.matches(in: input, options: [], range: NSMakeRange(0, input.utf16.count))
-        return matches.count > 0
     }
     
-    // MARK: 1.2、获取匹配的Range
-    /// 获取匹配的Range
+    /// 获取匹配的范围
     /// - Parameters:
-    ///   - input: 匹配的字符串
-    ///   - pattern: 匹配规则
-    /// - Returns: 返回匹配的[NSRange]结果
-    public static func matchRange(_ input: String, pattern: String, options: NSRegularExpression.Options = []) -> [NSRange] {
-        guard let regex: NSRegularExpression = try? NSRegularExpression(pattern: pattern, options: options) else {
+    ///   - input: 需要匹配的字符串
+    ///   - pattern: 正则表达式
+    ///   - options: 匹配选项，默认为空数组
+    /// - Returns: 匹配到的范围数组
+    public static func matchRanges(
+        _ input: String,
+        pattern: String,
+        options: NSRegularExpression.Options = []
+    ) -> [NSRange] {
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else {
             return []
         }
-        let matches = regex.matches(in: input, options: [], range: NSMakeRange(0, input.utf16.count))
-        guard matches.count > 0 else {
-            return []
-        }
-        return matches.map { value in
-            value.range
-        }
+        return regex.matches(in: input, range: NSRange(input.startIndex..., in: input))
+            .map { $0.range }
     }
     
-    // MARK: 1.3、验证邮箱是否合法
-    /// 验证邮箱是否合法
-    /// - Parameters:
-    ///   - emailString: 邮箱
-    ///   - pattern: 匹配规则
-    /// - Returns: 返回结果
-    public static func validateEmail(_ emailString: String, pattern: String = "^([a-z0-9A-Z]+[-_|\\.]?)+[a-z0-9A-Z]@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\.)+[a-zA-Z]{2,}$") -> Bool {
-        return match(emailString, pattern: pattern)
+    // MARK: - 常用验证方法
+    
+    /// 验证邮箱格式
+    /// - Parameter email: 邮箱地址
+    /// - Returns: 是否合法
+    public static func isValidEmail(_ email: String) -> Bool {
+        let pattern = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}$"
+        return match(email, pattern: pattern)
     }
     
-    // MARK: 1.4、 判断是否是有效的手机号码
-    ///  判断是否是有效的手机号码
-    /// - Parameter telNum: 手机号码
-    /// - Returns: 返回结果
-    public static func validateTelephoneNumber(_ telNum: String, pattern: String = TFYRegexDigitalType.type13.rawValue) -> Bool {
-        return match(telNum, pattern: pattern)
+    /// 验证手机号码
+    /// - Parameter phone: 手机号码
+    /// - Returns: 是否合法
+    public static func isValidPhone(_ phone: String) -> Bool {
+        return match(phone, pattern: TFYRegexDigitalType.phone.rawValue)
     }
     
-    // MARK: 1.5、正则匹配用户姓名
-    /// 正则匹配用户姓名
-    /// - Parameter userName: 用户姓名
-    /// - Returns: 匹配结果
-    public static func validateUserName(_ userName: String) -> Bool {
-        let pattern = "^[a-zA-Z\\u4E00-\\u9FA5]{1,20}"
-        let pred = NSPredicate(format: "SELF MATCHES %@", pattern)
-        let isMatch: Bool = pred.evaluate(with: userName)
-        return isMatch
+    /// 验证中文姓名
+    /// - Parameter name: 姓名
+    /// - Returns: 是否合法
+    public static func isValidChineseName(_ name: String) -> Bool {
+        let pattern = "^[\u{4e00}-\u{9fa5}]{2,8}$"
+        return match(name, pattern: pattern)
     }
     
-    // MARK: 1.6、正则匹配用户身份证号15或18位
-    /// 正则匹配用户身份证号15或18位
-    /// - Parameter userIdCard: 用户身份证号15或18位
-    /// - Returns: 匹配结果
-    public static func validateUserIdCard(_ userIdCard: String) -> Bool {
-        let pattern = "(^[0-9]{15}$)|([0-9]{17}([0-9]|X)$)"
-        let pred = NSPredicate(format: "SELF MATCHES %@", pattern)
-        let isMatch: Bool = pred.evaluate(with: userIdCard)
-        return isMatch
+    /// 验证身份证号码
+    /// - Parameter idCard: 身份证号码
+    /// - Returns: 是否合法
+    public static func isValidIDCard(_ idCard: String) -> Bool {
+        let pattern = "^(\\d{14}|\\d{17})(\\d|[xX])$"
+        return match(idCard, pattern: pattern)
+    }
+    
+    /// 验证密码强度（至少包含数字和字母，长度8-20位）
+    /// - Parameter password: 密码
+    /// - Returns: 是否合法
+    public static func isValidPassword(_ password: String) -> Bool {
+        let pattern = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,20}$"
+        return match(password, pattern: pattern)
+    }
+}
+
+// MARK: - 便利扩展
+public extension String {
+    /// 是否匹配指定的正则表达式
+    func matches(_ pattern: String, options: NSRegularExpression.Options = []) -> Bool {
+        return TFYRegexHelper.match(self, pattern: pattern, options: options)
+    }
+    
+    /// 是否是有效的邮箱
+    var isValidEmail: Bool {
+        return TFYRegexHelper.isValidEmail(self)
+    }
+    
+    /// 是否是有效的手机号
+    var isValidPhone: Bool {
+        return TFYRegexHelper.isValidPhone(self)
+    }
+    
+    /// 是否是有效的中文姓名
+    var isValidChineseName: Bool {
+        return TFYRegexHelper.isValidChineseName(self)
+    }
+    
+    /// 是否是有效的身份证号
+    var isValidIDCard: Bool {
+        return TFYRegexHelper.isValidIDCard(self)
+    }
+    
+    /// 是否是有效的密码
+    var isValidPassword: Bool {
+        return TFYRegexHelper.isValidPassword(self)
     }
 }

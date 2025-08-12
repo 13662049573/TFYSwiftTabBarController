@@ -12,32 +12,44 @@ public extension Array {
     
     // MARK: 1.1、安全的取某个索引的值
     /// 安全的取某个索引的值
+    /// - Parameter index: 索引
+    /// - Returns: 对应元素或nil（越界安全）
     func indexValue(safe index: Index) -> Element? {
         return indices.contains(index) ? self[index] : nil
     }
     
     // MARK: 1.2、数组添加数组
     /// 数组新增元素(可转入一个数组)
+    /// - Parameter elements: 要添加的元素数组
     mutating func appends(_ elements: [Element]) {
+        guard !elements.isEmpty else { return }
         self.append(contentsOf: elements)
     }
     
     // MARK: 1.3、数组 -> JSON字符串
-    /// 字典转换为JSONString
+    /// 数组转换为JSONString
+    /// - Returns: JSON字符串，失败返回nil
     func toJSON() -> String? {
-        let array = self
-        guard JSONSerialization.isValidJSONObject(array) else {
-            return ""
+        guard JSONSerialization.isValidJSONObject(self) else {
+            TFYUtils.Logger.log("⚠️ Array: 不是有效的JSON对象")
+            return nil
         }
-        let data : NSData = try! JSONSerialization.data(withJSONObject: array, options: []) as NSData
-        let JSONString = NSString(data:data as Data,encoding: String.Encoding.utf8.rawValue)
-        return JSONString! as String
+        do {
+            let data = try JSONSerialization.data(withJSONObject: self, options: [])
+            return String(data: data, encoding: .utf8)
+        } catch {
+            TFYUtils.Logger.log("⚠️ Array: JSON序列化失败 \(error)")
+            return nil
+        }
     }
     
     // MARK: 1.4、分隔数组
     /// 分隔数组
+    /// - Parameter condition: 分隔条件
+    /// - Returns: 分隔后的二维数组
     func split(where condition: (Element, Element) -> Bool) -> [[Element]] {
-        var result: [[Element]] = self.isEmpty ? [] : [[self[0]]]
+        guard !self.isEmpty else { return [] }
+        var result: [[Element]] = [[self[0]]]
         for (previous, current) in zip(self, self.dropFirst()) {
             if condition(previous, current) {
                 result.append([current])
@@ -57,6 +69,7 @@ public extension Array where Element : Equatable {
     /// - Parameter item: 元素
     /// - Returns: 索引值数组
     func indexes(_ item: Element) -> [Int] {
+        guard self.count > 0 else { return [] }
         var indexes = [Int]()
         for index in 0..<count where self[index] == item {
             indexes.append(index)
@@ -95,8 +108,8 @@ public extension Array where Element : Equatable {
     ///   - isRepeat: 是否删除重复的元素
     @discardableResult
     mutating func remove(_ element: Element, isRepeat: Bool = true) -> Array {
+        guard self.count > 0 else { return self }
         var removeIndexs: [Int] = []
-        
         for i in 0 ..< count {
             if self[i] == element {
                 removeIndexs.append(i)
@@ -105,7 +118,9 @@ public extension Array where Element : Equatable {
         }
         // 倒序删除
         for index in removeIndexs.reversed() {
-            self.remove(at: index)
+            if index < self.count {
+                self.remove(at: index)
+            }
         }
         return self
     }
@@ -117,6 +132,7 @@ public extension Array where Element : Equatable {
     ///   - isRepeat: 是否删除重复的元素
     @discardableResult
     mutating func removeArray(_ elements: [Element], isRepeat: Bool = true) -> Array {
+        guard !elements.isEmpty else { return self }
         for element in elements {
             if self.contains(element) {
                 self.remove(element, isRepeat: isRepeat)
@@ -136,6 +152,7 @@ public extension Array where Element : NSObjectProtocol {
     ///   - isRepeat: 是否删除重复的元素
     @discardableResult
     mutating func remove(object: NSObjectProtocol, isRepeat: Bool = true) -> Array {
+        guard self.count > 0 else { return self }
         var removeIndexs: [Int] = []
         for i in 0..<count {
             if self[i].isEqual(object) {
@@ -146,7 +163,9 @@ public extension Array where Element : NSObjectProtocol {
             }
         }
         for index in removeIndexs.reversed() {
-            self.remove(at: index)
+            if index < self.count {
+                self.remove(at: index)
+            }
         }
         return self
     }
@@ -158,6 +177,7 @@ public extension Array where Element : NSObjectProtocol {
     ///   - isRepeat: 是否删除重复的元素
     @discardableResult
     mutating func removeArray(objects: [NSObjectProtocol], isRepeat: Bool = true) -> Array {
+        guard !objects.isEmpty else { return self }
         for object in objects {
             if self.contains(where: {$0.isEqual(object)} ){
                 self.remove(object: object, isRepeat: isRepeat)
@@ -176,5 +196,143 @@ public extension Array where Self.Element == String {
     /// - Returns: 转化后的字符串
     func toStrinig(separator: String = "") -> String {
         return self.joined(separator: separator)
+    }
+}
+
+// MARK: - 六、数组的通用扩展方法
+public extension Array {
+    
+    // MARK: 6.8、数组是否包含重复元素
+    /// 数组是否包含重复元素
+    /// - Returns: 如果包含重复元素返回true
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    var hasDuplicates: Bool {
+        // 对于非Hashable元素，使用简单的循环比较
+        for i in 0..<count {
+            for j in (i+1)..<count {
+                if self[i] as AnyObject === self[j] as AnyObject {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+}
+
+// MARK: - 七、数组的Hashable元素扩展
+public extension Array where Element: Hashable {
+    
+    // MARK: 6.1、数组去重
+    /// 数组去重
+    /// - Returns: 去重后的数组
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    func unique() -> [Element] where Element: Hashable {
+        return Array(Set(self))
+    }
+    
+    // MARK: 6.2、数组去重（保持顺序）
+    /// 数组去重（保持顺序）
+    /// - Returns: 去重后的数组
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    func uniqueOrdered() -> [Element] where Element: Equatable {
+        return reduce([]) { result, element in
+            result.contains(element) ? result : result + [element]
+        }
+    }
+    
+    // MARK: 6.3、数组分组
+    /// 数组分组
+    /// - Parameter keyPath: 分组键路径
+    /// - Returns: 分组后的字典
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    func group<Key: Hashable>(by keyPath: KeyPath<Element, Key>) -> [Key: [Element]] {
+        return Dictionary(grouping: self, by: { $0[keyPath: keyPath] })
+    }
+    
+
+    
+    // MARK: 6.5、数组过滤并转换
+    /// 数组过滤并转换
+    /// - Parameters:
+    ///   - isIncluded: 过滤条件
+    ///   - transform: 转换函数
+    /// - Returns: 过滤并转换后的数组
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    func filterMap<T>(_ isIncluded: (Element) throws -> Bool, transform: (Element) throws -> T) rethrows -> [T] {
+        return try self.filter(isIncluded).map(transform)
+    }
+    
+    // MARK: 6.9、数组是否为空或nil
+    /// 数组是否为空或nil
+    /// - Returns: 如果数组为空返回true
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    var isEmptyOrNil: Bool {
+        return self.isEmpty
+    }
+    
+    // MARK: 6.10、数组的第一个元素
+    /// 数组的第一个元素
+    /// - Returns: 第一个元素，数组为空返回nil
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    var tfy_first: Element? {
+        return self.first
+    }
+    
+    // MARK: 6.11、数组的最后一个元素
+    /// 数组的最后一个元素
+    /// - Returns: 最后一个元素，数组为空返回nil
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    var tfy_last: Element? {
+        return self.last
+    }
+    
+    // MARK: 6.12、数组的中间元素
+    /// 数组的中间元素
+    /// - Returns: 中间元素，数组为空返回nil
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    var tfy_middle: Element? {
+        guard !isEmpty else { return nil }
+        let middleIndex = count / 2
+        return self[middleIndex]
+    }
+    
+    // MARK: 6.13、数组的前N个元素
+    /// 数组的前N个元素
+    /// - Parameter n: 元素数量
+    /// - Returns: 前N个元素的数组
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    func tfy_prefix(_ n: Int) -> [Element] {
+        return Array((self as [Element]).prefix(n))
+    }
+    
+    // MARK: 6.14、数组的后N个元素
+    /// 数组的后N个元素
+    /// - Parameter n: 元素数量
+    /// - Returns: 后N个元素的数组
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    func tfy_suffix(_ n: Int) -> [Element] {
+        return Array((self as [Element]).suffix(n))
+    }
+    
+    // MARK: 6.15、数组的统计信息
+    /// 数组的统计信息
+    /// - Returns: 包含统计信息的字典
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    var statistics: [String: Any] {
+        var result: [String: Any] = [
+            "count": count,
+            "isEmpty": isEmpty,
+            "hasDuplicates": hasDuplicates
+        ]
+        
+        if tfy_first != nil {
+            result["firstIndex"] = 0
+        }
+        
+        if tfy_last != nil {
+            result["lastIndex"] = count - 1
+        }
+        
+        return result
     }
 }

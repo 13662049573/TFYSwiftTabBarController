@@ -220,7 +220,11 @@ public extension UIView {
 
     @IBInspectable var borderColor: UIColor {
         get {
-            return UIColor(cgColor: layer.borderColor!)
+            if let cgColor = layer.borderColor {
+                return UIColor(cgColor: cgColor)
+            } else {
+                return UIColor.clear
+            }
         }
         set {
             layer.borderColor = newValue.cgColor
@@ -337,195 +341,206 @@ public extension UIView {
         getSubview(view: self)
         return all
     }
+    
+    func renderViewToImage(view: UIView) -> UIImage? {
+        UIGraphicsBeginImageContextWithOptions(view.bounds.size, view.isOpaque, 0.0)
+        defer { UIGraphicsEndImageContext() }
+        if let context = UIGraphicsGetCurrentContext() {
+            view.layer.render(in: context)
+            let image = UIGraphicsGetImageFromCurrentImageContext()
+            return image
+        }
+        return nil
+    }
 }
 
 
 public extension TFY where Base: UIView {
     
     @discardableResult
-    func tag(_ tag: Int) -> TFY {
+    func tag(_ tag: Int) -> Self {
         base.tag = tag
         return self
     }
     
     @discardableResult
-    func frame(_ frame: CGRect) -> TFY {
+    func frame(_ frame: CGRect) -> Self {
         base.frame = frame
         return self
     }
     
     @discardableResult
-    func frame(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) -> TFY {
+    func frame(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) -> Self {
         base.frame = CGRect(x: x, y: y, width: width, height: height)
         return self
     }
     
     @discardableResult
-    func bounds(_ bounds: CGRect) -> TFY {
+    func bounds(_ bounds: CGRect) -> Self {
         base.bounds = bounds
         return self
     }
     
     @discardableResult
-    func center(_ center: CGPoint) -> TFY {
+    func center(_ center: CGPoint) -> Self {
         base.center = center
         return self
     }
     
     @discardableResult
-    func center(x: CGFloat, y: CGFloat) -> TFY {
+    func center(x: CGFloat, y: CGFloat) -> Self {
         base.center = CGPoint(x: x, y: y)
         return self
     }
     
     @discardableResult
-    func backgroundColor(_ backgroundColor: UIColor) -> TFY {
+    func backgroundColor(_ backgroundColor: UIColor) -> Self {
         base.backgroundColor = backgroundColor
         return self
     }
     
     @discardableResult
-    func contentMode(_ contentMode: UIView.ContentMode) -> TFY {
+    func contentMode(_ contentMode: UIView.ContentMode) -> Self {
         base.contentMode = contentMode
         return self
     }
     
     @discardableResult
-    func clipsToBounds(_ clipsToBounds: Bool) -> TFY {
+    func clipsToBounds(_ clipsToBounds: Bool) -> Self {
         base.clipsToBounds = clipsToBounds
         return self
     }
     
     @discardableResult
-    func alpha(_ alpha: CGFloat) -> TFY {
+    func alpha(_ alpha: CGFloat) -> Self {
         base.alpha = alpha
         return self
     }
     
     @discardableResult
-    func isHidden(_ isHidden: Bool) -> TFY {
+    func isHidden(_ isHidden: Bool) -> Self {
         base.isHidden = isHidden
         return self
     }
     
     @discardableResult
-    func isOpaque(_ isOpaque: Bool) -> TFY {
+    func isOpaque(_ isOpaque: Bool) -> Self {
         base.isOpaque = isOpaque
         return self
     }
     
     @discardableResult
-    func isUserInteractionEnabled(_ isUserInteractionEnabled: Bool) -> TFY {
+    func isUserInteractionEnabled(_ isUserInteractionEnabled: Bool) -> Self {
         base.isUserInteractionEnabled = isUserInteractionEnabled
         return self
     }
     
     @discardableResult
-    func tintColor(_ tintColor: UIColor) -> TFY {
+    func tintColor(_ tintColor: UIColor) -> Self {
         base.tintColor = tintColor
         return self
     }
     
     @discardableResult
-    func cornerRadius(_ cornerRadius: CGFloat) -> TFY {
+    func cornerRadius(_ cornerRadius: CGFloat) -> Self {
         base.cornerRadius = cornerRadius
         return self
     }
     
     @discardableResult
-    func borderWidth(_ borderWidth: CGFloat) -> TFY {
+    func borderWidth(_ borderWidth: CGFloat) -> Self {
         base.borderWidth = borderWidth
         return self
     }
     
     @discardableResult
-    func borderColor(_ borderColor: UIColor) -> TFY {
+    func borderColor(_ borderColor: UIColor) -> Self {
         base.borderColor = borderColor
         return self
     }
     
     @discardableResult
-    func shadowColor(_ shadowColor: UIColor?) -> TFY {
+    func shadowColor(_ shadowColor: UIColor?) -> Self {
         base.shadowColor = shadowColor
         return self
     }
     
     @discardableResult
-    func shadowOpacity(_ shadowOpacity: Float) -> TFY {
+    func shadowOpacity(_ shadowOpacity: Float) -> Self {
         base.shadowOpacity = shadowOpacity
         return self
     }
     
     @discardableResult
-    func shadowOffset(_ shadowOffset: CGSize) -> TFY {
+    func shadowOffset(_ shadowOffset: CGSize) -> Self {
         base.shadowOffset = shadowOffset
         return self
     }
     
     @discardableResult
-    func shadowRadius(_ shadowRadius: CGFloat) -> TFY {
+    func shadowRadius(_ shadowRadius: CGFloat) -> Self {
         base.shadowRadius = shadowRadius
         return self
     }
     
     @discardableResult
-    func shadowPath(_ shadowPath: CGPath?) -> TFY {
+    func shadowPath(_ shadowPath: CGPath?) -> Self {
         base.layer.shadowPath = shadowPath
         return self
     }
     
     @discardableResult
-    func addToSuperView(_ view: UIView) -> TFY {
+    func addToSuperView(_ view: UIView) -> Self {
         view.addSubview(base)
         return self
     }
     
     @discardableResult
-    func addGestureRecognizer(_ gestureRecognizer: UIGestureRecognizer) -> TFY {
+    func addGestureRecognizer(_ gestureRecognizer: UIGestureRecognizer) -> Self {
         base.addGestureRecognizer(gestureRecognizer)
         return self
     }
     
     @discardableResult
-    func addConstraint(_ constraint: NSLayoutConstraint) -> TFY {
+    func addConstraint(_ constraint: NSLayoutConstraint) -> Self {
         base.addConstraint(constraint)
         return self
     }
     
     @discardableResult
-    func addConstraints(_ constraints: [NSLayoutConstraint]) -> TFY {
+    func addConstraints(_ constraints: [NSLayoutConstraint]) -> Self {
         base.addConstraints(constraints)
         return self
     }
     
     @discardableResult
-    func addRadius(direction: UIRectCorner = .allCorners, vaule: CGFloat) -> TFY {
+    func addRadius(direction: UIRectCorner = .allCorners, vaule: CGFloat) -> Self {
         base.cornerCut(radius: vaule, corner: direction)
         return self
     }
     
     /// 变形属性(平移\缩放\旋转)
     @discardableResult
-    func transform(_ a: CGAffineTransform) -> TFY {
+    func transform(_ a: CGAffineTransform) -> Self {
         base.transform = a
         return self
     }
     /// 自动调整子视图尺寸，默认YES则会根据autoresizingMask属性自动调整子视图尺寸
     @discardableResult
-    func autoresizesSubviews(_ subviews: Bool) -> TFY {
+    func autoresizesSubviews(_ subviews: Bool) -> Self {
         base.autoresizesSubviews = subviews
         return self
     }
     /// 自动调整子视图与父视图的位置，默认UIViewAutoresizingNone
     @discardableResult
-    func autoresizingMask(_ mask: UIView.AutoresizingMask) -> TFY {
+    func autoresizingMask(_ mask: UIView.AutoresizingMask) -> Self {
         base.autoresizingMask = mask
         return self
     }
     
     /// 毛玻璃效果 view.blurEffect(UIColor.red.withAlphaComponent(0.5))
     @discardableResult
-    func blurEffect(_ color:UIColor = UIColor.clear,  style:UIBlurEffect.Style = .light, block:((UIVisualEffectView) -> Void)? = nil) -> TFY {
+    func blurEffect(_ color:UIColor = UIColor.clear,  style:UIBlurEffect.Style = .light, block:((UIVisualEffectView) -> Void)? = nil) -> Self {
         base.layoutIfNeeded()
         base.backgroundColor = UIColor.clear
         let blurEffect = UIBlurEffect(style: style)
@@ -539,54 +554,54 @@ public extension TFY where Base: UIView {
     }
     
     @discardableResult
-    func insertSubview(_ subview:UIView, at index:Int = 0) -> TFY {
+    func insertSubview(_ subview:UIView, at index:Int = 0) -> Self {
         base.insertSubview(subview, at: index)
         return self
     }
     
     @discardableResult
-    func insertSubview(_ subview:UIView, below view:UIView) -> TFY {
+    func insertSubview(_ subview:UIView, below view:UIView) -> Self {
         base.insertSubview(subview, belowSubview: view)
         return self
     }
     
     @discardableResult
-    func insertSubview(_ subview:UIView, above view:UIView) -> TFY {
+    func insertSubview(_ subview:UIView, above view:UIView) -> Self {
         base.insertSubview(subview, aboveSubview: view)
         return self
     }
     
     @discardableResult
-    func exchangeSubview(_ subview1:Int, _ subview2:Int) -> TFY {
+    func exchangeSubview(_ subview1:Int, _ subview2:Int) -> Self {
         base.exchangeSubview(at: subview1, withSubviewAt: subview2)
         return self
     }
     
     @discardableResult
-    func bringSubviewToFront(subviewToFront view:UIView) -> TFY {
+    func bringSubviewToFront(subviewToFront view:UIView) -> Self {
         base.bringSubviewToFront(view)
         return self
     }
     
     @discardableResult
-    func sendSubviewToBack(subviewToBack view:UIView) -> TFY {
+    func sendSubviewToBack(subviewToBack view:UIView) -> Self {
         base.sendSubviewToBack(view)
         return self
     }
     
     @discardableResult
-    func insertSubview(toSuperview superview:UIView, below view:UIView) -> TFY {
+    func insertSubview(toSuperview superview:UIView, below view:UIView) -> Self {
         superview.insertSubview(base, belowSubview: view)
         return self
     }
     @discardableResult
-    func insertSubview(toSuperview superview:UIView, above view:UIView) -> TFY {
+    func insertSubview(toSuperview superview:UIView, above view:UIView) -> Self {
         superview.insertSubview(base, aboveSubview: view)
         return self
     }
     
     @discardableResult
-    func exchangeSubview(_ view:UIView) -> TFY {
+    func exchangeSubview(_ view:UIView) -> Self {
         guard let idx1 = base.superview?.subviews.firstIndex(of: base),
             let idx2 = base.superview?.subviews.firstIndex(of: view) else {
             return self
@@ -596,36 +611,36 @@ public extension TFY where Base: UIView {
     }
     
     @discardableResult
-    func bringSubviewToFront() -> TFY {
+    func bringSubviewToFront() -> Self {
         base.superview?.bringSubviewToFront(base)
         return self
     }
     
     @discardableResult
-    func sendSubviewToBack() -> TFY {
+    func sendSubviewToBack() -> Self {
         base.superview?.sendSubviewToBack(base)
         return self
     }
     
     @discardableResult
-    func addArrangedSubview(toSuperstack stack:UIStackView) -> TFY {
+    func addArrangedSubview(toSuperstack stack:UIStackView) -> Self {
         stack.addArrangedSubview(base)
         return self
     }
     @discardableResult
-    func insertArrangedSubview(toSuperstack stack:UIStackView, at index:Int) -> TFY {
+    func insertArrangedSubview(toSuperstack stack:UIStackView, at index:Int) -> Self {
         stack.insertArrangedSubview(base, at: index)
         return self
     }
     
     @discardableResult
-    func removeFromSuperview() -> TFY {
+    func removeFromSuperview() -> Self {
         base.removeFromSuperview()
         return self
     }
     
     @discardableResult
-    func remove(subview view:UIView) -> TFY {
+    func remove(subview view:UIView) -> Self {
         base.subviews
             .filter{ $0 == view }
             .forEach{ $0.removeFromSuperview() }
@@ -633,10 +648,472 @@ public extension TFY where Base: UIView {
     }
     
     @discardableResult
-    func remove(subviews views:[UIView]) -> TFY {
+    func remove(subviews views:[UIView]) -> Self {
         base.subviews
             .filter{ views.contains($0)}
             .forEach{ $0.removeFromSuperview() }
         return self
     }
+    
+    @discardableResult
+    func contents(contents:Any?) -> Self {
+        base.layer.contents = contents
+        return self
+    }
+    
+    /// 设置是否启用自动布局
+    @discardableResult
+    func translatesAutoresizingMaskIntoConstraints(_ translates: Bool) -> Self {
+        base.translatesAutoresizingMaskIntoConstraints = translates
+        return self
+    }
+    
+    /// 设置边框颜色
+    @discardableResult
+    func borderColor(_ color: UIColor?) -> Self {
+        base.layer.borderColor = color?.cgColor
+        return self
+    }
+    
+    /// 设置背景颜色
+    @discardableResult
+    func backgroundColor(_ color: UIColor?) -> Self {
+        base.backgroundColor = color
+        return self
+    }
+    
+    /// 设置是否启用辅助功能
+    @discardableResult
+    func isAccessibilityElement(_ isElement: Bool) -> Self {
+        base.isAccessibilityElement = isElement
+        return self
+    }
+    
+    /// 设置辅助功能标签
+    @discardableResult
+    func accessibilityLabel(_ label: String?) -> Self {
+        base.accessibilityLabel = label
+        return self
+    }
+    
+    /// 设置辅助功能提示
+    @discardableResult
+    func accessibilityHint(_ hint: String?) -> Self {
+        base.accessibilityHint = hint
+        return self
+    }
+    
+    /// 设置辅助功能值
+    @discardableResult
+    func accessibilityValue(_ value: String?) -> Self {
+        base.accessibilityValue = value
+        return self
+    }
+    
+    /// 设置辅助功能特征
+    @discardableResult
+    func accessibilityTraits(_ traits: UIAccessibilityTraits) -> Self {
+        base.accessibilityTraits = traits
+        return self
+    }
+    
+    /// 设置辅助功能标识符
+    @discardableResult
+    func accessibilityIdentifier(_ identifier: String?) -> Self {
+        base.accessibilityIdentifier = identifier
+        return self
+    }
+}
+
+public extension UIView {
+    
+    var keyWindow: UIWindow? {
+        var keyWindow:UIWindow?
+        keyWindow = UIApplication.shared.connectedScenes
+            .map({$0 as? UIWindowScene})
+            .compactMap({$0})
+            .first?.windows.first
+        return keyWindow
+    }
+
+    ///手势 - 轻点 UITapGestureRecognizer
+    @discardableResult
+    func addGestureTap(_ target: Any?, action: Selector?) -> UITapGestureRecognizer {
+        let obj = UITapGestureRecognizer(target: target, action: action)
+        obj.numberOfTapsRequired = 1  //轻点次数
+        obj.numberOfTouchesRequired = 1  //手指个数
+
+        isUserInteractionEnabled = true
+        isMultipleTouchEnabled = true
+        addGestureRecognizer(obj)
+        return obj
+    }
+    
+    ///手势 - 轻点 UITapGestureRecognizer
+    @discardableResult
+    func addGestureTap(_ action: @escaping ((UITapGestureRecognizer) ->Void)) -> UITapGestureRecognizer {
+        let obj = UITapGestureRecognizer(target: nil, action: nil)
+        obj.numberOfTapsRequired = 1  //轻点次数
+        obj.numberOfTouchesRequired = 1  //手指个数
+
+        isUserInteractionEnabled = true
+        isMultipleTouchEnabled = true
+        addGestureRecognizer(obj)
+        obj.addAction(action)
+        return obj
+    }
+    
+    ///手势 - 长按 UILongPressGestureRecognizer
+    @discardableResult
+    func addGestureLongPress(_ target: Any?, action: Selector?, for minimumPressDuration: TimeInterval = 0.5) -> UILongPressGestureRecognizer {
+        let obj = UILongPressGestureRecognizer(target: target, action: action)
+        obj.minimumPressDuration = minimumPressDuration
+      
+        isUserInteractionEnabled = true
+        isMultipleTouchEnabled = true
+        addGestureRecognizer(obj)
+        return obj
+    }
+    
+    ///手势 - 长按 UILongPressGestureRecognizer
+    @discardableResult
+    func addGestureLongPress(_ action: @escaping ((UILongPressGestureRecognizer) ->Void), for minimumPressDuration: TimeInterval = 0.5) -> UILongPressGestureRecognizer {
+        let obj = UILongPressGestureRecognizer(target: nil, action: nil)
+        obj.minimumPressDuration = minimumPressDuration
+      
+        isUserInteractionEnabled = true
+        isMultipleTouchEnabled = true
+        addGestureRecognizer(obj)
+      
+        obj.addAction { (recognizer) in
+            action(recognizer as! UILongPressGestureRecognizer)
+        }
+        return obj
+    }
+      
+    ///手势 - 拖拽 UIPanGestureRecognizer
+    @discardableResult
+    func addGesturePan(_ action: @escaping ((UIPanGestureRecognizer) ->Void)) -> UIPanGestureRecognizer {
+        let obj = UIPanGestureRecognizer(target: nil, action: nil)
+          //最大最小的手势触摸次数
+        obj.minimumNumberOfTouches = 1
+        obj.maximumNumberOfTouches = 3
+          
+        isUserInteractionEnabled = true
+        isMultipleTouchEnabled = true
+        addGestureRecognizer(obj)
+          
+        obj.addAction { (recognizer) in
+            if let gesture = recognizer as? UIPanGestureRecognizer {
+                let translate: CGPoint = gesture.translation(in: gesture.view?.superview)
+                gesture.view!.center = CGPoint(x: gesture.view!.center.x + translate.x, y: gesture.view!.center.y + translate.y)
+                gesture.setTranslation( .zero, in: gesture.view!.superview)
+                             
+                action(gesture)
+            }
+        }
+        return obj
+    }
+      
+    ///手势 - 屏幕边缘 UIScreenEdgePanGestureRecognizer
+    @discardableResult
+    func addGestureEdgPan(_ target: Any?, action: Selector?, for edgs: UIRectEdge) -> UIScreenEdgePanGestureRecognizer {
+        let obj = UIScreenEdgePanGestureRecognizer(target: target, action: action)
+        obj.edges = edgs
+        isUserInteractionEnabled = true
+        isMultipleTouchEnabled = true
+        addGestureRecognizer(obj)
+        return obj
+    }
+    
+    ///手势 - 屏幕边缘 UIScreenEdgePanGestureRecognizer
+    @discardableResult
+    func addGestureEdgPan(_ action: @escaping ((UIScreenEdgePanGestureRecognizer) ->Void), for edgs: UIRectEdge) -> UIScreenEdgePanGestureRecognizer {
+        let obj = UIScreenEdgePanGestureRecognizer(target: nil, action: nil)
+        obj.edges = edgs
+        isUserInteractionEnabled = true
+        isMultipleTouchEnabled = true
+        addGestureRecognizer(obj)
+       
+        obj.addAction { (recognizer) in
+            action(recognizer as! UIScreenEdgePanGestureRecognizer)
+        }
+        return obj
+    }
+      
+    ///手势 - 清扫 UISwipeGestureRecognizer
+    @discardableResult
+    func addGestureSwip(_ target: Any?, action: Selector?, for direction: UISwipeGestureRecognizer.Direction) -> UISwipeGestureRecognizer {
+        let obj = UISwipeGestureRecognizer(target: target, action: action)
+        obj.direction = direction
+      
+        isUserInteractionEnabled = true
+        isMultipleTouchEnabled = true
+        addGestureRecognizer(obj)
+        return obj
+    }
+    
+    ///手势 - 清扫 UISwipeGestureRecognizer
+    @discardableResult
+    func addGestureSwip(_ action: @escaping ((UISwipeGestureRecognizer) ->Void), for direction: UISwipeGestureRecognizer.Direction) -> UISwipeGestureRecognizer {
+        let obj = UISwipeGestureRecognizer(target: nil, action: nil)
+        obj.direction = direction
+      
+        isUserInteractionEnabled = true
+        isMultipleTouchEnabled = true
+        addGestureRecognizer(obj)
+      
+        obj.addAction { (recognizer) in
+            action(recognizer as! UISwipeGestureRecognizer)
+        }
+        return obj
+    }
+      
+    ///手势 - 捏合 UIPinchGestureRecognizer
+    @discardableResult
+    func addGesturePinch(_ action: @escaping ((UIPinchGestureRecognizer) ->Void)) -> UIPinchGestureRecognizer {
+        let obj = UIPinchGestureRecognizer(target: nil, action: nil)
+        isUserInteractionEnabled = true
+        isMultipleTouchEnabled = true
+        addGestureRecognizer(obj)
+      
+        obj.addAction { (recognizer) in
+            if let gesture = recognizer as? UIPinchGestureRecognizer {
+                let location = recognizer.location(in: gesture.view!.superview)
+                gesture.view!.center = location
+                gesture.view!.transform = gesture.view!.transform.scaledBy(x: gesture.scale, y: gesture.scale)
+                gesture.scale = 1.0
+                action(gesture)
+            }
+        }
+        return obj
+    }
+    
+    ///手势 - 旋转 UIRotationGestureRecognizer
+    @discardableResult
+    func addGestureRotation(_ action: @escaping ((UIRotationGestureRecognizer) ->Void)) -> UIRotationGestureRecognizer {
+        let obj = UIRotationGestureRecognizer(target: nil, action: nil)
+        isUserInteractionEnabled = true
+        isMultipleTouchEnabled = true
+        addGestureRecognizer(obj)
+      
+        obj.addAction { (recognizer) in
+            if let gesture = recognizer as? UIRotationGestureRecognizer {
+                gesture.view!.transform = gesture.view!.transform.rotated(by: gesture.rotation)
+                gesture.rotation = 0.0
+                          
+                action(gesture)
+            }
+        }
+        return obj
+    }
+
+    ///呈现到 UIApplication.shared.keyWindow 上
+    func show(_ animated: Bool = true, completion: ((Bool) -> Void)? = nil) {
+        guard let keyWindow = keyWindow else { return }
+        if keyWindow.subviews.contains(self) {
+            self.dismiss()
+        }
+        
+        if self.frame.equalTo(.zero) {
+            self.frame = UIScreen.main.bounds
+        }
+        
+        keyWindow.endEditing(true)
+        keyWindow.addSubview(self)
+
+        let duration = animated ? 0.15 : 0
+        UIView.animate(withDuration: duration, animations: {
+            self.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+            
+        }, completion: completion)
+    }
+    ///从 UIApplication.shared.keyWindow 上移除
+    func dismiss(_ animated: Bool = true, completion: ((Bool) -> Void)? = nil) {
+        let duration = animated ? 0.15 : 0
+        UIView.animate(withDuration: duration, animations: {
+            self.backgroundColor = UIColor.black.withAlphaComponent(0)
+
+        }) { (isFinished) in
+            completion?(isFinished)
+            self.removeFromSuperview()
+        }
+    }
+    
+    /// 获取特定类型父视图
+    func findSupView(_ type: UIView.Type) -> UIView? {
+        var supView = superview
+        while supView != nil {
+            if supView!.isKind(of: type) {
+                return supView
+            }
+            supView = supView?.superview
+        }
+        return nil
+    }
+        
+    /// 获取特定类型子视图
+    func findSubView(_ type: UIView.Type) -> UIView? {
+        for e in self.subviews.enumerated() {
+            if e.element.isKind(of: type) {
+                return e.element
+            }
+        }
+        return nil
+    }
+
+    func findViewController() -> UIViewController? {
+        if let nextResponder = self.next as? UIViewController {
+            return nextResponder
+        } else if let nextResponder = self.next as? UIView {
+            return nextResponder.findViewController()
+        } else {
+            return nil
+        }
+    }
+    
+    ///往复动画
+    func animationCycle(_ transformBlock: @escaping ((CGAffineTransform) -> Void), animated: Bool, completion: ((Bool) -> Void)? = nil) {
+        let duration = animated ? 0.3 : 0
+        UIView.animate(withDuration: duration, animations: {
+            if self.transform.isIdentity == true {
+                transformBlock(self.transform)
+            } else {
+                self.transform = CGAffineTransform.identity
+            }
+        }, completion: completion)
+    }
+    
+    ///移动动画
+    func move(_ x: CGFloat, y: CGFloat, animated: Bool, completion: ((Bool) -> Void)? = nil) {
+        let duration = animated ? 0.3 : 0
+        UIView.animate(withDuration: duration, animations: {
+            if self.transform.isIdentity == true {
+                self.transform = self.transform.translatedBy(x: x, y: y)
+            } else {
+                self.transform = CGAffineTransform.identity
+            }
+        }, completion: completion)
+    }
+    
+    ///旋转动画
+    func rotate(_ angle: CGFloat, animated: Bool, completion: ((Bool) -> Void)? = nil) {
+        let duration = animated ? 0.3 : 0
+        UIView.animate(withDuration: duration, animations: {
+            if self.transform.isIdentity == true {
+                self.transform = self.transform.rotated(by: angle)
+            } else {
+                self.transform = CGAffineTransform.identity
+            }
+
+        }, completion: completion)
+    }
+    ///转为图像
+    func convertToImage() -> UIImage{
+        UIGraphicsBeginImageContextWithOptions(self.bounds.size, false, UIScreen.main.scale)
+        let ctx = UIGraphicsGetCurrentContext()
+        self.layer.render(in: ctx!)
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        return image!
+    }
+    
+    func snapshotImage() -> UIImage?{
+        UIGraphicsBeginImageContextWithOptions(self.bounds.size, self.isOpaque, 0)
+        defer {
+            UIGraphicsEndImageContext()
+        }
+        
+        guard let ctx = UIGraphicsGetCurrentContext() else { return nil }
+        // 截图:实际是把layer上面的东西绘制到上下文中
+        layer.render(in: ctx)
+//        self.drawHierarchy(in: self.frame, afterScreenUpdates: true)
+        guard let image = UIGraphicsGetImageFromCurrentImageContext() else { return nil }
+        // 保存相册
+        // UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil) // 注释掉，因为参数不正确
+        return image
+    }
+    
+    func snapshotImageAfterScreenUpdates(_ afterUpdates: Bool) -> UIImage?{
+        if !self.responds(to: #selector(drawHierarchy(in:afterScreenUpdates:))) {
+            return self.snapshotImage()
+        }
+        UIGraphicsBeginImageContextWithOptions(self.bounds.size, self.isOpaque, 0)
+        self.drawHierarchy(in: self.bounds, afterScreenUpdates: afterUpdates)
+        let snap = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return snap
+    }
+        
+    /// 插入模糊背景
+    @discardableResult
+    func insertVisualEffectView(style: UIBlurEffect.Style = .light) -> UIVisualEffectView {
+        let blurView = UIVisualEffectView(effect: UIBlurEffect(style: style))
+        blurView.frame = self.bounds
+        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        insertSubview(blurView, at: 0)
+        return blurView
+    }
+}
+
+
+public extension UIView{
+    
+    /// 获取特定类型父视图
+    final func supView<T: UIView>(_ type: T.Type) -> T? {
+        var supView = superview
+        while supView?.isKind(of: type.self) == false {
+            supView = supView?.superview
+        }
+        return supView.self as? T
+    }
+        
+    /// 获取特定类型子视图
+    final func subView<T: UIView>(_ type: T.Type) -> T? {
+        for e in self.subviews.enumerated() {
+            if e.element.isKind(of: type) {
+                return (e.element.self as! T)
+            }
+        }
+        return nil
+    }
+}
+
+public extension Array where Element : UIView {
+    ///手势 - 轻点 UITapGestureRecognizer
+    @discardableResult
+    func addGestureTap(_ action: @escaping ((UIGestureRecognizer) ->Void)) -> [UITapGestureRecognizer] {
+        
+        var list = [UITapGestureRecognizer]()
+        forEach {
+            let obj = $0.addGestureTap(action)
+            list.append(obj)
+        }
+        return list
+    }
+}
+
+
+
+@objc public extension UIView{
+
+    /// 原生 inset 布局
+    func equalToSuperview(_ inset: UIEdgeInsets) {
+        guard let superview = superview else { return }
+        translatesAutoresizingMaskIntoConstraints = false
+        topAnchor.constraint(equalTo: superview.topAnchor, constant: inset.top).isActive = true
+        rightAnchor.constraint(equalTo: superview.rightAnchor, constant: -inset.right).isActive = true
+        leftAnchor.constraint(equalTo: superview.leftAnchor, constant: inset.left).isActive = true
+        bottomAnchor.constraint(equalTo: superview.bottomAnchor, constant: -inset.bottom).isActive = true
+    }
+    
+    func heightEqualTo(_ constant: CGFloat) {
+        translatesAutoresizingMaskIntoConstraints = false
+        heightAnchor.constraint(equalToConstant: constant).isActive = true
+    }
+    
+    func widthEqualTo(_ constant: CGFloat) {
+        translatesAutoresizingMaskIntoConstraints = false
+        widthAnchor.constraint(equalToConstant: constant).isActive = true
+    }
+
 }

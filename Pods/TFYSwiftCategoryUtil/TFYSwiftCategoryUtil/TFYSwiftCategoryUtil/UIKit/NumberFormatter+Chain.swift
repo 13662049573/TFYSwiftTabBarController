@@ -11,11 +11,12 @@ import Foundation
 extension TFY where Base == NumberFormatter {
     
     // MARK: 1.1、将Float数字转成格式化后的字符串
-    /// 将数字转成字格式化后的符串
+    /// 将Float数字转成格式化后的字符串
     /// - Parameters:
     ///   - value: 值
     ///   - nstyle: 相应的显示样式
     /// - Returns: 格式化后的字符串
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
     public static func numberFormatting(value: Float, number nstyle: NumberFormatter.Style = .none) -> String {
         //原始数字（需要先转成NSNumber类型）
         let number = NSNumber(value: value)
@@ -36,11 +37,12 @@ extension TFY where Base == NumberFormatter {
     }
     
     // MARK: 1.2、将Double数字转成格式化后的字符串
-    /// 将数字转成格式化后的字符串
+    /// 将Double数字转成格式化后的字符串
     /// - Parameters:
     ///   - value: 值
     ///   - nstyle: 相应的显示样式
     /// - Returns: 格式化后的字符串
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
     public static func numberFormatting(value: Double, number nstyle: NumberFormatter.Style = .none) -> String {
         //原始数字（需要先转成NSNumber类型）
         let number = NSNumber(value: value)
@@ -48,11 +50,12 @@ extension TFY where Base == NumberFormatter {
     }
     
     // MARK: 1.3、字符串转为格式化后的数字
-    /// 将数字转成格式化后的字符串
+    /// 将字符串转为格式化后的数字字符串
     /// - Parameters:
-    ///   - value: 值
+    ///   - value: 字符串值
     ///   - nstyle: 相应的显示样式
-    /// - Returns: 格式化后的字符串
+    /// - Returns: 格式化后的字符串，失败返回nil
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
     public static func stringFormattingNumber(value: String, number nstyle: NumberFormatter.Style = .none) -> String? {
         // 从字符串装成数字
         guard let number = NumberFormatter().number(from: value) else {

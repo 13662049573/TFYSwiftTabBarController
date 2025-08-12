@@ -1,40 +1,36 @@
 PODS:
-  - lottie-ios (4.4.1)
-  - pop (1.0.12)
+  - lottie-ios (4.5.2)
   - SnapKit (5.7.1)
-  - TFYSwiftCategoryUtil (2.1.7.4):
-    - TFYSwiftCategoryUtil/Base (= 2.1.7.4)
-    - TFYSwiftCategoryUtil/CoreUiit (= 2.1.7.4)
-    - TFYSwiftCategoryUtil/Foundation (= 2.1.7.4)
-    - TFYSwiftCategoryUtil/Gesture (= 2.1.7.4)
-    - TFYSwiftCategoryUtil/SwiftUI (= 2.1.7.4)
-    - TFYSwiftCategoryUtil/UIKit (= 2.1.7.4)
-    - TFYSwiftCategoryUtil/Utils (= 2.1.7.4)
-    - TFYSwiftCategoryUtil/WKWeb (= 2.1.7.4)
-  - TFYSwiftCategoryUtil/Base (2.1.7.4)
-  - TFYSwiftCategoryUtil/CoreUiit (2.1.7.4)
-  - TFYSwiftCategoryUtil/Foundation (2.1.7.4):
+  - TFYSwiftCategoryUtil (2.3.1):
+    - TFYSwiftCategoryUtil/Base (= 2.3.1)
+    - TFYSwiftCategoryUtil/CoreUiit (= 2.3.1)
+    - TFYSwiftCategoryUtil/Foundation (= 2.3.1)
+    - TFYSwiftCategoryUtil/Gesture (= 2.3.1)
+    - TFYSwiftCategoryUtil/UIKit (= 2.3.1)
+    - TFYSwiftCategoryUtil/Utils (= 2.3.1)
+    - TFYSwiftCategoryUtil/WKWeb (= 2.3.1)
+  - TFYSwiftCategoryUtil/Base (2.3.1)
+  - TFYSwiftCategoryUtil/CoreUiit (2.3.1)
+  - TFYSwiftCategoryUtil/Foundation (2.3.1):
     - TFYSwiftCategoryUtil/Base
     - TFYSwiftCategoryUtil/CoreUiit
+    - TFYSwiftCategoryUtil/Gesture
     - TFYSwiftCategoryUtil/UIKit
     - TFYSwiftCategoryUtil/Utils
-  - TFYSwiftCategoryUtil/Gesture (2.1.7.4):
+  - TFYSwiftCategoryUtil/Gesture (2.3.1):
     - TFYSwiftCategoryUtil/Base
     - TFYSwiftCategoryUtil/Utils
-  - TFYSwiftCategoryUtil/SwiftUI (2.1.7.4):
-    - TFYSwiftCategoryUtil/Foundation
-    - TFYSwiftCategoryUtil/UIKit
-    - TFYSwiftCategoryUtil/Utils
-  - TFYSwiftCategoryUtil/UIKit (2.1.7.4):
+  - TFYSwiftCategoryUtil/UIKit (2.3.1):
     - TFYSwiftCategoryUtil/Base
     - TFYSwiftCategoryUtil/Utils
-  - TFYSwiftCategoryUtil/Utils (2.1.7.4)
-  - TFYSwiftCategoryUtil/WKWeb (2.1.7.4)
-  - TFYSwiftNavigationKit (2.1.1)
+  - TFYSwiftCategoryUtil/Utils (2.3.1):
+    - TFYSwiftCategoryUtil/Base
+  - TFYSwiftCategoryUtil/WKWeb (2.3.1):
+    - TFYSwiftCategoryUtil/Utils
+  - TFYSwiftNavigationKit (2.1.9)
 
 DEPENDENCIES:
   - lottie-ios
-  - pop
   - SnapKit
   - TFYSwiftCategoryUtil
   - TFYSwiftNavigationKit
@@ -42,18 +38,16 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - lottie-ios
-    - pop
     - SnapKit
     - TFYSwiftCategoryUtil
     - TFYSwiftNavigationKit
 
 SPEC CHECKSUMS:
-  lottie-ios: e047b1d2e6239b787cc5e9755b988869cf190494
-  pop: d582054913807fd11fd50bfe6a539d91c7e1a55a
+  lottie-ios: 96784afc26ea031d3e2b6cae342a4b8915072489
   SnapKit: d612e99e678a2d3b95bf60b0705ed0a35c03484a
-  TFYSwiftCategoryUtil: dfd1dc8a322661d8a5646948dbbdf236d0fd045f
-  TFYSwiftNavigationKit: 5239d8f977001f62160cb09839883f9409f4e418
+  TFYSwiftCategoryUtil: 32d82c44c9cfff0d149d266584719ec9f113dbcc
+  TFYSwiftNavigationKit: 5a86462f973a683ebe19c0a092246cc1ddc2f50f
 
-PODFILE CHECKSUM: ef175d1b80ca03fdb8fc0660cb0a20621f9ce63f
+PODFILE CHECKSUM: c1bafff69015c48e944b4d63178ee3105162cbbd
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

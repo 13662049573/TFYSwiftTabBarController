@@ -10,23 +10,20 @@ import UIKit
 
 public extension CALayer {
     /// 暂停动画
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
     func pauseAnimation() {
-        // 取出当前时间,转成动画暂停的时间
         let pausedTime = convertTime(CACurrentMediaTime(), from: nil)
-        // 设置动画运行速度为0
         speed = 0.0
-        // 设置动画的时间偏移量，指定时间偏移量的目的是让动画定格在该时间点的位置
         timeOffset = pausedTime
     }
 
     /// 恢复动画
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
     func resumeAnimation() {
-        // 获取暂停的时间差
         let pausedTime = timeOffset
         speed = 1.0
         timeOffset = 0.0
         beginTime = 0.0
-        // 用现在的时间减去时间差,就是之前暂停的时间,从之前暂停的时间开始动画
         let timeSincePause = convertTime(CACurrentMediaTime(), from: nil) - pausedTime
         beginTime = timeSincePause
     }
@@ -142,80 +139,88 @@ public extension CALayer {
     }
     
     var transformRotation: CGFloat {
-        set{
+        set {
             self.setValue(newValue, forKeyPath: "transform.rotation")
         }
-        get{
+        get {
             let v = self.value(forKeyPath: "transform.rotation")
-            return v as! CGFloat
+            return v as? CGFloat ?? 0
         }
     }
     
+    /// 移除所有子图层
+    /// - Note: 安全处理sublayers为nil的情况
     func removeAllSublayers() {
-        for layer in self.sublayers! {
+        guard let sublayers = self.sublayers else { return }
+        for layer in sublayers {
             layer.removeFromSuperlayer()
         }
     }
     
+    /// 设置阴影
+    /// - Parameters:
+    ///   - color: 阴影颜色
+    ///   - offset: 阴影偏移
+    ///   - radius: 阴影半径
     func setLayerShadow(color: UIColor, offset: CGSize, radius: CGFloat) {
-        
         self.shadowColor = color.cgColor
         self.shadowOffset = offset
         self.shadowRadius = radius
         self.shadowOpacity = 1
         self.shouldRasterize = true
         self.rasterizationScale = UIScreen.main.scale
-        
     }
     
-    func snapshotImage() -> UIImage {
-        
+    /// 截图当前图层
+    /// - Returns: 截图UIImage，失败返回nil
+    func snapshotImage() -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(self.bounds.size, self.isOpaque, 0)
-        self.render(in: UIGraphicsGetCurrentContext()!)
-        
+        defer { UIGraphicsEndImageContext() }
+        guard let context = UIGraphicsGetCurrentContext() else {
+            print("⚠️ CALayer: 获取图形上下文失败")
+            return nil
+        }
+        self.render(in: context)
         let snap = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return snap!
-        
+        return snap
     }
     
+    /// 添加淡入淡出动画
+    /// - Parameters:
+    ///   - duration: 动画时长
+    ///   - curve: 动画曲线
     func addFadeAnimation(with duration: TimeInterval, curve: UIView.AnimationCurve) {
-        
-        if duration <= 0 {
-            return
-        }
-        
+        guard duration > 0 else { return }
         var mediaFunction: CAMediaTimingFunctionName = .default
-        
         switch curve {
-            
         case .easeInOut:
-            mediaFunction = CAMediaTimingFunctionName.easeInEaseOut
+            mediaFunction = .easeInEaseOut
         case .easeIn:
-            mediaFunction = CAMediaTimingFunctionName.easeIn
+            mediaFunction = .easeIn
         case .easeOut:
-            mediaFunction = CAMediaTimingFunctionName.easeOut
+            mediaFunction = .easeOut
         case .linear:
-            mediaFunction = CAMediaTimingFunctionName.linear
+            mediaFunction = .linear
         default:
             break
         }
-        
         let transition = CATransition()
         transition.duration = duration
         transition.timingFunction = CAMediaTimingFunction(name: mediaFunction)
-        transition.type = CATransitionType.fade
+        transition.type = .fade
         self.add(transition, forKey: "yam.fade")
-        
     }
     
+    /// 移除之前的淡入淡出动画
     func removePreviousFadeAnimation() {
         self.removeAnimation(forKey: "yam.fade")
     }
 }
 
 extension CALayer {
-    /// return a image layer
+    /// 创建图片图层
+    /// - Parameter image: 图片
+    /// - Returns: 带图片内容的CALayer
     class func layer(withImage image: UIImage) -> CALayer {
         let layer = CALayer()
         layer.contents = image.cgImage
@@ -225,16 +230,19 @@ extension CALayer {
 }
 
 extension CATextLayer {
-    /// retuan a text layer
+    /// 创建文本图层
+    /// - Parameters:
+    ///   - text: 文本内容
+    ///   - mode: 对齐方式
+    ///   - font: 字体
+    /// - Returns: 配置好的CATextLayer
     class func layer(withText text: String, mode: CATextLayerAlignmentMode, font: UIFont) -> CATextLayer {
-        
         let layer = CATextLayer()
         layer.string = text
         layer.alignmentMode = mode
         layer.foregroundColor = UIColor.darkText.cgColor
         layer.contentsScale = UIScreen.main.scale
         layer.isWrapped = true
-        
         let fontRef = CTFontCreateWithName(font.fontName as CFString, font.pointSize, nil)
         layer.font = fontRef
         layer.fontSize = font.pointSize

@@ -9,313 +9,267 @@ import UIKit
 
 public class TFYSwiftNavigationController: UINavigationController {
 
-    // MARK: -  属性
-    private lazy var fakeBar: TFYSwiftFakeNavigationBar = {
-        let fakeBar = TFYSwiftFakeNavigationBar()
-        return fakeBar
-    }()
-    
-    private lazy var fromFakeBar: TFYSwiftFakeNavigationBar = {
-        let fakeBar = TFYSwiftFakeNavigationBar()
-        return fakeBar
-    }()
-    
-    private lazy var toFakeBar: TFYSwiftFakeNavigationBar = {
-        let fakeBar = TFYSwiftFakeNavigationBar()
-        return fakeBar
-    }()
-    
-    private var fakeSuperView: UIView? {
-        get {
-            return navigationBar.subviews.first
-        }
-    }
-    
-    private weak var poppingVC: UIViewController?
-    private var fakeFrameObserver: NSKeyValueObservation?
-
-    // MARK: -  override
-
     public override func viewDidLoad() {
         super.viewDidLoad()
-        delegate = self
-        interactivePopGestureRecognizer?.delegate = self
-        interactivePopGestureRecognizer?.addTarget(self, action: #selector(handleinteractivePopGesture(gesture:)))
-        setupNavigationBar()
-    }
-    
-    public override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-        if let coordinator = transitionCoordinator {
-            guard let fromVC = coordinator.viewController(forKey: .from) else { return }
-            if fromVC == poppingVC {
-                tfy_updateNavigationBar(for: fromVC)
-            }
-        } else {
-            guard let topViewController = topViewController else { return }
-            tfy_updateNavigationBar(for: topViewController)
-        }
+        removedimmingView()
+        TFYSwiftNavigationBar.setup()
+        TFYSwiftNavigationBarStyle.backgroundColor = .secondarySystemBackground
     }
     
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        layoutFakeSubviews()
+        removedimmingView()
     }
     
-    public override func popViewController(animated: Bool) -> UIViewController? {
-        poppingVC = topViewController
-        let viewController = super.popViewController(animated: animated)
-        if let topViewController = topViewController {
-            tfy_updateNavigationBarTint(for: topViewController, ignoreTintColor: true)
-        }
-        return viewController
-    }
-
-    public override func popToRootViewController(animated: Bool) -> [UIViewController]? {
-        poppingVC = topViewController
-        let vcArray = super.popToRootViewController(animated: animated)
-        if let topViewController = topViewController {
-            tfy_updateNavigationBarTint(for: topViewController, ignoreTintColor: true)
-        }
-        return vcArray
-    }
-
-    public override func popToViewController(_ viewController: UIViewController, animated: Bool) -> [UIViewController]? {
-        poppingVC = topViewController
-        let vcArray = super.popToViewController(viewController, animated: animated)
-        if let topViewController = topViewController {
-            tfy_updateNavigationBarTint(for: topViewController, ignoreTintColor: true)
-        }
-        return vcArray
-    }
-    
-    public override func pushViewController(_ viewController: UIViewController, animated: Bool) {
-        poppingVC = topViewController
-        if viewControllers.count >= 1 {
-            viewController.hidesBottomBarWhenPushed = true
-        }
-        let vcArr: Void = super.pushViewController(viewController, animated: animated)
-        if let topViewController = topViewController {
-            tfy_updateNavigationBarTint(for: topViewController, ignoreTintColor: true)
-        }
-        return vcArr
-    }
-    
-}
-
-// MARK: -  Private Methods
-extension TFYSwiftNavigationController {
-    
-    private func setupNavigationBar() {
-        navigationBar.setBackgroundImage(UIImage(), for: .default)
-        navigationBar.shadowImage = UIImage()
-        navigationBar.isTranslucent = false
-        setupFakeSubviews()
-    }
-    
-    private func setupFakeSubviews() {
-        guard let fakeSuperView = fakeSuperView else { return }
-        if fakeBar.superview == nil {
-            fakeFrameObserver = fakeSuperView.observe(\.frame, changeHandler: { [weak self] (obj, changed) in
-                guard let `self` = self else { return }
-                self.layoutFakeSubviews()
-            })
-            fakeSuperView.insertSubview(fakeBar, at: 0)
-        }
-    }
-    
-    private func layoutFakeSubviews() {
-        guard let fakeSuperView = fakeSuperView else { return }
-        fakeBar.frame = fakeSuperView.bounds
-        fakeBar.setNeedsLayout()
-    }
-    
-    @objc private func handleinteractivePopGesture(gesture: UIScreenEdgePanGestureRecognizer) {
-        guard let coordinator = transitionCoordinator,
-            let fromVC = coordinator.viewController(forKey: .from),
-            let toVC = coordinator.viewController(forKey: .to) else {
-                return
-        }
-        if gesture.state == .changed {
-            navigationBar.tintColor = average(fromColor: fromVC.tfy_tintColor, toColor: toVC.tfy_tintColor, percent: coordinator.percentComplete)
-        }
-    }
-    
-    private func average(fromColor: UIColor, toColor: UIColor, percent: CGFloat) -> UIColor {
-        var fromRed: CGFloat = 0
-        var fromGreen: CGFloat = 0
-        var fromBlue: CGFloat = 0
-        var fromAlpha: CGFloat = 0
-        fromColor.getRed(&fromRed, green: &fromGreen, blue: &fromBlue, alpha: &fromAlpha)
-        var toRed: CGFloat = 0
-        var toGreen: CGFloat = 0
-        var toBlue: CGFloat = 0
-        var toAlpha: CGFloat = 0
-        toColor.getRed(&toRed, green: &toGreen, blue: &toBlue, alpha: &toAlpha)
-        let red = fromRed + (toRed - fromRed) * percent
-        let green = fromGreen + (toGreen - fromGreen) * percent
-        let blue = fromBlue + (toBlue - fromBlue) * percent
-        let alpha = fromAlpha + (toAlpha - fromAlpha) * percent
-        return UIColor(red: red, green: green, blue: blue, alpha: alpha)
-    }
-    
-    private func showViewController(_ viewController: UIViewController, coordinator: UIViewControllerTransitionCoordinator) {
-        guard let fromVC = coordinator.viewController(forKey: .from),
-            let toVC = coordinator.viewController(forKey: .to) else {
-                return
-        }
-        resetButtonLabels(in: navigationBar)
-        coordinator.animate(alongsideTransition: { (context) in
-            self.tfy_updateNavigationBarTint(for: viewController, ignoreTintColor: context.isInteractive)
-            if viewController == toVC {
-                self.showTempFakeBar(fromVC: fromVC, toVC: toVC)
-            } else {
-                self.tfy_updateNavigationBarBackground(for: viewController)
-                self.tfy_updateNavigationBarShadow(for: viewController)
-            }
-        }) { (context) in
-            if context.isCancelled {
-                self.tfy_updateNavigationBar(for: fromVC)
-            } else {
-                self.tfy_updateNavigationBar(for: viewController)
-            }
-            if viewController == toVC {
-                self.clearTempFakeBar()
-            }
-        }
-    }
-    
-    private func showTempFakeBar(fromVC: UIViewController, toVC: UIViewController) {
-        UIView.setAnimationsEnabled(false)
-        fakeBar.alpha = 0
-        // from
-        fromVC.view.addSubview(fromFakeBar)
-        fromFakeBar.frame = fakerBarFrame(for: fromVC)
-        fromFakeBar.setNeedsLayout()
-        fromFakeBar.tfy_updateFakeBarBackground(for: fromVC)
-        fromFakeBar.tfy_updateFakeBarShadow(for: fromVC)
-        // to
-        toVC.view.addSubview(toFakeBar)
-        toFakeBar.frame = fakerBarFrame(for: toVC)
-        toFakeBar.setNeedsLayout()
-        toFakeBar.tfy_updateFakeBarBackground(for: toVC)
-        toFakeBar.tfy_updateFakeBarShadow(for: toVC)
-        UIView.setAnimationsEnabled(true)
-    }
-    
-    private func clearTempFakeBar() {
-        fakeBar.alpha = 1
-        fromFakeBar.removeFromSuperview()
-        toFakeBar.removeFromSuperview()
-    }
-    
-    private func fakerBarFrame(for viewController: UIViewController) -> CGRect {
-        guard let fakeSuperView = fakeSuperView else {
-            return navigationBar.frame
-        }
-        var frame = navigationBar.convert(fakeSuperView.frame, to: viewController.view)
-        frame.origin.x = viewController.view.frame.origin.x
-        return frame
-    }
-    
-    private func resetButtonLabels(in view: UIView) {
-        let viewClassName = view.classForCoder.description().replacingOccurrences(of: "_", with: "")
-        if viewClassName == "UIButtonLabel" {
-            view.alpha = 1
-        } else {
-            if view.subviews.count > 0 {
-                for subview in view.subviews {
-                    resetButtonLabels(in: subview)
+    private func removedimmingView() {
+        let viewsArr:[UIView] = view.subviews
+        viewsArr.forEach { view in
+            if view.isKind(of: NSClassFromString("UINavigationTransitionView")!) {
+                let views:[UIView] = view.subviews
+                views.forEach { subView in
+                    if subView.isKind(of: NSClassFromString("UIViewControllerWrapperView")!) {
+                        let perViews:[UIView] = subView.subviews
+                        perViews.forEach { perView in
+                            if perView.isKind(of: NSClassFromString("_UIParallaxDimmingView")!) {
+                                perView.backgroundColor = .clear
+                                perView.removeFromSuperview()
+                            }
+                        }
+                    }
                 }
             }
         }
     }
-
 }
 
-// MARK: -  UINavigationControllerDelegate
-extension TFYSwiftNavigationController: UINavigationControllerDelegate {
- 
-    public func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
-        if let coordinator = transitionCoordinator {
-            showViewController(viewController, coordinator: coordinator)
-        } else {
-            if !animated && viewControllers.count > 1 {
-                let lastButOneVC = viewControllers[viewControllers.count - 2]
-                showTempFakeBar(fromVC: lastButOneVC, toVC: viewController)
-                return
+extension UINavigationController {
+    
+    /// 关联对象的keys
+    private struct AssociatedKeys {
+        
+        static var gestureDelegate = UnsafeRawPointer(bitPattern: "gestureDelegate".hashValue)!
+        static var fullscreenPopGestureDelegate = UnsafeRawPointer(bitPattern: "fullscreenPopGestureDelegate".hashValue)!
+        static var fullscreenPopGestureRecognizer = UnsafeRawPointer(bitPattern: "fullscreenPopGestureRecognizer".hashValue)!
+        static var enableSYNavigationBar = UnsafeRawPointer(bitPattern: "enableSYNavigationBar".hashValue)!
+    }
+    
+    /// 关联gestureDelegate
+    private var tfy_gestureDelegate: TFYSwiftNavigationGestureRecognizerDelegate? {
+        get {
+            return objc_getAssociatedObject(self, &AssociatedKeys.gestureDelegate) as? TFYSwiftNavigationGestureRecognizerDelegate
+        }
+        set {
+            objc_setAssociatedObject(self, &AssociatedKeys.gestureDelegate, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        }
+    }
+    
+    /// 关联fullscreenPopGestureDelegate
+    private var tfy_fullscreenPopGestureDelegate: TFYSwiftFullscreenPopGestureRecognizerDelegate {
+        if let delegate = objc_getAssociatedObject(self, &AssociatedKeys.fullscreenPopGestureDelegate) as? TFYSwiftFullscreenPopGestureRecognizerDelegate {
+            return delegate
+        }
+        let delegate = TFYSwiftFullscreenPopGestureRecognizerDelegate(navigationController: self)
+        objc_setAssociatedObject(self,
+                                 &AssociatedKeys.fullscreenPopGestureDelegate,
+                                 delegate,
+                                 .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        return delegate
+    }
+    
+    /// 关联fullscreenPopGestureRecognizer
+    public var tfy_fullscreenPopGestureRecognizer: UIPanGestureRecognizer {
+        if let fullscreenPopGR = objc_getAssociatedObject(self, &AssociatedKeys.fullscreenPopGestureRecognizer) as? UIPanGestureRecognizer {
+            return fullscreenPopGR
+        }
+        let fullscreenPopGestureRecognizer = UIPanGestureRecognizer()
+        fullscreenPopGestureRecognizer.maximumNumberOfTouches = 1
+        objc_setAssociatedObject(self,
+                                 &AssociatedKeys.fullscreenPopGestureRecognizer,
+                                 fullscreenPopGestureRecognizer,
+                                 .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        return fullscreenPopGestureRecognizer
+    }
+    
+    /// 关联enableSYNavigationBar
+    @objc open var tfy_enableYCNavigationBar: Bool {
+        get {
+            return (objc_getAssociatedObject(self, &AssociatedKeys.enableSYNavigationBar) as? Bool) ?? true
+        }
+        set {
+            objc_setAssociatedObject(self, &AssociatedKeys.enableSYNavigationBar, newValue, .OBJC_ASSOCIATION_ASSIGN)
+        }
+    }
+    
+    /// UINavigationController swizzleMethod
+    static let swizzleUINavigationControllerOnce: Void = {
+        let cls = UINavigationController.self
+        TFYSwiftNavigationBarUtility.swizzleMethod(cls, #selector(UINavigationController.pushViewController(_:animated:)), #selector(UINavigationController.tfy_pushViewController(_:animated:)))
+        TFYSwiftNavigationBarUtility.swizzleMethod(cls, #selector(UINavigationController.setViewControllers(_:animated:)), #selector(UINavigationController.tfy_setViewControllers(_:animated:)))
+    }()
+    
+    /// 配置NavigationBar
+    func configureNavigationBar() {
+        navigationBar.setBackgroundImage(UIImage(), for: .default)
+        navigationBar.shadowImage = UIImage()
+        navigationBar.isTranslucent = true
+       
+        tfy_gestureDelegate = TFYSwiftNavigationGestureRecognizerDelegate(navigationController: self)
+        interactivePopGestureRecognizer?.delegate = tfy_gestureDelegate
+    }
+    
+    /// 自定义实现pushViewController
+    @objc private func tfy_pushViewController(_ viewController: UIViewController, animated: Bool) {
+        /// 防止VC重复Push
+        guard !viewControllers.contains(viewController) else {
+            return
+        }
+        
+        if viewControllers.count > 0 {
+            viewController.hidesBottomBarWhenPushed = true
+            
+            let backButtonItem: UIBarButtonItem
+            if let customView = viewController.tfy_backButtonCustomView {
+                backButtonItem = UIBarButtonItem(customView: customView)
+                let tap = UITapGestureRecognizer(target: self, action: #selector(backButtonClicked))
+                customView.isUserInteractionEnabled = true
+                customView.addGestureRecognizer(tap)
+            } else {
+                let backImage = viewController.tfy_backImage
+                backButtonItem = UIBarButtonItem(image: backImage, style: .plain, target: self, action: #selector(backButtonClicked))
             }
-            tfy_updateNavigationBar(for: viewController)
+            viewController.navigationItem.leftBarButtonItem = backButtonItem
+        }
+        
+        if viewController.tfy_fullScreenInteractivePopEnabled {
+            addCustomFullscreenPopGesture()
+        }
+        
+        tfy_pushViewController(viewController, animated: animated)
+    }
+    
+    /// 自定义实现setViewControllers
+    @objc private func tfy_setViewControllers(_ viewControllers: [UIViewController], animated: Bool) {
+        if viewControllers.count > 1 {
+            for (index, viewController) in viewControllers.enumerated() {
+                if index != 0 {
+                    viewController.hidesBottomBarWhenPushed = true
+                    
+                    let backButtonItem: UIBarButtonItem
+                    if let customView = viewController.tfy_backButtonCustomView {
+                        backButtonItem = UIBarButtonItem(customView: customView)
+                        let tap = UITapGestureRecognizer(target: self, action: #selector(backButtonClicked))
+                        customView.isUserInteractionEnabled = true
+                        customView.addGestureRecognizer(tap)
+                    } else {
+                        let backImage = viewController.tfy_backImage
+                        backButtonItem = UIBarButtonItem(image: backImage, style: .plain, target: self, action: #selector(backButtonClicked))
+                    }
+                    viewController.navigationItem.leftBarButtonItem = backButtonItem
+                }
+                
+                if viewController.tfy_fullScreenInteractivePopEnabled {
+                    addCustomFullscreenPopGesture()
+                }
+            }
+        }
+        
+        tfy_setViewControllers(viewControllers, animated: animated)
+        
+    }
+    
+    /// 添加自定义全屏返回手势
+    private func addCustomFullscreenPopGesture() {
+        guard let gestureRecognizers = interactivePopGestureRecognizer?.view?.gestureRecognizers else {
+            return
+        }
+        if !gestureRecognizers.contains(tfy_fullscreenPopGestureRecognizer),
+            let targets = interactivePopGestureRecognizer?.value(forKey: "targets") as? NSArray,
+            let internalTarget = (targets.firstObject as? NSObject)?.value(forKey: "target") {
+            let internalAction = NSSelectorFromString("handleNavigationTransition:")
+            tfy_fullscreenPopGestureRecognizer.delegate = tfy_fullscreenPopGestureDelegate
+            tfy_fullscreenPopGestureRecognizer.addTarget(internalTarget, action: internalAction)
+            interactivePopGestureRecognizer?.isEnabled = false
+            interactivePopGestureRecognizer?.view?.addGestureRecognizer(tfy_fullscreenPopGestureRecognizer)
         }
     }
     
-    public func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
-        if !animated {
-            tfy_updateNavigationBar(for: viewController)
-            clearTempFakeBar()
-        }
-        poppingVC = nil
+    /// 返回按钮事件
+    @objc private func backButtonClicked() {
+        topViewController?.tfy_backButtonClicked()
     }
     
 }
 
-// MARK: -  UIGestureRecognizerDelegate
-extension TFYSwiftNavigationController: UIGestureRecognizerDelegate {
+
+// MARK: - fileprivate
+
+/// 导航栏默认手势代理对象
+fileprivate class TFYSwiftNavigationGestureRecognizerDelegate: NSObject, UIGestureRecognizerDelegate {
     
-    public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        if viewControllers.count <= 1 {
-            return false
+    fileprivate weak var navigationController: UINavigationController?
+    
+    fileprivate init(navigationController: UINavigationController) {
+        self.navigationController = navigationController
+    }
+    
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard let navigationController = navigationController else {
+            return true
         }
-        if let topViewController = topViewController {
-            return topViewController.tfy_enablePopGesture
+        if let topViewController = navigationController.viewControllers.last {
+            if topViewController.tfy_disableInteractivePopGesture {
+                return false
+            }
         }
         return true
     }
-    
 }
 
-// MARK: -  Public
-extension TFYSwiftNavigationController {
-    
-    func tfy_updateNavigationBar(for viewController: UIViewController) {
-        setupFakeSubviews()
-        tfy_updateNavigationBarTint(for: viewController)
-        tfy_updateNavigationBarBackground(for: viewController)
-        tfy_updateNavigationBarShadow(for: viewController)
-    }
-    
-    func tfy_updateNavigationBarTint(for viewController: UIViewController, ignoreTintColor: Bool = false) {
-        if viewController != topViewController {
-            return
-        }
-        UIView.setAnimationsEnabled(false)
-        navigationBar.barStyle = viewController.tfy_barStyle
-        let titleTextAttributes = [
-            NSAttributedString.Key.foregroundColor: viewController.tfy_titleColor,
-            NSAttributedString.Key.font: viewController.tfy_titleFont
-        ]
-        navigationBar.titleTextAttributes = titleTextAttributes
-        if !ignoreTintColor {
-            navigationBar.tintColor = viewController.tfy_tintColor
-        }
-        if #available(iOS 14.0, *) {
-            navigationItem.backBarButtonItem = UIBarButtonItem.init(title: "", image: UIImage(), primaryAction: nil, menu: nil)
-        }
-        UIView.setAnimationsEnabled(true)
-    }
-    
-    func tfy_updateNavigationBarBackground(for viewController: UIViewController) {
-        if viewController != topViewController {
-            return
-        }
-        fakeBar.tfy_updateFakeBarBackground(for: viewController)
-    }
-    
-    func tfy_updateNavigationBarShadow(for viewController: UIViewController) {
-        if viewController != topViewController {
-            return
-        }
-        fakeBar.tfy_updateFakeBarShadow(for: viewController)
-    }
 
+/// 自定义全屏返回手势代理对象
+fileprivate class TFYSwiftFullscreenPopGestureRecognizerDelegate: NSObject, UIGestureRecognizerDelegate {
+    
+    fileprivate weak var navigationController: UINavigationController?
+    
+    fileprivate init(navigationController: UINavigationController) {
+        self.navigationController = navigationController
+    }
+    
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard let navigationController = navigationController,
+              let gestureRecognizer = gestureRecognizer as? UIPanGestureRecognizer else {
+            return true
+        }
+        
+        if navigationController.viewControllers.count <= 1 {
+            return false
+        }
+        
+        if let topViewController = navigationController.viewControllers.last {
+            if !topViewController.tfy_fullScreenInteractivePopEnabled {
+                return false
+            }
+        }
+        
+        if let topViewController = navigationController.viewControllers.last {
+            let beganPoint = gestureRecognizer.location(in: gestureRecognizer.view)
+            let maxAllowedDistance = topViewController.tfy_fullScreenPopMaxAllowedDistanceToLeftEdge
+            if maxAllowedDistance > 0 && beganPoint.x > maxAllowedDistance {
+                return false
+            }
+        }
+
+        let isTransitioning = navigationController.value(forKey: "_isTransitioning") as? Bool ?? false
+        if isTransitioning {
+            return false
+        }
+
+        let translation = gestureRecognizer.translation(in: gestureRecognizer.view)
+        let isLeftToRight = UIApplication.shared.userInterfaceLayoutDirection == .leftToRight
+        let multiplier: CGFloat = isLeftToRight ? 1: -1
+        if translation.x * multiplier <= 0 {
+            return false
+        }
+        return true
+    }
 }
