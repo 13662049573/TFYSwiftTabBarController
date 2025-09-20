@@ -207,22 +207,6 @@ open class TFYSwiftTabBar: UITabBar {
         frame = bounds
         autoresizingMask = [.flexibleWidth, .flexibleHeight]
         
-        // 使用系统原生的玻璃效果
-        if #available(iOS 26.0, *) {
-            // iOS 26 原生玻璃效果
-            setupSystemLiquidGlassEffect()
-        } else {
-            // 降级到自定义模糊效果
-            setupCustomBlurEffect()
-        }
-    }
-    
-    @available(iOS 26.0, *)
-    private func setupSystemLiquidGlassEffect() {
-        // 设置系统原生玻璃效果
-        isTranslucent = true
-        backgroundColor = .clear
-        
         // 设置圆角和阴影
         layer.cornerRadius = 16
         layer.shadowColor = UIColor.black.cgColor
@@ -230,41 +214,7 @@ open class TFYSwiftTabBar: UITabBar {
         layer.shadowRadius = 8
         layer.shadowOpacity = 0.1
         
-        // 使用系统原生的玻璃效果
-        if let tabBarController = tabBarController {
-            // 配置系统TabBar外观以支持玻璃效果
-            let appearance = UITabBarAppearance()
-            appearance.configureWithTransparentBackground()
-            
-            // 设置玻璃效果
-            appearance.backgroundEffect = UIBlurEffect(style: .systemMaterial)
-            appearance.backgroundColor = .clear
-            
-            // 清除系统元素
-            appearance.shadowColor = .clear
-            appearance.selectionIndicatorTintColor = .clear
-            appearance.selectionIndicatorImage = UIImage()
-            
-            // 隐藏系统按钮
-            appearance.stackedLayoutAppearance.normal.iconColor = .clear
-            appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.clear]
-            appearance.stackedLayoutAppearance.selected.iconColor = .clear
-            appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor.clear]
-            
-            // 应用外观
-            tabBarController.tabBar.standardAppearance = appearance
-            tabBarController.tabBar.scrollEdgeAppearance = appearance
-            tabBarController.tabBar.isTranslucent = true
-            tabBarController.tabBar.backgroundColor = .clear
-        }
-        
-        #if DEBUG
-        print("🔧 [TFYSwiftTabBar] 已启用iOS 26系统原生玻璃效果")
-        #endif
-    }
-    
-    private func setupCustomBlurEffect() {
-        // 降级到自定义模糊效果
+        // 设置背景模糊效果
         let blurEffect = UIBlurEffect(style: .systemMaterial)
         let blurView = UIVisualEffectView(effect: blurEffect)
         blurView.translatesAutoresizingMaskIntoConstraints = false
@@ -279,9 +229,8 @@ open class TFYSwiftTabBar: UITabBar {
             blurView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
         
-        #if DEBUG
-        print("🔧 [TFYSwiftTabBar] 已启用自定义模糊效果")
-        #endif
+        // 确保TabBar在最前面
+        bringSubviewToFront(blurView)
     }
     
     private func setupDynamicFontSupport() {
