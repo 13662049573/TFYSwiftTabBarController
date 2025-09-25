@@ -2,459 +2,725 @@
 //  TFYSwiftTabBar.swift
 //  TFYSwiftTabBarController
 //
-//  Created by 田风有 on 2021/5/18.
+//  全新的现代化TabBar实现
+//  支持iOS 15+，适配iOS 26特性
 //
 
 import UIKit
 
-// MARK: - Enums
-public enum TFYSwiftTabBarItemPositioning: Int {
+// MARK: - TabBar定位枚举
+@available(iOS 15.0, *)
+public enum TFYSwiftTabBarItemPositioning {
     case automatic
     case fill
-    case centered
     case fillExcludeSeparator
-    case fillIncludeSeparator
+    case centered
 }
 
-// MARK: - Protocols
-/// 对UITabBarDelegate进行扩展，以支持UITabBarControllerDelegate的相关方法桥接
-internal protocol TFYSwiftTabBarDelegate: NSObjectProtocol {
-    /// 当前item是否支持选中
-    func tabBar(_ tabBar: UITabBar, shouldSelect item: UITabBarItem) -> Bool
-    
-    /// 当前item是否需要被劫持
-    func tabBar(_ tabBar: UITabBar, shouldHijack item: UITabBarItem) -> Bool
-    
-    /// 当前item的点击被劫持
-    func tabBar(_ tabBar: UITabBar, didHijack item: UITabBarItem)
+// MARK: - TabBar代理协议
+@available(iOS 15.0, *)
+public protocol TFYSwiftTabBarDelegate: AnyObject {
+    func tabBar(_ tabBar: TFYSwiftTabBar, shouldSelect item: UITabBarItem) -> Bool
+    func tabBar(_ tabBar: TFYSwiftTabBar, didSelect item: UITabBarItem)
+    func tabBar(_ tabBar: TFYSwiftTabBar, shouldHijack item: UITabBarItem) -> Bool
+    func tabBar(_ tabBar: TFYSwiftTabBar, didHijack item: UITabBarItem)
 }
 
-// MARK: - TFYSwiftTabBar
-/// TFYSwiftTabBar是高度自定义的UITabBar子类，通过添加UIControl的方式实现自定义tabBarItem的效果
+// MARK: - 主TabBar类
+@available(iOS 15.0, *)
 open class TFYSwiftTabBar: UITabBar {
     
-    // MARK: - Properties
+    // MARK: - 公开属性
     
-    internal weak var customDelegate: TFYSwiftTabBarDelegate?
+    /// TabBar代理
+    public weak var customDelegate: TFYSwiftTabBarDelegate?
     
-    /// tabBar中items布局偏移量
-    public var itemEdgeInsets = UIEdgeInsets.zero
+    /// 关联的TabBarController
+    public weak var tabBarController: TFYSwiftTabbarController?
     
-    /// 是否设置为自定义布局方式，默认为空
-    public var itemCustomPositioning: TFYSwiftTabBarItemPositioning? {
+    /// 自定义定位模式
+    public var itemCustomPositioning: TFYSwiftTabBarItemPositioning = .fill {
         didSet {
-            guard let itemCustomPositioning = itemCustomPositioning else { return }
-            
-            switch itemCustomPositioning {
-            case .fill:
-                itemPositioning = .fill
-            case .automatic:
-                itemPositioning = .automatic
-            case .centered:
-                itemPositioning = .centered
-            default:
-                break
-            }
-            self.reload()
+            setNeedsLayout()
         }
     }
     
-    /// tabBar自定义item的容器view
-    internal var containers = [TFYSwiftTabBarItemContainer]()
-    
-    /// 缓存当前tabBarController用来判断是否存在"More"Tab
-    internal weak var tabBarController: UITabBarController?
-    
-    /// 自定义'More'按钮样式，继承自TFYSwiftTabBarItemContentView
-    open var moreContentView: TFYSwiftTabBarItemContentView? = TFYSwiftTabBarItemMoreContentView() {
-        didSet { self.reload() }
-    }
-    
-    /// 是否处于编辑状态
-    open var isEditing: Bool = false {
+    /// 项目边距
+    public var itemEdgeInsets: UIEdgeInsets = UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16) {
         didSet {
-            if oldValue != isEditing {
-                self.updateLayout()
-            }
+            setNeedsLayout()
         }
     }
     
-    // MARK: - Override Properties
-    
-    open override var items: [UITabBarItem]? {
-        didSet {
-            self.reload()
+    /// 项目宽度（0表示自动计算）
+    public override var itemWidth: CGFloat {
+        get { super.itemWidth }
+        set {
+            super.itemWidth = newValue
+            setNeedsLayout()
         }
     }
     
-    // MARK: - Override Methods
-    
-    open override func setItems(_ items: [UITabBarItem]?, animated: Bool) {
-        super.setItems(items, animated: animated)
-        self.reload()
+    /// 项目间距
+    public override var itemSpacing: CGFloat {
+        get { super.itemSpacing }
+        set {
+            super.itemSpacing = newValue
+            setNeedsLayout()
+        }
     }
     
-    open override func beginCustomizingItems(_ items: [UITabBarItem]) {
-        TFYSwiftTabbarController.printError("beginCustomizingItems(_:) is unsupported in TFYSwiftTabBar.")
-        super.beginCustomizingItems(items)
+    /// 默认文字颜色
+    public var defaultTextColor: UIColor = .label {
+        didSet {
+            updateAllItemsAppearance()
+        }
     }
     
-    open override func endCustomizing(animated: Bool) -> Bool {
-        TFYSwiftTabbarController.printError("endCustomizing(_:) is unsupported in TFYSwiftTabBar.")
-        return super.endCustomizing(animated: animated)
+    /// 默认选中文字颜色
+    public var defaultSelectedTextColor: UIColor = .systemBlue {
+        didSet {
+            updateAllItemsAppearance()
+        }
     }
+    
+    /// 默认图标颜色
+    public var defaultIconColor: UIColor = .label {
+        didSet {
+            updateAllItemsAppearance()
+        }
+    }
+    
+    /// 默认选中图标颜色
+    public var defaultSelectedIconColor: UIColor = .systemBlue {
+        didSet {
+            updateAllItemsAppearance()
+        }
+    }
+    
+    /// 默认徽章偏移
+    public var defaultBadgeOffset: UIOffset = UIOffset(horizontal: 6, vertical: -18) {
+        didSet {
+            updateAllItemsAppearance()
+        }
+    }
+    
+    /// 是否启用iOS 26 Liquid Glass效果
+    public var enableLiquidGlassEffect: Bool = false {
+        didSet {
+            updateLiquidGlassEffect()
+        }
+    }
+    
+    /// 是否启用动态字体支持
+    public var enableDynamicFont: Bool = true {
+        didSet {
+            updateDynamicFontSupport()
+        }
+    }
+    
+    // MARK: - 私有属性
+    
+    private var itemContainers: [TFYSwiftTabBarItemContainer] = []
+    private var moreContentView: TFYSwiftTabBarItemMoreContentView?
+    private var needsLayoutUpdate = true
+    
+    // MARK: - 初始化
+    
+    public override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupTabBar()
+    }
+    
+    public required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupTabBar()
+    }
+    
+    // MARK: - 设置方法
+    
+    private func setupTabBar() {
+        // 基础设置
+        isTranslucent = true  // 启用半透明以支持玻璃效果
+        backgroundColor = .clear
+        
+        // 设置frame和autoresizingMask
+        frame = bounds
+        autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        
+        // 设置默认间距和边距
+        itemSpacing = 8
+        itemEdgeInsets = UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
+        
+        // 设置默认颜色
+        defaultTextColor = .label
+        defaultSelectedTextColor = .systemBlue
+        defaultIconColor = .label
+        defaultSelectedIconColor = .systemBlue
+        
+        // 配置外观
+        configureAppearance()
+        
+        // 设置iOS 26特性
+        if #available(iOS 26.0, *) {
+            setupiOS26Features()
+        }
+    }
+    
+    private func configureAppearance() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithTransparentBackground()  // 使用透明背景支持玻璃效果
+        appearance.shadowColor = .clear
+        appearance.backgroundColor = .clear
+        
+        // 移除选择指示器
+        appearance.selectionIndicatorTintColor = .clear
+        appearance.selectionIndicatorImage = UIImage()
+        
+        // 隐藏系统按钮
+        appearance.stackedLayoutAppearance.normal.iconColor = .clear
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.clear]
+        appearance.stackedLayoutAppearance.selected.iconColor = .clear
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor.clear]
+        
+        standardAppearance = appearance
+        scrollEdgeAppearance = appearance
+    
+    }
+    
+    @available(iOS 26.0, *)
+    private func setupiOS26Features() {
+        // iOS 26 Liquid Glass效果
+        if enableLiquidGlassEffect {
+            setupLiquidGlassEffect()
+        }
+        
+        // 动态字体支持
+        if enableDynamicFont {
+            setupDynamicFontSupport()
+        }
+    }
+    
+    @available(iOS 26.0, *)
+    private func setupLiquidGlassEffect() {
+        // 确保TabBar完全覆盖系统TabBar
+        frame = bounds
+        autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        
+        // 设置圆角和阴影
+        layer.cornerRadius = 16
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOffset = CGSize(width: 0, height: -2)
+        layer.shadowRadius = 8
+        layer.shadowOpacity = 0.1
+        
+        // 设置背景模糊效果
+        let blurEffect = UIBlurEffect(style: .systemMaterial)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        blurView.layer.cornerRadius = 16
+        blurView.clipsToBounds = true
+        insertSubview(blurView, at: 0)
+        
+        NSLayoutConstraint.activate([
+            blurView.topAnchor.constraint(equalTo: topAnchor),
+            blurView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            blurView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            blurView.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
+        
+        // 确保TabBar在最前面
+        bringSubviewToFront(blurView)
+    }
+    
+    private func setupDynamicFontSupport() {
+        // 监听动态字体变化
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(contentSizeCategoryDidChange),
+            name: UIContentSizeCategory.didChangeNotification,
+            object: nil
+        )
+    }
+    
+    @objc private func contentSizeCategoryDidChange() {
+        updateAllItemsAppearance()
+    }
+    
+    // MARK: - 公共方法
+    
+    /// 重新加载TabBar项目
+    public func reload() {
+        #if DEBUG
+        print("🔄 [TFYSwiftTabBar] 重新加载TabBar项目")
+        #endif
+        
+        // 强制更新布局
+        updateItemContainers()
+        updateAllItemsAppearance()
+    }
+    
+    // MARK: - 布局方法
     
     open override func layoutSubviews() {
         super.layoutSubviews()
-        self.updateLayout()
-        self.hiddenTabBarImageView()
+        
+        // 总是更新布局，确保按钮显示
+        hideSystemButtons()
+        updateItemContainers()
+        
+        // 确保TabBar在最前面
+        superview?.bringSubviewToFront(self)
     }
     
-    open override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        var b = super.point(inside: point, with: event)
-        if !b {
-            for container in containers {
-                let containerPoint = CGPoint(x: point.x - container.frame.origin.x,
-                                           y: point.y - container.frame.origin.y)
-                if container.point(inside: containerPoint, with: event) {
-                    b = true
-                    break
-                }
-            }
+    private func updateItemContainers() {
+        guard let items = self.items, !items.isEmpty else { 
+            #if DEBUG
+            print("⚠️ [TFYSwiftTabBar] 没有TabBar项目")
+            #endif
+            return
         }
-        return b
+        
+        #if DEBUG
+        print("🔄 [TFYSwiftTabBar] 更新容器: 项目数量=\(items.count)")
+        #endif
+        
+        // 清理旧容器
+        itemContainers.forEach { $0.removeFromSuperview() }
+        itemContainers.removeAll()
+        
+        // 创建新容器
+        for (index, item) in items.enumerated() {
+            let container = TFYSwiftTabBarItemContainer(tabBar: self, item: item, index: index)
+            addSubview(container)
+            itemContainers.append(container)
+            
+            // 确保容器可见和可交互
+            container.isHidden = false
+            container.alpha = 1.0
+            container.isUserInteractionEnabled = true
+            
+            #if DEBUG
+            print("   - 创建容器\(index): \(item.title ?? "无标题"), 可见=\(!container.isHidden), 交互=\(container.isUserInteractionEnabled)")
+            #endif
+        }
+        
+        // 布局容器
+        layoutItemContainers()
+        
+        // 隐藏系统按钮
+        hideSystemButtons()
+        
+        // 更新外观
+        updateAllItemsAppearance()
     }
     
-    // MARK: - Private Methods
+    private func layoutItemContainers() {
+        guard !itemContainers.isEmpty else { return }
+        
+        let containerCount = itemContainers.count
+        let availableWidth = bounds.width - itemEdgeInsets.left - itemEdgeInsets.right
+        let availableHeight = bounds.height - itemEdgeInsets.top - itemEdgeInsets.bottom
+        
+        // 计算容器宽度和间距
+        let totalSpacing = itemSpacing * CGFloat(containerCount - 1)
+        let containerWidth: CGFloat
+        
+        if itemWidth > 0 {
+            // 使用固定宽度
+            containerWidth = itemWidth
+        } else {
+            // 自动计算宽度，确保不重叠
+            containerWidth = (availableWidth - totalSpacing) / CGFloat(containerCount)
+        }
+        
+        let containerHeight = availableHeight
+        
+        // 计算起始位置，确保居中
+        let totalWidth = CGFloat(containerCount) * containerWidth + totalSpacing
+        let startX = itemEdgeInsets.left + (availableWidth - totalWidth) / 2
+        
+        #if DEBUG
+        print("🔧 [TFYSwiftTabBar] 布局调试:")
+        print("   - 容器数量: \(containerCount)")
+        print("   - 可用宽度: \(availableWidth)")
+        print("   - 容器宽度: \(containerWidth)")
+        print("   - 项目间距: \(itemSpacing)")
+        print("   - 总宽度: \(totalWidth)")
+        print("   - 起始X: \(startX)")
+        #endif
+        
+        for (index, container) in itemContainers.enumerated() {
+            let x = startX + CGFloat(index) * (containerWidth + itemSpacing)
+            let y = itemEdgeInsets.top
+            
+            container.frame = CGRect(
+                x: x,
+                y: y,
+                width: containerWidth,
+                height: containerHeight
+            )
+            
+            #if DEBUG
+            print("   - 容器\(index): x=\(x), y=\(y), width=\(containerWidth), height=\(containerHeight)")
+            #endif
+        }
+    }
     
-    /// 隐藏TabBar背景图片
-    private func hiddenTabBarImageView() {
-        let viewsArr = subviews
-        for view in viewsArr {
-            if view.isKind(of: NSClassFromString("_UIBarBackground")!) {
-                view.removeFromSuperview()
+    private func hideSystemButtons() {
+        // 减少日志输出，只在调试时打印
+        #if DEBUG
+        print("🔧 [TFYSwiftTabBar] 开始隐藏系统按钮...")
+        #endif
+        
+        // 使用更安全的方法隐藏系统元素
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            // 递归隐藏所有系统子视图
+            self.hideSystemSubviews(in: self)
+            
+            // 确保TabBar本身不显示系统元素
+            self.backgroundColor = .clear
+            self.isOpaque = false
+            self.isTranslucent = true
+            
+            #if DEBUG
+            print("🔧 [TFYSwiftTabBar] 系统按钮隐藏完成")
+            #endif
+        }
+    }
+    
+    private func hideSystemSubviews(in view: UIView) {
+        for subview in view.subviews {
+            let className = String(describing: type(of: subview))
+            
+            // 跳过我们的自定义容器
+            if subview is TFYSwiftTabBarItemContainer {
+                continue
+            }
+            
+            // 只隐藏系统TabBar相关元素
+            if subview.isKind(of: NSClassFromString("UITabBarButton")!) ||
+               className.contains("SelectionIndicator") || 
+               className.contains("Capsule") ||
+               className.contains("_UIBarBackground") || 
+               className.contains("UIBarBackground") ||
+               className.contains("_UITabBarPlatterView") || 
+               className.contains("_UIPortalView") {
+                
+                // 安全地隐藏系统元素
+                subview.isHidden = true
+                subview.alpha = 0
+                subview.isUserInteractionEnabled = false
+                
+                #if DEBUG
+                print("✅ [TFYSwiftTabBar] 隐藏系统元素: \(className)")
+                #endif
+            } else {
+                // 对于其他视图，递归检查子视图
+                hideSystemSubviews(in: subview)
             }
         }
+    }
+    
+    // MARK: - 外观更新
+    
+    private func updateAllItemsAppearance() {
+        itemContainers.forEach { container in
+            container.updateAppearance()
+            container.updateSelectionState(animated: false)
+        }
+    }
+    
+    private func updateLiquidGlassEffect() {
+        if #available(iOS 26.0, *) {
+            if enableLiquidGlassEffect {
+                setupLiquidGlassEffect()
+            } else {
+                // 移除模糊效果
+                subviews.compactMap { $0 as? UIVisualEffectView }.forEach { $0.removeFromSuperview() }
+                layer.cornerRadius = 0
+                layer.shadowOpacity = 0
+            }
+        }
+    }
+    
+    private func updateDynamicFontSupport() {
+        if enableDynamicFont {
+            setupDynamicFontSupport()
+        } else {
+            NotificationCenter.default.removeObserver(self, name: UIContentSizeCategory.didChangeNotification, object: nil)
+        }
+    }
+    
+    // MARK: - 选择方法
+    
+    public func selectItem(at index: Int, animated: Bool = true) {
+        guard let items = self.items,
+              index >= 0 && index < items.count else { 
+            print("❌ [TFYSwiftTabBar] 选择索引无效: \(index), 项目数量: \(items?.count ?? 0)")
+            return
+        }
+        
+        let item = items[index]
+        print("🎯 [TFYSwiftTabBar] 选择项目: 索引\(index), 标题: \(item.title ?? "无标题")")
+        
+        // 检查是否应该选择
+        if let delegate = customDelegate,
+           !delegate.tabBar(self, shouldSelect: item) {
+            print("🚫 [TFYSwiftTabBar] 代理拒绝选择")
+            return
+        }
+        
+        // 检查是否应该劫持
+        if let delegate = customDelegate,
+           delegate.tabBar(self, shouldHijack: item) {
+            print("🔄 [TFYSwiftTabBar] 执行点击劫持")
+            delegate.tabBar(self, didHijack: item)
+            return
+        }
+        
+        // 通过TabBarController来管理选择状态
+        if let tabBarController = tabBarController {
+            print("📱 [TFYSwiftTabBar] 通过TabBarController选择: \(index)")
+            tabBarController.selectedIndex = index
+        } else {
+            print("⚠️ [TFYSwiftTabBar] 没有TabBarController，直接更新选择状态")
+            // 如果没有TabBarController，直接更新选择状态
+            updateSelectionState(animated: animated)
+        }
+        
+        // 通知代理
+        customDelegate?.tabBar(self, didSelect: item)
+    }
+    
+    private func updateSelectionState(animated: Bool) {
+        itemContainers.forEach { container in
+            container.updateSelectionState(animated: animated)
+        }
+    }
+    
+    /// 响应TabBarController的选择变化
+    public func updateSelectionFromTabBarController() {
+        updateSelectionState(animated: true)
+    }
+    
+    // MARK: - 清理
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 }
 
-// MARK: - Layout Extension
-internal extension TFYSwiftTabBar {
+// MARK: - 容器类
+@available(iOS 15.0, *)
+private class TFYSwiftTabBarItemContainer: UIView {
     
-    func updateLayout() {
-        guard let tabBarItems = self.items else {
-            TFYSwiftTabbarController.printError("empty items")
-            return
-        }
-        
-        let tabBarButtons = getTabBarButtons()
-        
-        updateButtonVisibility(tabBarItems: tabBarItems, tabBarButtons: tabBarButtons)
-        updateContainerLayout(tabBarButtons: tabBarButtons)
+    private weak var tabBar: TFYSwiftTabBar?
+    private let item: UITabBarItem
+    private let index: Int
+    private var contentView: UIView?
+    
+    init(tabBar: TFYSwiftTabBar, item: UITabBarItem, index: Int) {
+        self.tabBar = tabBar
+        self.item = item
+        self.index = index
+        super.init(frame: .zero)
+        setupContainer()
     }
     
-    private func getTabBarButtons() -> [UIView] {
-        let tabBarButtons = subviews.filter { subview -> Bool in
-            if let cls = NSClassFromString("UITabBarButton") {
-                return subview.isKind(of: cls)
-            }
-            return false
-        }.sorted { (subview1, subview2) -> Bool in
-            return subview1.frame.origin.x < subview2.frame.origin.x
-        }
-        return tabBarButtons
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
-    private func updateButtonVisibility(tabBarItems: [UITabBarItem], tabBarButtons: [UIView]) {
-        if isCustomizing {
-            for (idx, _) in tabBarItems.enumerated() {
-                tabBarButtons[idx].isHidden = false
-                moreContentView?.isHidden = true
-            }
-            for container in containers {
-                container.isHidden = true
+    private func setupContainer() {
+        isUserInteractionEnabled = true
+        
+        // 添加点击手势
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(containerTapped))
+        addGestureRecognizer(tapGesture)
+        
+        // 创建内容视图
+        createContentView()
+    }
+    
+    private func createContentView() {
+        if let customItem = item as? TFYSwiftTabBarItem {
+            // 自定义项目
+            contentView = customItem.contentView
+        } else {
+            // 系统项目
+            contentView = createSystemItemView()
+        }
+        
+        guard let contentView = contentView else { return }
+        
+        addSubview(contentView)
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            contentView.topAnchor.constraint(equalTo: topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
+        
+        // 设置徽章
+        if let badgeValue = item.badgeValue, !badgeValue.isEmpty {
+            setupBadge(badgeValue)
+        }
+    }
+    
+    private func setupBadge(_ badgeValue: String) {
+        guard let contentView = contentView as? TFYSwiftTabBarItemContentView else { return }
+        
+        // 确保徽章视图只添加一次
+        if contentView.badgeView.superview == nil {
+            contentView.addSubview(contentView.badgeView)
+            print("🔧 [TFYSwiftTabBar] 添加徽章视图到容器")
+        }
+        
+        contentView.badgeView.setBadgeValue(badgeValue)
+        print("🔧 [TFYSwiftTabBar] 设置徽章值: \(badgeValue)")
+    }
+    
+    private func createSystemItemView() -> UIView {
+        let containerView = UIView()
+        containerView.backgroundColor = .clear
+        
+        // 创建图标视图
+        let imageView = UIImageView()
+        imageView.image = item.image
+        imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = tabBar?.defaultIconColor ?? .label
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(imageView)
+        
+        // 创建标题标签
+        let titleLabel = UILabel()
+        titleLabel.text = item.title
+        titleLabel.font = UIFont.systemFont(ofSize: 10)
+        titleLabel.textAlignment = .center
+        titleLabel.textColor = tabBar?.defaultTextColor ?? .label
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        containerView.addSubview(titleLabel)
+        
+        // 设置约束
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 4),
+            imageView.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+            imageView.widthAnchor.constraint(equalToConstant: 24),
+            imageView.heightAnchor.constraint(equalToConstant: 24),
+            
+            titleLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 2),
+            titleLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor, constant: 4),
+            titleLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -4),
+            titleLabel.bottomAnchor.constraint(lessThanOrEqualTo: containerView.bottomAnchor, constant: -4)
+        ])
+        
+        #if DEBUG
+        print("🔧 [TFYSwiftTabBar] 创建系统项目视图: \(item.title ?? "无标题"), 图标=\(item.image != nil ? "有" : "无")")
+        #endif
+        
+        return containerView
+    }
+    
+    @objc private func containerTapped() {
+        tabBar?.selectItem(at: index, animated: true)
+    }
+    
+    func updateAppearance() {
+        guard let tabBar = tabBar else { return }
+        
+        // 更新颜色
+        if let contentView = contentView as? TFYSwiftTabBarItemContentView {
+            contentView.textColor = tabBar.defaultTextColor
+            contentView.highlightTextColor = tabBar.defaultSelectedTextColor
+            contentView.iconColor = tabBar.defaultIconColor
+            contentView.highlightIconColor = tabBar.defaultSelectedIconColor
+            contentView.badgeOffset = tabBar.defaultBadgeOffset
+        } else {
+            // 更新系统项目视图的颜色
+            updateSystemItemAppearance(isSelected: false)
+        }
+    }
+    
+    func updateSelectionState(animated: Bool) {
+        // 使用TabBarController的selectedIndex来判断选中状态
+        let isSelected: Bool
+        if let tabBarController = tabBar?.tabBarController {
+            isSelected = tabBarController.selectedIndex == index
+        } else {
+            isSelected = tabBar?.selectedItem == item
+        }
+        
+        #if DEBUG
+        print("🎯 [TFYSwiftTabBar] 更新选中状态: 索引\(index), 选中=\(isSelected)")
+        #endif
+        
+        if animated {
+            UIView.animate(withDuration: 0.25) {
+                self.updateSelectionAppearance(isSelected: isSelected)
             }
         } else {
-            for (idx, item) in tabBarItems.enumerated() {
-                if let _ = item as? TFYSwiftTabBarItem {
-                    tabBarButtons[idx].isHidden = true
-                } else {
-                    tabBarButtons[idx].isHidden = false
-                }
-                if isMoreItem(idx), let _ = moreContentView {
-                    tabBarButtons[idx].isHidden = true
-                }
-            }
-            for container in containers {
-                container.isHidden = false
-            }
+            updateSelectionAppearance(isSelected: isSelected)
         }
     }
     
-    private func updateContainerLayout(tabBarButtons: [UIView]) {
-        var layoutBaseSystem = true
-        if let itemCustomPositioning = itemCustomPositioning {
-            switch itemCustomPositioning {
-            case .fill, .automatic, .centered:
-                break
-            case .fillIncludeSeparator, .fillExcludeSeparator:
-                layoutBaseSystem = false
-            }
-        }
+    private func updateSelectionAppearance(isSelected: Bool) {
+        guard tabBar != nil else { return }
         
-        if layoutBaseSystem {
-            // System itemPositioning
-            for (idx, container) in containers.enumerated() {
-                if !tabBarButtons[idx].frame.isEmpty {
-                    container.frame = tabBarButtons[idx].frame
-                }
-            }
+        if let contentView = contentView as? TFYSwiftTabBarItemContentView {
+            contentView.isSelected = isSelected
         } else {
-            // Custom itemPositioning
-            layoutContainersWithCustomPositioning()
+            // 更新系统项目的外观
+            updateSystemItemAppearance(isSelected: isSelected)
         }
     }
     
-    private func layoutContainersWithCustomPositioning() {
-        var x: CGFloat = itemEdgeInsets.left
-        var y: CGFloat = itemEdgeInsets.top
+    private func updateSystemItemAppearance(isSelected: Bool) {
+        guard let tabBar = tabBar else { return }
         
-        switch itemCustomPositioning! {
-        case .fillExcludeSeparator:
-            if y <= 0.0 {
-                y += 1.0
+        // 更新图标和文字颜色 - 只在contentView中查找
+        if let contentView = contentView {
+            for subview in contentView.subviews {
+                if let imageView = subview as? UIImageView {
+                    imageView.tintColor = isSelected ? tabBar.defaultSelectedIconColor : tabBar.defaultIconColor
+                    #if DEBUG
+                    print("🔧 [TFYSwiftTabBar] 更新图标颜色: 索引\(index), 选中=\(isSelected), 颜色=\(imageView.tintColor)")
+                    #endif
+                } else if let label = subview as? UILabel {
+                    label.textColor = isSelected ? tabBar.defaultSelectedTextColor : tabBar.defaultTextColor
+                    #if DEBUG
+                    print("🔧 [TFYSwiftTabBar] 更新文字颜色: 索引\(index), 选中=\(isSelected), 颜色=\(label.textColor)")
+                    #endif
+                }
             }
-        default:
-            break
         }
         
-        let width = bounds.size.width - itemEdgeInsets.left - itemEdgeInsets.right
-        let height = bounds.size.height - y - itemEdgeInsets.bottom
-        let eachWidth = itemWidth == 0.0 ? width / CGFloat(containers.count) : itemWidth
-        let eachSpacing = itemSpacing == 0.0 ? 0.0 : itemSpacing
-        
-        for container in containers {
-            container.frame = CGRect(x: x, y: y, width: eachWidth, height: height)
-            x += eachWidth + eachSpacing
-        }
+        #if DEBUG
+        print("🔧 [TFYSwiftTabBar] 更新系统项目外观: 索引\(index), 选中=\(isSelected)")
+        #endif
     }
 }
 
-// MARK: - Actions Extension
-internal extension TFYSwiftTabBar {
+// MARK: - More内容视图
+@available(iOS 15.0, *)
+private class TFYSwiftTabBarItemMoreContentView: TFYSwiftTabBarItemContentView {
     
-    func isMoreItem(_ index: Int) -> Bool {
-        return TFYSwiftTabbarController.isShowingMore(tabBarController) && (index == (items?.count ?? 0) - 1)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupMoreContentView()
     }
     
-    func removeAll() {
-        for container in containers {
-            container.removeFromSuperview()
-        }
-        containers.removeAll()
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupMoreContentView()
     }
     
-    func reload() {
-        removeAll()
-        guard let tabBarItems = self.items else {
-            TFYSwiftTabbarController.printError("empty items")
-            return
-        }
-        
-        for (idx, item) in tabBarItems.enumerated() {
-            let container = TFYSwiftTabBarItemContainer(self, tag: 1000 + idx)
-            self.addSubview(container)
-            self.containers.append(container)
-            
-            if let item = item as? TFYSwiftTabBarItem {
-                container.addSubview(item.contentView)
-            }
-            if self.isMoreItem(idx), let moreContentView = moreContentView {
-                container.addSubview(moreContentView)
-            }
-        }
-        
-        self.isTranslucent = false
-        self.updateAccessibilityLabels()
-        self.setNeedsLayout()
-    }
-    
-    @objc func highlightAction(_ sender: AnyObject?) {
-        guard let container = sender as? TFYSwiftTabBarItemContainer else { return }
-        
-        let newIndex = max(0, container.tag - 1000)
-        guard newIndex < items?.count ?? 0,
-              let item = self.items?[newIndex],
-              item.isEnabled == true else {
-            return
-        }
-        
-        if (customDelegate?.tabBar(self, shouldSelect: item) ?? true) == false {
-            return
-        }
-        
-        if let item = item as? TFYSwiftTabBarItem {
-            item.contentView.highlight(animated: true, completion: nil)
-        } else if self.isMoreItem(newIndex) {
-            moreContentView?.highlight(animated: true, completion: nil)
-        }
-    }
-    
-    @objc func dehighlightAction(_ sender: AnyObject?) {
-        guard let container = sender as? TFYSwiftTabBarItemContainer else { return }
-        
-        let newIndex = max(0, container.tag - 1000)
-        guard newIndex < items?.count ?? 0,
-              let item = self.items?[newIndex],
-              item.isEnabled == true else {
-            return
-        }
-        
-        if (customDelegate?.tabBar(self, shouldSelect: item) ?? true) == false {
-            return
-        }
-        
-        if let item = item as? TFYSwiftTabBarItem {
-            item.contentView.dehighlight(animated: true, completion: nil)
-        } else if self.isMoreItem(newIndex) {
-            moreContentView?.dehighlight(animated: true, completion: nil)
-        }
-    }
-    
-    @objc func selectAction(_ sender: AnyObject?) {
-        guard let container = sender as? TFYSwiftTabBarItemContainer else { return }
-        select(itemAtIndex: container.tag - 1000, animated: true)
-    }
-    
-    @objc func select(itemAtIndex idx: Int, animated: Bool) {
-        let newIndex = max(0, idx)
-        let currentIndex = (selectedItem != nil) ? (items?.firstIndex(of: selectedItem!) ?? -1) : -1
-        
-        guard newIndex < items?.count ?? 0,
-              let item = self.items?[newIndex],
-              item.isEnabled == true else {
-            return
-        }
-        
-        if (customDelegate?.tabBar(self, shouldSelect: item) ?? true) == false {
-            return
-        }
-        
-        if (customDelegate?.tabBar(self, shouldHijack: item) ?? false) == true {
-            customDelegate?.tabBar(self, didHijack: item)
-            if animated {
-                performHijackAnimation(item: item, newIndex: newIndex, animated: animated)
-            }
-            return
-        }
-        
-        if currentIndex != newIndex {
-            performSelectionChange(currentIndex: currentIndex, newIndex: newIndex, item: item, animated: animated)
-        } else if currentIndex == newIndex {
-            performReselection(item: item, newIndex: newIndex, animated: animated)
-        }
-        
-        delegate?.tabBar?(self, didSelect: item)
-        self.updateAccessibilityLabels()
-    }
-    
-    private func performHijackAnimation(item: UITabBarItem, newIndex: Int, animated: Bool) {
-        if let item = item as? TFYSwiftTabBarItem {
-            item.contentView.select(animated: animated, completion: {
-                item.contentView.deselect(animated: false, completion: nil)
-            })
-        } else if self.isMoreItem(newIndex) {
-            moreContentView?.select(animated: animated, completion: {
-                self.moreContentView?.deselect(animated: animated, completion: nil)
-            })
-        }
-    }
-    
-    private func performSelectionChange(currentIndex: Int, newIndex: Int, item: UITabBarItem, animated: Bool) {
-        if currentIndex != -1 && currentIndex < items?.count ?? 0 {
-            if let currentItem = items?[currentIndex] as? TFYSwiftTabBarItem {
-                currentItem.contentView.deselect(animated: animated, completion: nil)
-            } else if self.isMoreItem(currentIndex) {
-                moreContentView?.deselect(animated: animated, completion: nil)
-            }
-        }
-        
-        if let item = item as? TFYSwiftTabBarItem {
-            item.contentView.select(animated: animated, completion: nil)
-        } else if self.isMoreItem(newIndex) {
-            moreContentView?.select(animated: animated, completion: nil)
-        }
-    }
-    
-    private func performReselection(item: UITabBarItem, newIndex: Int, animated: Bool) {
-        if let item = item as? TFYSwiftTabBarItem {
-            item.contentView.reselect(animated: animated, completion: nil)
-        } else if self.isMoreItem(newIndex) {
-            moreContentView?.reselect(animated: animated, completion: nil)
-        }
-        
-        handleNavigationControllerReselection(animated: animated)
-    }
-    
-    private func handleNavigationControllerReselection(animated: Bool) {
-        guard let tabBarController = tabBarController else { return }
-        
-        var navVC: UINavigationController?
-        if let n = tabBarController.selectedViewController as? UINavigationController {
-            navVC = n
-        } else if let n = tabBarController.selectedViewController?.navigationController {
-            navVC = n
-        }
-        
-        guard let navVC = navVC else { return }
-        
-        if navVC.viewControllers.contains(tabBarController) {
-            if navVC.viewControllers.count > 1 && navVC.viewControllers.last != tabBarController {
-                navVC.popToViewController(tabBarController, animated: true)
-            }
-        } else {
-            if navVC.viewControllers.count > 1 {
-                navVC.popToRootViewController(animated: animated)
-            }
-        }
-    }
-    
-    func updateAccessibilityLabels() {
-        guard let tabBarItems = self.items,
-              tabBarItems.count == self.containers.count else {
-            return
-        }
-        
-        for (idx, item) in tabBarItems.enumerated() {
-            let container = self.containers[idx]
-            container.accessibilityIdentifier = item.accessibilityIdentifier
-            container.accessibilityTraits = item.accessibilityTraits
-            
-            if item == selectedItem {
-                container.accessibilityTraits = container.accessibilityTraits.union(.selected)
-            }
-            
-            updateContainerAccessibilityLabel(container: container, item: item, idx: idx, tabBarItems: tabBarItems)
-        }
-    }
-    
-    private func updateContainerAccessibilityLabel(container: TFYSwiftTabBarItemContainer, item: UITabBarItem, idx: Int, tabBarItems: [UITabBarItem]) {
-        if let explicitLabel = item.accessibilityLabel {
-            container.accessibilityLabel = explicitLabel
-            container.accessibilityHint = item.accessibilityHint ?? container.accessibilityHint
-        } else {
-            var accessibilityTitle = ""
-            if let item = item as? TFYSwiftTabBarItem {
-                accessibilityTitle = item.accessibilityLabel ?? item.title ?? ""
-            }
-            if self.isMoreItem(idx) {
-                accessibilityTitle = NSLocalizedString("More_TabBarItem", bundle: Bundle(for: TFYSwiftTabbarController.self), comment: "")
-            }
-            
-            let formatString = NSLocalizedString(item == selectedItem ? "TabBarItem_Selected_AccessibilityLabel" : "TabBarItem_AccessibilityLabel",
-                                               bundle: Bundle(for: TFYSwiftTabbarController.self),
-                                               comment: "")
-            container.accessibilityLabel = String(format: formatString, accessibilityTitle, idx + 1, tabBarItems.count)
-        }
+    private func setupMoreContentView() {
+        // 设置More按钮的特殊样式
+        titleLabel.text = "更多"
+        imageView.image = UIImage(systemName: "ellipsis")
     }
 }

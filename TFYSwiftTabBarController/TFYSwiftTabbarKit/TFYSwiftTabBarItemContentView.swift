@@ -2,437 +2,320 @@
 //  TFYSwiftTabBarItemContentView.swift
 //  TFYSwiftTabBarController
 //
-//  Created by 田风有 on 2022/5/4.
+//  全新的现代化TabBarItemContentView实现
+//  支持iOS 15+，适配iOS 26特性
 //
 
 import UIKit
 
-// MARK: - Enums
-public enum TFYSwiftTabBarItemContentMode: Int {
-    case alwaysOriginal // 始终设置原始图像的大小
-    case alwaysTemplate // 始终将图像设置为模板图像大小
-}
-
-// MARK: - TFYSwiftTabBarItemContentView
-/// TabBarItem的内容视图，支持高度自定义
+// MARK: - 内容视图类
+@available(iOS 15.0, *)
 open class TFYSwiftTabBarItemContentView: UIView {
     
-    // MARK: - Properties
+    // MARK: - 公开属性
     
-    /// 项目上显示的标题，默认为' nil '
-    open var tabbarTitle: String? {
-        didSet {
-            self.titleLabel.text = tabbarTitle
-            self.updateLayout()
-        }
-    }
-    
-    /// 用于表示项目的图像，默认为' nil '
-    open var image: UIImage? {
-        didSet {
-            if !selected { self.updateDisplay() }
-        }
-    }
-    
-    /// 当选项卡栏项被选中时显示的图像，默认为' nil '
-    open var selectedImage: UIImage? {
-        didSet {
-            if selected { self.updateDisplay() }
-        }
-    }
-    
-    /// 一个布尔值，指示该项是否启用，默认为"YES"
-    open var enabled = true
-    
-    /// 一个布尔值，指示项目是否被选中，默认为"NO"
-    open var selected = false
-    
-    /// 一个布尔值，指示项目是否高亮显示，默认为"NO"
-    open var highlighted = false
-    
-    /// 文本颜色，默认为' UIColor(白色:0.57254902,alpha: 1.0) '
-    open var textColor = UIColor(white: 0.57254902, alpha: 1.0) {
-        didSet {
-            if !selected { titleLabel.textColor = textColor }
-        }
-    }
-    
-    /// 文本颜色高亮显示时，默认为' UIColor(红色:0.0，绿色:0.47843137，蓝色:1.0,alpha: 1.0) '
-    open var highlightTextColor = UIColor(red: 0.0, green: 0.47843137, blue: 1.0, alpha: 1.0) {
-        didSet {
-            if selected { titleLabel.textColor = highlightTextColor }
-        }
-    }
-    
-    /// 图标颜色，默认为"UIColor(白色:0.57254902,alpha: 1.0)"
-    open var iconColor = UIColor(white: 0.57254902, alpha: 1.0) {
-        didSet {
-            if !selected { imageView.tintColor = iconColor }
-        }
-    }
-    
-    /// 图标颜色高亮显示时，默认为"UIColor(红色:0.0，绿色:0.47843137，蓝色:1.0,alpha: 1.0)"
-    open var highlightIconColor = UIColor(red: 0.0, green: 0.47843137, blue: 1.0, alpha: 1.0) {
-        didSet {
-            if selected { imageView.tintColor = highlightIconColor }
-        }
-    }
-    
-    /// 背景颜色，默认为' uiccolor .clear '
-    open var backdropColor = UIColor.clear {
-        didSet {
-            if !selected { backgroundColor = backdropColor }
-        }
-    }
-    
-    /// 背景颜色被突出显示时，默认为' UIColor.clear '
-    open var highlightBackdropColor = UIColor.clear {
-        didSet {
-            if selected { backgroundColor = highlightBackdropColor }
-        }
-    }
-    
-    /// 图标imageView renderingMode，默认为' . alwaystemplate '
-    open var renderingMode: UIImage.RenderingMode = .alwaysTemplate {
-        didSet {
-            self.updateDisplay()
-        }
-    }
-    
-    /// 项目内容模式，默认为' .alwaysTemplate '
-    open var itemContentMode: TFYSwiftTabBarItemContentMode = .alwaysTemplate {
-        didSet {
-            self.updateDisplay()
-        }
-    }
-    
-    /// 用于调整标题位置的偏移量，默认为' UIOffset.zero '
-    open var titlePositionAdjustment: UIOffset = UIOffset.zero {
-        didSet {
-            self.updateLayout()
-        }
-    }
-    
-    /// 你用来确定内容的insets边缘的insets，默认为' uiedgeinsets。zero '
-    open var insets = UIEdgeInsets.zero {
-        didSet {
-            self.updateLayout()
-        }
-    }
-    
-    /// 图像视图
-    open lazy var imageView: UIImageView = {
-        let imageView = UIImageView(frame: CGRect.zero)
-        imageView.backgroundColor = .clear
+    /// 图标视图
+    public let imageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
     
     /// 标题标签
-    open lazy var titleLabel: UILabel = {
-        let titleLabel = UILabel(frame: CGRect.zero)
-        titleLabel.backgroundColor = .clear
-        titleLabel.textColor = .clear
-        titleLabel.textAlignment = .center
-        return titleLabel
+    public let titleLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 10)
+        label.textAlignment = .center
+        label.numberOfLines = 1
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
     
-    /// 徽章值，默认为' nil '
-    open var badgeValue: String? {
+    /// 徽章视图
+    public let badgeView: TFYSwiftTabBarBadgeView = {
+        let badgeView = TFYSwiftTabBarBadgeView()
+        badgeView.translatesAutoresizingMaskIntoConstraints = false
+        return badgeView
+    }()
+    
+    /// 是否选中
+    public var isSelected: Bool = false {
         didSet {
-            if let _ = badgeValue {
-                self.badgeView.badgeValue = badgeValue
-                self.addSubview(badgeView)
-                self.updateLayout()
-            } else {
-                // Remove when nil.
-                self.badgeView.removeFromSuperview()
-            }
-            badgeChanged(animated: true, completion: nil)
+            updateAppearance()
         }
     }
     
-    /// 徽章颜色，默认为' nil '
-    open var badgeColor: UIColor? {
+    /// 文字颜色
+    public var textColor: UIColor = .label {
         didSet {
-            if let _ = badgeColor {
-                self.badgeView.badgeColor = badgeColor
-            } else {
-                self.badgeView.badgeColor = TFYSwiftTabBarBadgeView.defaultBadgeColor
-            }
+            updateAppearance()
         }
     }
     
-    /// Badge视图，默认为' TFYSwiftTabBarBadgeView() '
-    open var badgeView: TFYSwiftTabBarBadgeView = TFYSwiftTabBarBadgeView() {
-        willSet {
-            if let _ = badgeView.superview {
-                badgeView.removeFromSuperview()
-            }
-        }
+    /// 选中文字颜色
+    public var highlightTextColor: UIColor = .systemBlue {
         didSet {
-            if let _ = badgeView.superview {
-                self.updateLayout()
-            }
+            updateAppearance()
         }
     }
     
-    /// Badge offset, default is `UIOffset(horizontal: 6.0, vertical: -22.0)`
-    open var badgeOffset: UIOffset = UIOffset(horizontal: 6.0, vertical: -22.0) {
+    /// 图标颜色
+    public var iconColor: UIColor = .label {
         didSet {
-            if badgeOffset != oldValue {
-                self.updateLayout()
-            }
+            updateAppearance()
         }
     }
     
-    // MARK: - Initialization
+    /// 选中图标颜色
+    public var highlightIconColor: UIColor = .systemBlue {
+        didSet {
+            updateAppearance()
+        }
+    }
+    
+    /// 高亮图标
+    public var highlightImage: UIImage? {
+        didSet {
+            updateAppearance()
+        }
+    }
+    
+    /// 徽章偏移
+    public var badgeOffset: UIOffset = UIOffset(horizontal: 6, vertical: -18) {
+        didSet {
+            updateBadgePosition()
+        }
+    }
+    
+    /// 是否启用iOS 26 Liquid Glass效果
+    public var enableLiquidGlassEffect: Bool = true {  // 默认启用玻璃效果
+        didSet {
+            updateLiquidGlassEffect()
+        }
+    }
+    
+    /// 是否启用动态字体
+    public var enableDynamicFont: Bool = true {
+        didSet {
+            updateDynamicFont()
+        }
+    }
+    
+    // MARK: - 私有属性
+    
+    private var liquidGlassView: UIVisualEffectView?
+    
+    // MARK: - 初始化
     
     public override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
     }
     
-    public required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
+    public required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupView()
     }
     
-    // MARK: - Private Methods
+    // MARK: - 设置方法
     
     private func setupView() {
-        self.isUserInteractionEnabled = false
+        isUserInteractionEnabled = false
         
+        // 添加子视图
         addSubview(imageView)
         addSubview(titleLabel)
+        addSubview(badgeView)
         
-        titleLabel.textColor = textColor
-        imageView.tintColor = iconColor
-        backgroundColor = backdropColor
-    }
-    
-    // MARK: - Public Methods
-    
-    open func updateDisplay() {
-        imageView.image = (selected ? (selectedImage ?? image) : image)?.withRenderingMode(renderingMode)
-        imageView.tintColor = selected ? highlightIconColor : iconColor
-        titleLabel.textColor = selected ? highlightTextColor : textColor
-        backgroundColor = selected ? highlightBackdropColor : backdropColor
-    }
-    
-    open func updateLayout() {
-        let w = self.bounds.size.width
-        let h = self.bounds.size.height
+        // 设置约束
+        setupConstraints()
         
-        imageView.isHidden = (imageView.image == nil)
-        titleLabel.isHidden = (titleLabel.text == nil)
+        // 设置初始外观
+        updateAppearance()
         
-        if self.itemContentMode == .alwaysTemplate {
-            layoutWithTemplateMode(width: w, height: h)
-        } else {
-            layoutWithOriginalMode(width: w, height: h)
+        // 设置iOS 26特性
+        if #available(iOS 26.0, *) {
+            setupiOS26Features()
         }
     }
     
-    private func layoutWithTemplateMode(width: CGFloat, height: CGFloat) {
-        let (imageSize, fontSize) = getImageAndFontSize()
-        let isWide = isLandscapeOrRegular()
-        
-        if !imageView.isHidden && !titleLabel.isHidden {
-            layoutImageAndTitle(width: width, height: height, imageSize: imageSize, fontSize: fontSize, isWide: isWide)
-        } else if !imageView.isHidden {
-            layoutImageOnly(width: width, height: height, imageSize: imageSize)
-        } else if !titleLabel.isHidden {
-            layoutTitleOnly(width: width, height: height, fontSize: fontSize)
-        }
-        
-        layoutBadgeView(width: width, height: height, isWide: isWide)
-    }
-    
-    private func layoutWithOriginalMode(width: CGFloat, height: CGFloat) {
-        if !imageView.isHidden && !titleLabel.isHidden {
-            titleLabel.sizeToFit()
-            imageView.sizeToFit()
-            titleLabel.frame = CGRect(x: (width - titleLabel.bounds.size.width) / 2.0 + titlePositionAdjustment.horizontal,
-                                     y: height - titleLabel.bounds.size.height - 1.0 + titlePositionAdjustment.vertical,
-                                     width: titleLabel.bounds.size.width,
-                                     height: titleLabel.bounds.size.height)
-            imageView.frame = CGRect(x: (width - imageView.bounds.size.width) / 2.0,
-                                    y: (height - imageView.bounds.size.height) / 2.0 - 6.0,
-                                    width: imageView.bounds.size.width,
-                                    height: imageView.bounds.size.height)
-        } else if !imageView.isHidden {
-            imageView.sizeToFit()
-            imageView.center = CGPoint(x: width / 2.0, y: height / 2.0)
-        } else if !titleLabel.isHidden {
-            titleLabel.sizeToFit()
-            titleLabel.center = CGPoint(x: width / 2.0, y: height / 2.0)
-        }
-        
-        layoutBadgeView(width: width, height: height, isWide: false)
-    }
-    
-    private func getImageAndFontSize() -> (CGFloat, CGFloat) {
-        let isWide = isLandscapeOrRegular()
-        let imageSize: CGFloat
-        let fontSize: CGFloat
-        
-        if #available(iOS 11.0, *), isWide {
-            imageSize = UIScreen.main.scale == 3.0 ? 23.0 : 20.0
-            fontSize = UIScreen.main.scale == 3.0 ? 13.0 : 12.0
-        } else {
-            imageSize = 23.0
-            fontSize = 10.0
-        }
-        
-        return (imageSize, fontSize)
-    }
-    
-    private func isLandscapeOrRegular() -> Bool {
-        var keyWindow: UIWindow?
-        keyWindow = UIApplication.shared.connectedScenes
-                .map({ $0 as? UIWindowScene })
-                .compactMap({ $0 })
-                .first?.windows.first
-        
-        let isLandscape = keyWindow?.bounds.width ?? 0 > keyWindow?.bounds.height ?? 0
-        return isLandscape || traitCollection.horizontalSizeClass == .regular
-    }
-    
-    private func layoutImageAndTitle(width: CGFloat, height: CGFloat, imageSize: CGFloat, fontSize: CGFloat, isWide: Bool) {
-        titleLabel.font = UIFont.systemFont(ofSize: fontSize)
-        titleLabel.sizeToFit()
-        
-        if #available(iOS 11.0, *), isWide {
-            let horizontalOffset = UIScreen.main.scale == 3.0 ? 14.25 : 12.25
-            let imageOffset = UIScreen.main.scale == 3.0 ? 6.0 : 5.0
+    private func setupConstraints() {
+        NSLayoutConstraint.activate([
+            // 图标约束
+            imageView.topAnchor.constraint(equalTo: topAnchor, constant: 4),
+            imageView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            imageView.widthAnchor.constraint(equalToConstant: 24),
+            imageView.heightAnchor.constraint(equalToConstant: 24),
             
-            titleLabel.frame = CGRect(x: (width - titleLabel.bounds.size.width) / 2.0 + horizontalOffset + titlePositionAdjustment.horizontal,
-                                     y: (height - titleLabel.bounds.size.height) / 2.0 + titlePositionAdjustment.vertical,
-                                     width: titleLabel.bounds.size.width,
-                                     height: titleLabel.bounds.size.height)
-            imageView.frame = CGRect(x: titleLabel.frame.origin.x - imageSize - imageOffset,
-                                    y: (height - imageSize) / 2.0,
-                                    width: imageSize,
-                                    height: imageSize)
-        } else {
-            titleLabel.frame = CGRect(x: (width - titleLabel.bounds.size.width) / 2.0 + titlePositionAdjustment.horizontal,
-                                     y: height - titleLabel.bounds.size.height - 1.0 + titlePositionAdjustment.vertical,
-                                     width: titleLabel.bounds.size.width,
-                                     height: titleLabel.bounds.size.height)
-            imageView.frame = CGRect(x: (width - imageSize) / 2.0,
-                                    y: (height - imageSize) / 2.0 - 6.0,
-                                    width: imageSize,
-                                    height: imageSize)
+            // 标题约束
+            titleLabel.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 2),
+            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4),
+            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
+            titleLabel.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -4)
+        ])
+    }
+    
+    @available(iOS 26.0, *)
+    private func setupiOS26Features() {
+        if enableLiquidGlassEffect {
+            setupLiquidGlassEffect()
         }
-    }
-    
-    private func layoutImageOnly(width: CGFloat, height: CGFloat, imageSize: CGFloat) {
-        imageView.frame = CGRect(x: (width - imageSize) / 2.0,
-                                y: (height - imageSize) / 2.0,
-                                width: imageSize,
-                                height: imageSize)
-    }
-    
-    private func layoutTitleOnly(width: CGFloat, height: CGFloat, fontSize: CGFloat) {
-        titleLabel.font = UIFont.systemFont(ofSize: fontSize)
-        titleLabel.sizeToFit()
-        titleLabel.frame = CGRect(x: (width - titleLabel.bounds.size.width) / 2.0 + titlePositionAdjustment.horizontal,
-                                 y: (height - titleLabel.bounds.size.height) / 2.0 + titlePositionAdjustment.vertical,
-                                 width: titleLabel.bounds.size.width,
-                                 height: titleLabel.bounds.size.height)
-    }
-    
-    private func layoutBadgeView(width: CGFloat, height: CGFloat, isWide: Bool) {
-        guard let _ = badgeView.superview else { return }
         
-        let size = badgeView.sizeThatFits(self.frame.size)
-        if #available(iOS 11.0, *), isWide {
-            badgeView.frame = CGRect(origin: CGPoint(x: imageView.frame.midX - 3 + badgeOffset.horizontal,
-                                                     y: imageView.frame.midY + 3 + badgeOffset.vertical),
-                                    size: size)
-        } else {
-            badgeView.frame = CGRect(origin: CGPoint(x: width / 2.0 + badgeOffset.horizontal,
-                                                     y: height / 2.0 + badgeOffset.vertical),
-                                    size: size)
-        }
-        badgeView.setNeedsLayout()
-    }
-    
-    // MARK: - Internal Methods
-    
-    internal final func select(animated: Bool, completion: (() -> Void)?) {
-        selected = true
-        if enabled && highlighted {
-            highlighted = false
-            dehighlightAnimation(animated: animated, completion: { [weak self] in
-                self?.updateDisplay()
-                self?.selectAnimation(animated: animated, completion: completion)
-            })
-        } else {
-            updateDisplay()
-            selectAnimation(animated: animated, completion: completion)
+        if enableDynamicFont {
+            setupDynamicFontSupport()
         }
     }
     
-    internal final func deselect(animated: Bool, completion: (() -> Void)?) {
-        selected = false
-        updateDisplay()
-        self.deselectAnimation(animated: animated, completion: completion)
+    @available(iOS 26.0, *)
+    private func setupLiquidGlassEffect() {
+        let blurEffect = UIBlurEffect(style: .systemMaterial)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        insertSubview(blurView, at: 0)
+        
+        NSLayoutConstraint.activate([
+            blurView.topAnchor.constraint(equalTo: topAnchor),
+            blurView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            blurView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            blurView.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
+        
+        liquidGlassView = blurView
+        
+        // 设置圆角
+        layer.cornerRadius = 8
+        layer.masksToBounds = true
     }
     
-    internal final func reselect(animated: Bool, completion: (() -> Void)?) {
-        if selected == false {
-            select(animated: animated, completion: completion)
-        } else {
-            if enabled && highlighted {
-                highlighted = false
-                dehighlightAnimation(animated: animated, completion: { [weak self] in
-                    self?.reselectAnimation(animated: animated, completion: completion)
-                })
+    private func setupDynamicFontSupport() {
+        // 监听动态字体变化
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(contentSizeCategoryDidChange),
+            name: UIContentSizeCategory.didChangeNotification,
+            object: nil
+        )
+        
+        updateDynamicFont()
+    }
+    
+    @objc private func contentSizeCategoryDidChange() {
+        updateDynamicFont()
+    }
+    
+    private func updateDynamicFont() {
+        guard enableDynamicFont else { return }
+        let fontMetrics = UIFontMetrics.default
+        titleLabel.font = fontMetrics.scaledFont(for: UIFont.systemFont(ofSize: 10))
+    }
+    
+    // MARK: - 外观更新
+    
+    private func updateAppearance() {
+        // 更新文字颜色
+        titleLabel.textColor = isSelected ? highlightTextColor : textColor
+        
+        // 更新图标
+        if isSelected, let highlightImage = highlightImage {
+            imageView.image = highlightImage
+        }
+        
+        // 更新图标颜色
+        imageView.tintColor = isSelected ? highlightIconColor : iconColor
+        
+        // 更新徽章位置
+        updateBadgePosition()
+    }
+    
+    private func updateBadgePosition() {
+        guard badgeView.superview != nil else { return }
+        
+        // 避免频繁更新，只在必要时更新
+        guard !badgeView.isHidden else { return }
+        
+        let badgeSize = badgeView.sizeThatFits(bounds.size)
+        
+        // 如果徽章尺寸为0，说明没有内容，隐藏徽章
+        guard badgeSize.width > 0 && badgeSize.height > 0 else {
+            badgeView.isHidden = true
+            return
+        }
+        
+        // 徽章应该依附到图标的右上角
+        let iconFrame = imageView.frame
+        let badgeX = iconFrame.maxX + badgeOffset.horizontal - badgeSize.width * 0.5
+        let badgeY = iconFrame.minY + badgeOffset.vertical
+        
+        // 确保徽章不超出边界
+        let constrainedX = max(0, min(badgeX, bounds.width - badgeSize.width))
+        let constrainedY = max(0, min(badgeY, bounds.height - badgeSize.height))
+        
+        badgeView.frame = CGRect(
+            x: constrainedX,
+            y: constrainedY,
+            width: badgeSize.width,
+            height: badgeSize.height
+        )
+        
+        // 显示徽章
+        badgeView.isHidden = false
+        
+        print("🔧 [TFYSwiftTabBarItemContentView] 徽章位置更新: x=\(constrainedX), y=\(constrainedY), size=\(badgeSize), iconFrame=\(iconFrame)")
+    }
+    
+    private func updateLiquidGlassEffect() {
+        if #available(iOS 26.0, *) {
+            if enableLiquidGlassEffect {
+                setupLiquidGlassEffect()
             } else {
-                reselectAnimation(animated: animated, completion: completion)
+                liquidGlassView?.removeFromSuperview()
+                liquidGlassView = nil
+                layer.cornerRadius = 0
+                layer.masksToBounds = false
             }
         }
     }
     
-    internal final func highlight(animated: Bool, completion: (() -> Void)?) {
-        if !enabled || highlighted == true { return }
-        highlighted = true
-        self.highlightAnimation(animated: animated, completion: completion)
-    }
-    
-    internal final func dehighlight(animated: Bool, completion: (() -> Void)?) {
-        if !enabled || !highlighted { return }
-        highlighted = false
-        self.dehighlightAnimation(animated: animated, completion: completion)
-    }
-    
-    internal func badgeChanged(animated: Bool, completion: (() -> Void)?) {
-        self.badgeChangedAnimation(animated: animated, completion: completion)
-    }
-    
-    // MARK: - Animation Methods
+    // MARK: - 动画方法
     
     open func selectAnimation(animated: Bool, completion: (() -> Void)?) {
+        if animated {
+            UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5, options: .curveEaseInOut, animations: {
+                self.transform = CGAffineTransform(scaleX: 1.1, y: 1.1)
+            }) { _ in
+                UIView.animate(withDuration: 0.15) {
+                    self.transform = .identity
+                }
+                completion?()
+            }
+        } else {
         completion?()
+        }
     }
     
     open func deselectAnimation(animated: Bool, completion: (() -> Void)?) {
+        if animated {
+            UIView.animate(withDuration: 0.2, animations: {
+                self.transform = .identity
+            }) { _ in
         completion?()
     }
-    
-    open func reselectAnimation(animated: Bool, completion: (() -> Void)?) {
+        } else {
         completion?()
+        }
     }
     
-    open func highlightAnimation(animated: Bool, completion: (() -> Void)?) {
-        completion?()
+    // MARK: - 布局更新
+    
+    open override func layoutSubviews() {
+        super.layoutSubviews()
+        updateBadgePosition()
     }
     
-    open func dehighlightAnimation(animated: Bool, completion: (() -> Void)?) {
-        completion?()
-    }
+    // MARK: - 清理
     
-    open func badgeChangedAnimation(animated: Bool, completion: (() -> Void)?) {
-        completion?()
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 }

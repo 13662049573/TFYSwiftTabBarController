@@ -2,119 +2,298 @@
 //  TFYSwiftTabBarBadgeView.swift
 //  TFYSwiftTabBarController
 //
-//  Created by 田风有 on 2021/5/18.
+//  全新的现代化TabBarBadgeView实现
+//  支持iOS 15+，适配iOS 26特性
 //
 
 import UIKit
 
-// MARK: - TFYSwiftTabBarBadgeView
-/*
- * TFYSwiftTabBarItemBadgeView
- * 这个类定义了item中使用的badge视图样式，默认为TFYSwiftTabBarItemBadgeView类对象。
- * 你可以设置TFYSwiftTabBarItemContentView的badgeView属性为自定义的TFYSwiftTabBarItemBadgeView子类，这样就可以轻松实现 自定义通知样式了。
- */
+// MARK: - 徽章视图类
+@available(iOS 15.0, *)
 open class TFYSwiftTabBarBadgeView: UIView {
     
-    // MARK: - Static Properties
+    // MARK: - 公开属性
     
-    /// 默认颜色
-    public static var defaultBadgeColor = UIColor(red: 255.0/255.0, green: 59.0/255.0, blue: 48.0/255.0, alpha: 1.0)
-    
-    // MARK: - Properties
-    
-    /// 徽章的颜色
-    open var badgeColor: UIColor? = defaultBadgeColor {
+    /// 徽章文字
+    public var text: String? {
         didSet {
-            imageView.backgroundColor = badgeColor
+            updateBadgeDisplay()
         }
     }
     
-    /// 徽章值，支持nil，""，"1"，"someText"。隐藏在零。显示小点样式时""
-    open var badgeValue: String? {
+    /// 徽章背景颜色
+    public var badgeColor: UIColor = .systemRed {
         didSet {
-            badgeLabel.text = badgeValue
+            updateAppearance()
         }
     }
     
-    /// 图像视图
-    open lazy var imageView: UIImageView = {
-        let imageView = UIImageView(frame: CGRect.zero)
-        imageView.backgroundColor = .clear
-        return imageView
-    }()
+    /// 徽章文字颜色
+    public var textColor: UIColor = .white {
+        didSet {
+            updateAppearance()
+        }
+    }
     
-    /// 显示badgeValue的Label
-    open lazy var badgeLabel: UILabel = {
-        let badgeLabel = UILabel(frame: CGRect.zero)
-        badgeLabel.backgroundColor = .clear
-        badgeLabel.textColor = .white
-        badgeLabel.font = UIFont.systemFont(ofSize: 13.0)
-        badgeLabel.textAlignment = .center
-        return badgeLabel
-    }()
+    /// 徽章字体
+    public var font: UIFont = UIFont.systemFont(ofSize: 12, weight: .medium) {
+        didSet {
+            updateAppearance()
+        }
+    }
     
-    // MARK: - Initialization
+    /// 徽章内边距
+    public var contentInsets: UIEdgeInsets = UIEdgeInsets(top: 2, left: 6, bottom: 2, right: 6) {
+        didSet {
+            updateBadgeDisplay()
+        }
+    }
+    
+    /// 最小宽度
+    public var minimumWidth: CGFloat = 16 {
+        didSet {
+            updateBadgeDisplay()
+        }
+    }
+    
+    /// 是否启用iOS 26 Liquid Glass效果
+    public var enableLiquidGlassEffect: Bool = false {
+        didSet {
+            updateLiquidGlassEffect()
+        }
+    }
+    
+    /// 是否启用动态字体
+    public var enableDynamicFont: Bool = true {
+        didSet {
+            updateDynamicFont()
+        }
+    }
+    
+    // MARK: - 私有属性
+    
+    private let backgroundView = UIView()
+    private let textLabel = UILabel()
+    private var liquidGlassView: UIVisualEffectView?
+    
+    // MARK: - 初始化
     
     public override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
     }
     
-    public required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    public required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupView()
     }
     
-    // MARK: - Private Methods
+    // MARK: - 设置方法
     
     private func setupView() {
-        self.addSubview(imageView)
-        self.addSubview(badgeLabel)
-        self.imageView.backgroundColor = badgeColor
-    }
-    
-    // MARK: - Override Methods
-    
-    /*
-     *  通过layoutSubviews()布局子视图，你可以通过重写此方法实现自定义布局。
-     **/
-    open override func layoutSubviews() {
-        super.layoutSubviews()
-        layoutBadgeView()
-    }
-    
-    /*
-     *  通过此方法计算badge视图需要占用父视图的frame大小，通过重写此方法可以自定义badge视图的大小。
-     *  如果你需要自定义badge视图在Content中的位置，可以设置Content的badgeOffset属性。
-     */
-    open override func sizeThatFits(_ size: CGSize) -> CGSize {
-        guard let _ = badgeValue else {
-            return CGSize(width: 18.0, height: 18.0)
+        // 设置背景视图
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        backgroundView.layer.cornerRadius = 8
+        backgroundView.layer.masksToBounds = true
+        addSubview(backgroundView)
+        
+        // 设置文字标签
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
+        textLabel.textAlignment = .center
+        textLabel.numberOfLines = 1
+        addSubview(textLabel)
+        
+        // 设置约束
+        setupConstraints()
+        
+        // 设置初始外观
+        updateAppearance()
+        
+        // 设置iOS 26特性
+        if #available(iOS 26.0, *) {
+            setupiOS26Features()
         }
-        let textSize = badgeLabel.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude))
-        return CGSize(width: max(18.0, textSize.width + 10.0), height: 18.0)
     }
     
-    // MARK: - Private Methods
+    private func setupConstraints() {
+        NSLayoutConstraint.activate([
+            // 背景视图约束
+            backgroundView.topAnchor.constraint(equalTo: topAnchor),
+            backgroundView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            
+            // 文字标签约束
+            textLabel.topAnchor.constraint(equalTo: backgroundView.topAnchor, constant: contentInsets.top),
+            textLabel.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor, constant: contentInsets.left),
+            textLabel.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor, constant: -contentInsets.right),
+            textLabel.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor, constant: -contentInsets.bottom)
+        ])
+    }
     
-    private func layoutBadgeView() {
-        guard let badgeValue = badgeValue else {
-            imageView.isHidden = true
-            badgeLabel.isHidden = true
-            return
+    @available(iOS 26.0, *)
+    private func setupiOS26Features() {
+        if enableLiquidGlassEffect {
+            setupLiquidGlassEffect()
         }
         
-        imageView.isHidden = false
-        badgeLabel.isHidden = false
+        if enableDynamicFont {
+            setupDynamicFontSupport()
+        }
+    }
+    
+    @available(iOS 26.0, *)
+    private func setupLiquidGlassEffect() {
+        let blurEffect = UIBlurEffect(style: .systemMaterial)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        backgroundView.insertSubview(blurView, at: 0)
         
-        if badgeValue == "" {
-            imageView.frame = CGRect(origin: CGPoint(x: (bounds.size.width - 8.0) / 2.0,
-                                                     y: (bounds.size.height - 8.0) / 2.0),
-                                    size: CGSize(width: 8.0, height: 8.0))
+        NSLayoutConstraint.activate([
+            blurView.topAnchor.constraint(equalTo: backgroundView.topAnchor),
+            blurView.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor),
+            blurView.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor),
+            blurView.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor)
+        ])
+        
+        liquidGlassView = blurView
+        
+        // 设置圆角
+        backgroundView.layer.cornerRadius = 8
+        backgroundView.layer.masksToBounds = true
+    }
+    
+    private func setupDynamicFontSupport() {
+        // 监听动态字体变化
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(contentSizeCategoryDidChange),
+            name: UIContentSizeCategory.didChangeNotification,
+            object: nil
+        )
+        
+        updateDynamicFont()
+    }
+    
+    @objc private func contentSizeCategoryDidChange() {
+        updateDynamicFont()
+    }
+    
+    private func updateDynamicFont() {
+        guard enableDynamicFont else { return }
+        let fontMetrics = UIFontMetrics.default
+        textLabel.font = fontMetrics.scaledFont(for: font)
+    }
+    
+    // MARK: - 外观更新
+    
+    private func updateAppearance() {
+        backgroundView.backgroundColor = badgeColor
+        textLabel.textColor = textColor
+        textLabel.font = font
+    }
+    
+    private func updateBadgeDisplay() {
+        textLabel.text = text
+        
+        // 设置可见性
+        let shouldShow = !(text?.isEmpty ?? true)
+        isHidden = !shouldShow
+        
+        if shouldShow {
+            // 强制更新布局
+            invalidateIntrinsicContentSize()
+            setNeedsLayout()
+            layoutIfNeeded()
+        }
+        
+        print("🔧 [TFYSwiftTabBarBadgeView] 更新徽章显示: text=\(text ?? "nil"), hidden=\(isHidden)")
+    }
+    
+    private func updateLiquidGlassEffect() {
+        if #available(iOS 26.0, *) {
+            if enableLiquidGlassEffect {
+                setupLiquidGlassEffect()
+            } else {
+                liquidGlassView?.removeFromSuperview()
+                liquidGlassView = nil
+                backgroundView.layer.cornerRadius = 8
+                backgroundView.layer.masksToBounds = true
+            }
+        }
+    }
+    
+    // MARK: - 公开方法
+    
+    /// 设置徽章值
+    public func setBadgeValue(_ value: String?) {
+        text = value
+    }
+    
+    // MARK: - 尺寸计算
+    
+    public override var intrinsicContentSize: CGSize {
+        guard let text = text, !text.isEmpty else {
+            return CGSize.zero
+        }
+        
+        let textSize = text.size(withAttributes: [.font: font])
+        let width = textSize.width + contentInsets.left + contentInsets.right
+        let height = textSize.height + contentInsets.top + contentInsets.bottom
+        
+        // 确保最小尺寸
+        let minSize: CGFloat = 16
+        return CGSize(
+            width: max(width, minSize),
+            height: max(height, minSize)
+        )
+    }
+    
+    public override func sizeThatFits(_ size: CGSize) -> CGSize {
+        return intrinsicContentSize
+    }
+    
+    /// 显示徽章
+    public func showBadge() {
+        isHidden = false
+    }
+    
+    /// 隐藏徽章
+    public func hideBadge() {
+        isHidden = true
+    }
+    
+    /// 动画显示徽章
+    public func showBadge(animated: Bool) {
+        if animated {
+            transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
+            isHidden = false
+            
+            UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.8, options: .curveEaseOut, animations: {
+                self.transform = .identity
+            })
         } else {
-            imageView.frame = bounds
+            showBadge()
         }
-        imageView.layer.cornerRadius = imageView.bounds.size.height / 2.0
-        badgeLabel.sizeToFit()
-        badgeLabel.center = imageView.center
+    }
+    
+    /// 动画隐藏徽章
+    public func hideBadge(animated: Bool) {
+        if animated {
+            UIView.animate(withDuration: 0.2, animations: {
+                self.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
+            }) { _ in
+                self.isHidden = true
+                self.transform = .identity
+            }
+        } else {
+            hideBadge()
+        }
+    }
+    
+    // MARK: - 清理
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 }
