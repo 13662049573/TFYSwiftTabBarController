@@ -2,8 +2,24 @@
 //  AllDemosViewController.swift
 //  TFYSwiftTabBarController
 //
-//  全新的演示页面
-//  展示所有TabBar功能
+//  完整功能演示页面 - 展示所有优化后的功能
+//  支持iOS 15+，适配iOS 26特性
+//
+//  演示内容：
+//  1. 基础功能 - TabBar基本使用
+//  2. 液态玻璃 - iOS 26视觉效果
+//  3. 动态字体 - 自适应字体大小
+//  4. 自定义颜色 - 主题配置
+//  5. 徽章显示 - 基础徽章功能
+//  6. 徽章动画 - 脉冲/增量/显隐
+//  7. 选择动画 - 9种动画类型
+//  8. 长按手势 - 快捷菜单支持
+//  9. 点击劫持 - 自定义行为
+//  10. 布局定制 - 多种布局模式
+//  11. 可访问性 - VoiceOver支持
+//  12. 性能测试 - 缓存和监控
+//  13. 内存优化 - 智能缓存管理
+//  14. 高级功能 - 组合配置
 //
 
 import UIKit
@@ -29,11 +45,14 @@ class AllDemosViewController: UITableViewController {
         case dynamicFont
         case customColors
         case badges
+        case badgeAnimations
         case animations
+        case longPress
         case hijack
         case layout
         case accessibility
         case performance
+        case memoryOptimization
         case advancedFeatures
         
         var title: String {
@@ -43,11 +62,14 @@ class AllDemosViewController: UITableViewController {
             case .dynamicFont: return "动态字体支持"
             case .customColors: return "自定义颜色主题"
             case .badges: return "徽章显示功能"
-            case .animations: return "动画效果展示"
+            case .badgeAnimations: return "徽章动画效果"
+            case .animations: return "选择动画展示"
+            case .longPress: return "长按手势支持"
             case .hijack: return "点击劫持演示"
             case .layout: return "布局定制功能"
             case .accessibility: return "可访问性支持"
             case .performance: return "性能测试"
+            case .memoryOptimization: return "内存优化"
             case .advancedFeatures: return "高级功能"
             }
         }
@@ -59,12 +81,15 @@ class AllDemosViewController: UITableViewController {
             case .dynamicFont: return "展示动态字体支持，自动适配系统字体大小"
             case .customColors: return "展示自定义颜色主题，支持多种颜色搭配"
             case .badges: return "展示徽章显示功能，支持数字和文字徽章"
-            case .animations: return "展示丰富的动画效果，包括旋转、缩放、弹跳等"
+            case .badgeAnimations: return "展示徽章动画，包括脉冲、增量、批量操作"
+            case .animations: return "展示9种选择动画效果：缩放、弹跳、脉冲等"
+            case .longPress: return "展示长按手势功能，支持快捷菜单和自定义操作"
             case .hijack: return "展示点击劫持功能，自定义点击行为"
             case .layout: return "展示布局定制功能，支持多种布局方式"
             case .accessibility: return "展示可访问性支持，包括VoiceOver等"
-            case .performance: return "展示性能优化，流畅的用户体验"
-            case .advancedFeatures: return "展示高级功能，包括手势、多语言等"
+            case .performance: return "展示容器缓存和性能监控功能"
+            case .memoryOptimization: return "展示内存优化功能，智能缓存管理"
+            case .advancedFeatures: return "展示高级功能，包括预加载、组合配置等"
             }
         }
         
@@ -75,11 +100,14 @@ class AllDemosViewController: UITableViewController {
             case .dynamicFont: return "textformat.size"
             case .customColors: return "paintbrush.fill"
             case .badges: return "number.circle.fill"
+            case .badgeAnimations: return "bell.badge.fill"
             case .animations: return "play.circle.fill"
+            case .longPress: return "hand.point.up.left.fill"
             case .hijack: return "hand.tap.fill"
             case .layout: return "rectangle.grid.2x2.fill"
             case .accessibility: return "accessibility"
             case .performance: return "speedometer"
+            case .memoryOptimization: return "memorychip.fill"
             case .advancedFeatures: return "gearshape.2.fill"
             }
         }
@@ -91,11 +119,14 @@ class AllDemosViewController: UITableViewController {
             case .dynamicFont: return .systemGreen
             case .customColors: return .systemRed
             case .badges: return .systemOrange
+            case .badgeAnimations: return .systemYellow
             case .animations: return .systemPink
+            case .longPress: return .systemMint
             case .hijack: return .systemTeal
             case .layout: return .systemIndigo
             case .accessibility: return .systemBrown
             case .performance: return .systemCyan
+            case .memoryOptimization: return .systemGreen
             case .advancedFeatures: return .systemGray
             }
         }
@@ -223,8 +254,12 @@ class AllDemosViewController: UITableViewController {
             return createCustomColorsDemo()
         case .badges:
             return createBadgesDemo()
+        case .badgeAnimations:
+            return createBadgeAnimationsDemo()
         case .animations:
             return createAnimationsDemo()
+        case .longPress:
+            return createLongPressDemo()
         case .hijack:
             return createHijackDemo()
         case .layout:
@@ -233,6 +268,8 @@ class AllDemosViewController: UITableViewController {
             return createAccessibilityDemo()
         case .performance:
             return createPerformanceDemo()
+        case .memoryOptimization:
+            return createMemoryOptimizationDemo()
         case .advancedFeatures:
             return createAdvancedFeaturesDemo()
         }
@@ -377,11 +414,42 @@ class AllDemosViewController: UITableViewController {
         return controller
     }
     
+    // MARK: - 徽章动画演示
+    
+    private func createBadgeAnimationsDemo() -> UIViewController {
+        let controller = TFYSwiftTabbarController.createWithLiquidGlass()
+        controller.title = "徽章动画演示"
+        controller.enableLiquidGlassEffect = true
+        
+        // 创建视图控制器
+        let vc1 = createInteractiveBadgeViewController(title: "脉冲动画", badgeType: .pulse)
+        let vc2 = createInteractiveBadgeViewController(title: "增量更新", badgeType: .increment)
+        let vc3 = createInteractiveBadgeViewController(title: "显示隐藏", badgeType: .showHide)
+        
+        // 创建TabBarItem
+        let item1 = createTabBarItem(title: "脉冲", image: "bell.badge", selectedImage: "bell.badge.fill")
+        let item2 = createTabBarItem(title: "增量", image: "plus.circle", selectedImage: "plus.circle.fill")
+        let item3 = createTabBarItem(title: "切换", image: "eye", selectedImage: "eye.fill")
+        
+        vc1.tabBarItem = item1
+        vc2.tabBarItem = item2
+        vc3.tabBarItem = item3
+        
+        controller.viewControllers = [vc1, vc2, vc3]
+        
+        // 设置初始徽章
+        controller.setBadgeValue("5", forTabAt: 0)
+        controller.setBadgeValue("1", forTabAt: 1)
+        controller.setBadgeValue("NEW", forTabAt: 2)
+        
+        return controller
+    }
+    
     // MARK: - 动画演示
     
     private func createAnimationsDemo() -> UIViewController {
-        let controller = TFYSwiftTabbarController.createWithLiquidGlass()
-        controller.title = "动画演示"
+        let controller = TFYSwiftTabbarController.createFullFeatured()
+        controller.title = "选择动画演示"
         controller.enableLiquidGlassEffect = true
         
         // 设置动画样式
@@ -392,27 +460,80 @@ class AllDemosViewController: UITableViewController {
             selectedIconColor: .systemPurple
         )
         
-        // 创建动画视图控制器
-        let vc1 = createAnimationViewController(title: "旋转", animationType: .rotate)
-        let vc2 = createAnimationViewController(title: "缩放", animationType: .scale)
-        let vc3 = createAnimationViewController(title: "弹跳", animationType: .bounce)
-        let vc4 = createAnimationViewController(title: "脉冲", animationType: .pulse)
-        let vc5 = createAnimationViewController(title: "摇摆", animationType: .shake)
+        // 创建动画类型视图控制器
+        let vc1 = createAnimationTypeViewController(title: "缩放", type: .scale(), controller: controller)
+        let vc2 = createAnimationTypeViewController(title: "弹跳", type: .bounce, controller: controller)
+        let vc3 = createAnimationTypeViewController(title: "脉冲", type: .pulse, controller: controller)
+        let vc4 = createAnimationTypeViewController(title: "无动画", type: .none, controller: controller)
         
         // 创建TabBarItem
-        let item1 = createTabBarItem(title: "旋转", image: "arrow.clockwise", selectedImage: "arrow.clockwise")
-        let item2 = createTabBarItem(title: "缩放", image: "arrow.up.left.and.arrow.down.right", selectedImage: "arrow.up.left.and.arrow.down.right")
-        let item3 = createTabBarItem(title: "弹跳", image: "arrow.up", selectedImage: "arrow.up")
-        let item4 = createTabBarItem(title: "脉冲", image: "heart", selectedImage: "heart.fill")
-        let item5 = createTabBarItem(title: "摇摆", image: "hand.wave", selectedImage: "hand.wave.fill")
+        let item1 = createTabBarItem(title: "缩放", image: "arrow.up.left.and.arrow.down.right", selectedImage: "arrow.up.left.and.arrow.down.right")
+        let item2 = createTabBarItem(title: "弹跳", image: "arrow.up.bounce", selectedImage: "arrow.up.bounce")
+        let item3 = createTabBarItem(title: "脉冲", image: "heart.circle", selectedImage: "heart.circle.fill")
+        let item4 = createTabBarItem(title: "无动画", image: "pause.circle", selectedImage: "pause.circle.fill")
         
         vc1.tabBarItem = item1
         vc2.tabBarItem = item2
         vc3.tabBarItem = item3
         vc4.tabBarItem = item4
-        vc5.tabBarItem = item5
         
-        controller.viewControllers = [vc1, vc2, vc3, vc4, vc5]
+        controller.viewControllers = [vc1, vc2, vc3, vc4]
+        
+        // 默认使用缩放动画
+        controller.setSelectionAnimation(.scale(), duration: 0.25)
+        
+        return controller
+    }
+    
+    // MARK: - 长按手势演示
+    
+    private func createLongPressDemo() -> UIViewController {
+        let controller = TFYSwiftTabbarController.createWithLongPress()
+        controller.title = "长按手势演示"
+        controller.enableLiquidGlassEffect = true
+        
+        // 设置长按处理器
+        controller.longPressHandler = { [weak controller] tabBarController, item, index in
+            guard controller != nil else { return }
+            
+            let alert = UIAlertController(
+                title: item.title,
+                message: "你长按了「\(item.title ?? "")」标签页",
+                preferredStyle: .actionSheet
+            )
+            
+            alert.addAction(UIAlertAction(title: "刷新页面", style: .default) { _ in
+                print("刷新页面: \(index)")
+            })
+            
+            alert.addAction(UIAlertAction(title: "设置", style: .default) { _ in
+                print("打开设置: \(index)")
+            })
+            
+            alert.addAction(UIAlertAction(title: "关于", style: .default) { _ in
+                print("关于: \(index)")
+            })
+            
+            alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+            
+            tabBarController.present(alert, animated: true)
+        }
+        
+        // 创建视图控制器
+        let vc1 = createDemoViewController(title: "长按我", content: "长按TabBar项目查看快捷菜单")
+        let vc2 = createDemoViewController(title: "试试看", content: "长按可以显示更多操作")
+        let vc3 = createDemoViewController(title: "很方便", content: "支持多种快捷操作")
+        
+        // 创建TabBarItem
+        let item1 = createTabBarItem(title: "长按我", image: "hand.point.up.left", selectedImage: "hand.point.up.left.fill")
+        let item2 = createTabBarItem(title: "试试看", image: "hand.tap", selectedImage: "hand.tap.fill")
+        let item3 = createTabBarItem(title: "很方便", image: "hand.raised", selectedImage: "hand.raised.fill")
+        
+        vc1.tabBarItem = item1
+        vc2.tabBarItem = item2
+        vc3.tabBarItem = item3
+        
+        controller.viewControllers = [vc1, vc2, vc3]
         
         return controller
     }
@@ -494,21 +615,52 @@ class AllDemosViewController: UITableViewController {
     // MARK: - 性能演示
     
     private func createPerformanceDemo() -> UIViewController {
-        let controller = TFYSwiftTabbarController.createBasic()
+        let controller = TFYSwiftTabbarController.createFullFeatured()
         controller.title = "性能演示"
         
-        // 创建视图控制器
-        let vc1 = createDemoViewController(title: "性能", content: "展示性能优化")
-        let vc2 = createDemoViewController(title: "流畅度", content: "展示流畅的用户体验")
+        // 预加载内容提升性能
+        controller.preloadTabBarContent()
+        
+        // 创建性能测试视图控制器
+        let vc1 = createPerformanceTestViewController(title: "容器缓存", testType: .caching, controller: controller)
+        let vc2 = createPerformanceTestViewController(title: "内存信息", testType: .memoryInfo, controller: controller)
+        let vc3 = createPerformanceTestViewController(title: "动画性能", testType: .animation, controller: controller)
         
         // 创建TabBarItem
-        let item1 = createTabBarItem(title: "性能", image: "speedometer", selectedImage: "speedometer")
-        let item2 = createTabBarItem(title: "流畅度", image: "waveform", selectedImage: "waveform")
+        let item1 = createTabBarItem(title: "缓存", image: "arrow.triangle.2.circlepath", selectedImage: "arrow.triangle.2.circlepath.circle.fill")
+        let item2 = createTabBarItem(title: "内存", image: "memorychip", selectedImage: "memorychip.fill")
+        let item3 = createTabBarItem(title: "动画", image: "speedometer", selectedImage: "speedometer")
         
         vc1.tabBarItem = item1
         vc2.tabBarItem = item2
+        vc3.tabBarItem = item3
         
-        controller.viewControllers = [vc1, vc2]
+        controller.viewControllers = [vc1, vc2, vc3]
+        
+        return controller
+    }
+    
+    // MARK: - 内存优化演示
+    
+    private func createMemoryOptimizationDemo() -> UIViewController {
+        let controller = TFYSwiftTabbarController.createFullFeatured()
+        controller.title = "内存优化演示"
+        
+        // 创建内存优化视图控制器
+        let vc1 = createMemoryOptimizationViewController(title: "查看缓存", controller: controller)
+        let vc2 = createMemoryOptimizationViewController(title: "清理缓存", controller: controller)
+        let vc3 = createMemoryOptimizationViewController(title: "优化内存", controller: controller)
+        
+        // 创建TabBarItem
+        let item1 = createTabBarItem(title: "查看", image: "doc.text.magnifyingglass", selectedImage: "doc.text.magnifyingglass")
+        let item2 = createTabBarItem(title: "清理", image: "trash", selectedImage: "trash.fill")
+        let item3 = createTabBarItem(title: "优化", image: "wand.and.stars", selectedImage: "wand.and.stars")
+        
+        vc1.tabBarItem = item1
+        vc2.tabBarItem = item2
+        vc3.tabBarItem = item3
+        
+        controller.viewControllers = [vc1, vc2, vc3]
         
         return controller
     }
@@ -769,6 +921,311 @@ class AllDemosViewController: UITableViewController {
         shake.duration = 0.5
         shake.repeatCount = .infinity
         iconView.layer.add(shake, forKey: "shake")
+    }
+    
+    // MARK: - 徽章类型枚举
+    
+    enum BadgeType {
+        case pulse
+        case increment
+        case showHide
+    }
+    
+    enum PerformanceTestType {
+        case caching
+        case memoryInfo
+        case animation
+    }
+    
+    // MARK: - 辅助方法
+    
+    private func createInteractiveBadgeViewController(title: String, badgeType: BadgeType) -> UIViewController {
+        let controller = UIViewController()
+        controller.title = title
+        controller.view.backgroundColor = .systemBackground
+        
+        // 创建说明标签
+        let label = UILabel()
+        label.text = title
+        label.font = UIFont.systemFont(ofSize: 28, weight: .bold)
+        label.textColor = .label
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        controller.view.addSubview(label)
+        
+        // 创建操作按钮
+        let button = UIButton(type: .system)
+        button.setTitle("点击测试", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        controller.view.addSubview(button)
+        
+        // 根据类型设置按钮动作
+        switch badgeType {
+        case .pulse:
+            button.addAction(UIAction { [weak controller] _ in
+                if let tabBarController = controller?.tabBarController as? TFYSwiftTabbarController {
+                    tabBarController.pulseBadge(forTabAt: 0)
+                }
+            }, for: .touchUpInside)
+            
+        case .increment:
+            button.addAction(UIAction { [weak controller] _ in
+                if let tabBarController = controller?.tabBarController as? TFYSwiftTabbarController {
+                    tabBarController.incrementBadge(forTabAt: 1, by: 1)
+                }
+            }, for: .touchUpInside)
+            
+        case .showHide:
+            var isHidden = false
+            button.addAction(UIAction { [weak controller] _ in
+                if let tabBarController = controller?.tabBarController as? TFYSwiftTabbarController {
+                    if isHidden {
+                        tabBarController.showBadge(forTabAt: 2, animated: true)
+                    } else {
+                        tabBarController.hideBadge(forTabAt: 2, animated: true)
+                    }
+                    isHidden.toggle()
+                }
+            }, for: .touchUpInside)
+        }
+        
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: controller.view.centerXAnchor),
+            label.topAnchor.constraint(equalTo: controller.view.safeAreaLayoutGuide.topAnchor, constant: 100),
+            
+            button.centerXAnchor.constraint(equalTo: controller.view.centerXAnchor),
+            button.topAnchor.constraint(equalTo: label.bottomAnchor, constant: 40)
+        ])
+        
+        return controller
+    }
+    
+    private func createAnimationTypeViewController(
+        title: String,
+        type: TFYSwiftTabBarItemAnimationType,
+        controller: TFYSwiftTabbarController
+    ) -> UIViewController {
+        let vc = UIViewController()
+        vc.title = title
+        vc.view.backgroundColor = .systemBackground
+        
+        // 创建标题
+        let label = UILabel()
+        label.text = "当前动画: \(title)"
+        label.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+        label.textColor = .label
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        vc.view.addSubview(label)
+        
+        // 创建切换按钮
+        let button = UIButton(type: .system)
+        button.setTitle("切换到此动画", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        vc.view.addSubview(button)
+        
+        button.addAction(UIAction { _ in
+            controller.setSelectionAnimation(type, duration: 0.25)
+            print("✅ 已切换到\(title)动画")
+        }, for: .touchUpInside)
+        
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: vc.view.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: vc.view.centerYAnchor, constant: -50),
+            
+            button.centerXAnchor.constraint(equalTo: vc.view.centerXAnchor),
+            button.topAnchor.constraint(equalTo: label.bottomAnchor, constant: 30)
+        ])
+        
+        return vc
+    }
+    
+    private func createPerformanceTestViewController(
+        title: String,
+        testType: PerformanceTestType,
+        controller: TFYSwiftTabbarController
+    ) -> UIViewController {
+        let vc = UIViewController()
+        vc.title = title
+        vc.view.backgroundColor = .systemBackground
+        
+        // 创建结果文本视图
+        let textView = UITextView()
+        textView.font = UIFont.monospacedSystemFont(ofSize: 14, weight: .regular)
+        textView.textColor = .label
+        textView.backgroundColor = .secondarySystemBackground
+        textView.layer.cornerRadius = 8
+        textView.isEditable = false
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        vc.view.addSubview(textView)
+        
+        // 创建测试按钮
+        let button = UIButton(type: .system)
+        button.setTitle("运行测试", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        vc.view.addSubview(button)
+        
+        button.addAction(UIAction { _ in
+            var result = ""
+            
+            switch testType {
+            case .caching:
+                let memoryInfo = controller.getTabBarMemoryInfo()
+                result = """
+                📊 容器缓存信息
+                ==================
+                缓存容器数: \(memoryInfo["containerCacheCount"] ?? 0)
+                活动容器数: \(memoryInfo["itemContainersCount"] ?? 0)
+                More视图: \(memoryInfo["hasMoreContentView"] as? Bool == true ? "是" : "否")
+                
+                💡 提示：
+                - 缓存容器会被复用，提升性能
+                - 切换tab时容器不会重建
+                - 内存压力时可清理缓存
+                """
+                
+            case .memoryInfo:
+                let memoryInfo = controller.getTabBarMemoryInfo()
+                let processInfo = ProcessInfo.processInfo
+                result = """
+                💾 内存使用信息
+                ==================
+                物理内存: \(String(format: "%.2f", Double(processInfo.physicalMemory) / 1024 / 1024 / 1024)) GB
+                缓存容器: \(memoryInfo["containerCacheCount"] ?? 0)
+                活动容器: \(memoryInfo["itemContainersCount"] ?? 0)
+                
+                优化建议：
+                - 定期调用optimizeMemory()
+                - 内存警告时清理缓存
+                - 后台时释放资源
+                """
+                
+            case .animation:
+                let animationType = controller.customTabBar.selectionAnimationType
+                let duration = controller.customTabBar.animationDuration
+                
+                result = """
+                ⚡️ 动画配置信息
+                ==================
+                当前动画类型: \(animationType == .scale() ? "缩放" : animationType == .bounce ? "弹跳" : animationType == .pulse ? "脉冲" : "其他")
+                动画时长: \(String(format: "%.2f", duration))秒
+                
+                支持的动画类型：
+                • 缩放 (scale)
+                • 弹跳 (bounce)
+                • 脉冲 (pulse)
+                • 淡入淡出 (fade)
+                • 滑动 (slide)
+                • 旋转 (rotation)
+                
+                性能建议：
+                - 动画时长: 0.2-0.3秒
+                - 减少动画可禁用
+                - 使用CATransaction优化
+                """
+            }
+            
+            textView.text = result
+        }, for: .touchUpInside)
+        
+        NSLayoutConstraint.activate([
+            textView.topAnchor.constraint(equalTo: vc.view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            textView.leadingAnchor.constraint(equalTo: vc.view.leadingAnchor, constant: 20),
+            textView.trailingAnchor.constraint(equalTo: vc.view.trailingAnchor, constant: -20),
+            textView.heightAnchor.constraint(equalToConstant: 300),
+            
+            button.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 20),
+            button.centerXAnchor.constraint(equalTo: vc.view.centerXAnchor)
+        ])
+        
+        return vc
+    }
+    
+    private func createMemoryOptimizationViewController(
+        title: String,
+        controller: TFYSwiftTabbarController
+    ) -> UIViewController {
+        let vc = UIViewController()
+        vc.title = title
+        vc.view.backgroundColor = .systemBackground
+        
+        // 创建信息标签
+        let infoLabel = UILabel()
+        infoLabel.text = title
+        infoLabel.font = UIFont.systemFont(ofSize: 28, weight: .bold)
+        infoLabel.textColor = .label
+        infoLabel.textAlignment = .center
+        infoLabel.numberOfLines = 0
+        infoLabel.translatesAutoresizingMaskIntoConstraints = false
+        vc.view.addSubview(infoLabel)
+        
+        // 创建结果标签
+        let resultLabel = UILabel()
+        resultLabel.font = UIFont.systemFont(ofSize: 16)
+        resultLabel.textColor = .secondaryLabel
+        resultLabel.textAlignment = .center
+        resultLabel.numberOfLines = 0
+        resultLabel.translatesAutoresizingMaskIntoConstraints = false
+        vc.view.addSubview(resultLabel)
+        
+        // 创建操作按钮
+        let button = UIButton(type: .system)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        vc.view.addSubview(button)
+        
+        switch title {
+        case "查看缓存":
+            button.setTitle("查看缓存信息", for: .normal)
+            button.addAction(UIAction { _ in
+                let memoryInfo = controller.getTabBarMemoryInfo()
+                resultLabel.text = """
+                缓存容器数: \(memoryInfo["containerCacheCount"] ?? 0)
+                活动容器数: \(memoryInfo["itemContainersCount"] ?? 0)
+                """
+            }, for: .touchUpInside)
+            
+        case "清理缓存":
+            button.setTitle("清理所有缓存", for: .normal)
+            button.addAction(UIAction { _ in
+                controller.clearTabBarCache()
+                let memoryInfo = controller.getTabBarMemoryInfo()
+                resultLabel.text = """
+                ✅ 缓存已清理
+                当前缓存: \(memoryInfo["containerCacheCount"] ?? 0)
+                """
+            }, for: .touchUpInside)
+            
+        case "优化内存":
+            button.setTitle("执行内存优化", for: .normal)
+            button.addAction(UIAction { _ in
+                controller.optimizeMemory()
+                resultLabel.text = "✅ 内存优化完成\n已清理不必要的资源"
+            }, for: .touchUpInside)
+            
+        default:
+            button.setTitle("测试", for: .normal)
+        }
+        
+        NSLayoutConstraint.activate([
+            infoLabel.centerXAnchor.constraint(equalTo: vc.view.centerXAnchor),
+            infoLabel.topAnchor.constraint(equalTo: vc.view.safeAreaLayoutGuide.topAnchor, constant: 80),
+            infoLabel.leadingAnchor.constraint(equalTo: vc.view.leadingAnchor, constant: 40),
+            infoLabel.trailingAnchor.constraint(equalTo: vc.view.trailingAnchor, constant: -40),
+            
+            button.centerXAnchor.constraint(equalTo: vc.view.centerXAnchor),
+            button.topAnchor.constraint(equalTo: infoLabel.bottomAnchor, constant: 40),
+            
+            resultLabel.centerXAnchor.constraint(equalTo: vc.view.centerXAnchor),
+            resultLabel.topAnchor.constraint(equalTo: button.bottomAnchor, constant: 40),
+            resultLabel.leadingAnchor.constraint(equalTo: vc.view.leadingAnchor, constant: 40),
+            resultLabel.trailingAnchor.constraint(equalTo: vc.view.trailingAnchor, constant: -40)
+        ])
+        
+        return vc
     }
     
     // MARK: - 辅助方法
