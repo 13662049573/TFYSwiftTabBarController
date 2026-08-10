@@ -19,11 +19,8 @@ public extension Timer {
     ///   - repeats: 是否重复执行
     ///   - block: 执行代码的block
     convenience init(safeTimerWithTimeInterval timeInterval: TimeInterval, repeats: Bool, block: @escaping ((Timer) -> Void)) {
-        if #available(iOS 10.0, *) {
-            self.init(timeInterval: timeInterval, repeats: repeats, block: block)
-            return
-        }
-        self.init(timeInterval: timeInterval, target: Timer.self, selector: #selector(Timer.timerCB(timer:)), userInfo: block, repeats: repeats)
+        let safeInterval = Timer.tfy_safeInterval(timeInterval)
+        self.init(timeInterval: safeInterval, target: Timer.self, selector: #selector(Timer.timerCB(timer:)), userInfo: block, repeats: repeats)
     }
     
     // MARK: 1.2、类方法创建定时器
@@ -36,10 +33,11 @@ public extension Timer {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     static func scheduledSafeTimer(timeInterval: TimeInterval, repeats: Bool, block: @escaping ((Timer) -> Void)) -> Timer {
+        let safeInterval = tfy_safeInterval(timeInterval)
         if #available(iOS 10.0, *) {
-            return Timer.scheduledTimer(withTimeInterval: timeInterval, repeats: repeats, block: block)
+            return Timer.scheduledTimer(withTimeInterval: safeInterval, repeats: repeats, block: block)
         }
-        return Timer.scheduledTimer(timeInterval: timeInterval, target: self, selector: #selector(timerCB(timer:)), userInfo: block, repeats: repeats)
+        return Timer.scheduledTimer(timeInterval: safeInterval, target: self, selector: #selector(timerCB(timer:)), userInfo: block, repeats: repeats)
     }
 
     // MARK: 1.3、C语言的形式创建定时器(创建后立即执行一次)
@@ -51,8 +49,9 @@ public extension Timer {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     static func runThisEvery(timeInterval: TimeInterval, handler: @escaping (Timer?) -> Void) -> Timer? {
+        let safeInterval = tfy_safeInterval(timeInterval)
         let fireDate = CFAbsoluteTimeGetCurrent()
-        guard let timer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, timeInterval, 0, 0, handler) else {
+        guard let timer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, fireDate, safeInterval, 0, 0, handler) else {
             return nil
         }
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer, CFRunLoopMode.commonModes)
@@ -80,7 +79,7 @@ public extension Timer {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     static func scheduled(_ Interval: TimeInterval = 60, repeats: Bool = true, action: @escaping((Timer) -> Void)) -> Timer {
-        return scheduledTimer(timeInterval: Interval, target: self, selector: #selector(handleInvoke(_:)), userInfo: action, repeats: repeats)
+        return scheduledTimer(timeInterval: tfy_safeInterval(Interval), target: self, selector: #selector(handleInvoke(_:)), userInfo: action, repeats: repeats)
     }
     
     @objc private static func handleInvoke(_ timer: Timer) {
@@ -111,7 +110,8 @@ public extension Timer {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func createGCDTimer(_ interval: TimeInterval = 60, repeats: Bool = true, action: @escaping(() -> Void)) -> DispatchSourceTimer {
         let codeTimer = DispatchSource.makeTimerSource(flags: .init(rawValue: 0), queue: DispatchQueue.global())
-        codeTimer.schedule(deadline: .now(), repeating: .milliseconds(1000))
+        let safeInterval = DispatchTimeInterval.tfy_fromSeconds(interval)
+        codeTimer.schedule(deadline: .now(), repeating: safeInterval)
         codeTimer.setEventHandler {
             if repeats == false {
                 codeTimer.cancel()
@@ -144,7 +144,8 @@ public extension DispatchSourceTimer{
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func create(_ interval: TimeInterval = 60, repeats: Bool = true, action: @escaping(() -> Void)) -> DispatchSourceTimer {
         let codeTimer = DispatchSource.makeTimerSource(flags: .init(rawValue: 0), queue: DispatchQueue.global())
-        codeTimer.schedule(deadline: .now(), repeating: .milliseconds(1000))
+        let safeInterval = DispatchTimeInterval.tfy_fromSeconds(interval)
+        codeTimer.schedule(deadline: .now(), repeating: safeInterval)
         codeTimer.setEventHandler {
             if repeats == false {
                 codeTimer.cancel()
@@ -166,7 +167,8 @@ public extension DispatchSourceTimer{
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func createPrecise(_ interval: TimeInterval, repeats: Bool = true, action: @escaping(() -> Void)) -> DispatchSourceTimer {
         let codeTimer = DispatchSource.makeTimerSource(flags: .init(rawValue: 0), queue: DispatchQueue.global())
-        codeTimer.schedule(deadline: .now(), repeating: .seconds(Int(interval)))
+        let safeInterval = DispatchTimeInterval.tfy_fromSeconds(interval)
+        codeTimer.schedule(deadline: .now(), repeating: safeInterval)
         codeTimer.setEventHandler {
             if repeats == false {
                 codeTimer.cancel()
@@ -188,7 +190,7 @@ public extension DispatchSourceTimer{
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func createMilliseconds(_ milliseconds: Int, repeats: Bool = true, action: @escaping(() -> Void)) -> DispatchSourceTimer {
         let codeTimer = DispatchSource.makeTimerSource(flags: .init(rawValue: 0), queue: DispatchQueue.global())
-        codeTimer.schedule(deadline: .now(), repeating: .milliseconds(milliseconds))
+        codeTimer.schedule(deadline: .now(), repeating: .milliseconds(max(1, milliseconds)))
         codeTimer.setEventHandler {
             if repeats == false {
                 codeTimer.cancel()
@@ -234,7 +236,7 @@ public extension Timer {
     /// - Returns: 返回 Timer
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func countdown(_ seconds: Int, action: @escaping((Int) -> Void)) -> Timer {
-        var remainingSeconds = seconds
+        var remainingSeconds = max(0, seconds)
         return Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
             action(remainingSeconds)
             remainingSeconds -= 1
@@ -252,7 +254,7 @@ public extension Timer {
     /// - Returns: 返回 Timer
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func delay(_ delay: TimeInterval, action: @escaping() -> Void) -> Timer {
-        return Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { _ in
+        return Timer.scheduledTimer(withTimeInterval: tfy_safeInterval(delay), repeats: false) { _ in
             action()
         }
     }
@@ -265,7 +267,7 @@ public extension Timer {
     /// - Returns: 返回 Timer
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func repeatTask(_ interval: TimeInterval, action: @escaping() -> Void) -> Timer {
-        return Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
+        return Timer.scheduledTimer(withTimeInterval: tfy_safeInterval(interval), repeats: true) { _ in
             action()
         }
     }
@@ -279,7 +281,7 @@ public extension Timer {
     /// - Returns: 返回 Timer
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func mainThread(_ interval: TimeInterval, repeats: Bool = true, action: @escaping() -> Void) -> Timer {
-        return Timer.scheduledTimer(withTimeInterval: interval, repeats: repeats) { _ in
+        return Timer.scheduledTimer(withTimeInterval: tfy_safeInterval(interval), repeats: repeats) { _ in
             DispatchQueue.main.async {
                 action()
             }
@@ -295,7 +297,7 @@ public extension Timer {
     /// - Returns: 返回 Timer
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func background(_ interval: TimeInterval, repeats: Bool = true, action: @escaping() -> Void) -> Timer {
-        return Timer.scheduledTimer(withTimeInterval: interval, repeats: repeats) { _ in
+        return Timer.scheduledTimer(withTimeInterval: tfy_safeInterval(interval), repeats: repeats) { _ in
             DispatchQueue.global().async {
                 action()
             }
@@ -323,6 +325,7 @@ public extension Timer {
     /// - Parameter date: 下次触发时间
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func setNextFireDate(_ date: Date) {
+        guard date.timeIntervalSince1970.isFinite else { return }
         self.fireDate = date
     }
     
@@ -340,5 +343,22 @@ public extension Timer {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     var tfy_userInfo: Any? {
         return self.userInfo
+    }
+
+    // MARK: 3.11、安全时间间隔
+    /// 安全时间间隔，避免 0、负数和非有限值导致定时器异常
+    /// - Parameter interval: 原始时间间隔
+    /// - Returns: 安全时间间隔
+    static func tfy_safeInterval(_ interval: TimeInterval) -> TimeInterval {
+        guard interval.isFinite else { return 0.01 }
+        return max(0.01, interval)
+    }
+}
+
+private extension DispatchTimeInterval {
+    static func tfy_fromSeconds(_ seconds: TimeInterval) -> DispatchTimeInterval {
+        let safeSeconds = Timer.tfy_safeInterval(seconds)
+        let milliseconds = max(1, Int((safeSeconds * 1000).rounded()))
+        return .milliseconds(milliseconds)
     }
 }

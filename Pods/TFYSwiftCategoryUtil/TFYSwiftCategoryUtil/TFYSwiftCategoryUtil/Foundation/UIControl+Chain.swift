@@ -34,6 +34,159 @@ public extension TFY where Base: UIControl {
         base.addTarget(target, action: action, for: controlEvents)
         return self
     }
+
+    // MARK: - Block 事件回调
+
+    /// 添加 Block 事件回调（⚠️ 注意闭包循环引用，建议使用 `[weak self]`）
+    /// - Parameters:
+    ///   - handler: 事件回调，参数为当前控件实例
+    ///   - event: `UIControl.Event`
+    @discardableResult
+    func handler(_ handler: @escaping (Base) -> Void, for event: UIControl.Event) -> Self {
+        if let key = UIControlEventAssociatedKeys.key(for: event) {
+            privateAddBlockHandler(event: event, handler: handler, key: key)
+        }
+        return self
+    }
+
+    /// 移除指定事件的 Block 回调
+    @discardableResult
+    func removeBlockHandler(for event: UIControl.Event) -> Self {
+        if let key = UIControlEventAssociatedKeys.key(for: event) {
+            privateRemoveBlockHandler(for: event, key: key)
+        }
+        return self
+    }
+
+    /// 移除所有 Block 事件回调
+    @discardableResult
+    func removeAllEventBlockHandler() -> Self {
+        UIControlEventAssociatedKeys.allKeys.forEach { event, key in
+            privateRemoveBlockHandler(for: event, key: key)
+        }
+        return self
+    }
+
+    private func privateAddBlockHandler(
+        event: UIControl.Event,
+        handler: @escaping (Base) -> Void,
+        key: UnsafeRawPointer
+    ) {
+        let eventHandler: TFYControlEventHandler
+        if let existing = objc_getAssociatedObject(base, key) as? TFYControlEventHandler {
+            base.removeTarget(existing, action: #selector(TFYControlEventHandler.invoke), for: event)
+            eventHandler = existing
+        } else {
+            eventHandler = TFYControlEventHandler(target: base, event: event)
+            objc_setAssociatedObject(base, key, eventHandler, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        }
+        eventHandler.handler = { control in
+            guard let typedControl = control as? Base else { return }
+            handler(typedControl)
+        }
+        base.addTarget(eventHandler, action: #selector(TFYControlEventHandler.invoke), for: event)
+    }
+
+    private func privateRemoveBlockHandler(for event: UIControl.Event, key: UnsafeRawPointer) {
+        guard let eventHandler = objc_getAssociatedObject(base, key) as? TFYControlEventHandler else { return }
+        base.removeTarget(eventHandler, action: #selector(TFYControlEventHandler.invoke), for: event)
+        objc_setAssociatedObject(base, key, nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    }
+}
+
+// MARK: - UIControl 事件关联键
+
+private enum UIControlEventAssociatedKeys {
+    static let touchDown = UnsafeRawPointer(bitPattern: "tfy.control.touchDown".hashValue)!
+    static let touchDownRepeat = UnsafeRawPointer(bitPattern: "tfy.control.touchDownRepeat".hashValue)!
+    static let touchDragInside = UnsafeRawPointer(bitPattern: "tfy.control.touchDragInside".hashValue)!
+    static let touchDragOutside = UnsafeRawPointer(bitPattern: "tfy.control.touchDragOutside".hashValue)!
+    static let touchDragEnter = UnsafeRawPointer(bitPattern: "tfy.control.touchDragEnter".hashValue)!
+    static let touchDragExit = UnsafeRawPointer(bitPattern: "tfy.control.touchDragExit".hashValue)!
+    static let touchUpInside = UnsafeRawPointer(bitPattern: "tfy.control.touchUpInside".hashValue)!
+    static let touchUpOutside = UnsafeRawPointer(bitPattern: "tfy.control.touchUpOutside".hashValue)!
+    static let touchCancel = UnsafeRawPointer(bitPattern: "tfy.control.touchCancel".hashValue)!
+    static let valueChanged = UnsafeRawPointer(bitPattern: "tfy.control.valueChanged".hashValue)!
+    static let primaryActionTriggered = UnsafeRawPointer(bitPattern: "tfy.control.primaryActionTriggered".hashValue)!
+    static let editingDidBegin = UnsafeRawPointer(bitPattern: "tfy.control.editingDidBegin".hashValue)!
+    static let editingChanged = UnsafeRawPointer(bitPattern: "tfy.control.editingChanged".hashValue)!
+    static let editingDidEnd = UnsafeRawPointer(bitPattern: "tfy.control.editingDidEnd".hashValue)!
+    static let editingDidEndOnExit = UnsafeRawPointer(bitPattern: "tfy.control.editingDidEndOnExit".hashValue)!
+    static let allTouchEvents = UnsafeRawPointer(bitPattern: "tfy.control.allTouchEvents".hashValue)!
+    static let allEditingEvents = UnsafeRawPointer(bitPattern: "tfy.control.allEditingEvents".hashValue)!
+    static let applicationReserved = UnsafeRawPointer(bitPattern: "tfy.control.applicationReserved".hashValue)!
+    static let systemReserved = UnsafeRawPointer(bitPattern: "tfy.control.systemReserved".hashValue)!
+    static let menuActionTriggered = UnsafeRawPointer(bitPattern: "tfy.control.menuActionTriggered".hashValue)!
+    static let allEvents = UnsafeRawPointer(bitPattern: "tfy.control.allEvents".hashValue)!
+
+    static let allKeys: [(UIControl.Event, UnsafeRawPointer)] = [
+        (.touchDown, touchDown),
+        (.touchDownRepeat, touchDownRepeat),
+        (.touchDragInside, touchDragInside),
+        (.touchDragOutside, touchDragOutside),
+        (.touchDragEnter, touchDragEnter),
+        (.touchDragExit, touchDragExit),
+        (.touchUpInside, touchUpInside),
+        (.touchUpOutside, touchUpOutside),
+        (.touchCancel, touchCancel),
+        (.valueChanged, valueChanged),
+        (.primaryActionTriggered, primaryActionTriggered),
+        (.editingDidBegin, editingDidBegin),
+        (.editingChanged, editingChanged),
+        (.editingDidEnd, editingDidEnd),
+        (.editingDidEndOnExit, editingDidEndOnExit),
+        (.allTouchEvents, allTouchEvents),
+        (.allEditingEvents, allEditingEvents),
+        (.applicationReserved, applicationReserved),
+        (.systemReserved, systemReserved),
+        (.menuActionTriggered, menuActionTriggered),
+        (.allEvents, allEvents)
+    ]
+
+    static func key(for event: UIControl.Event) -> UnsafeRawPointer? {
+        switch event {
+        case .touchDown: return touchDown
+        case .touchDownRepeat: return touchDownRepeat
+        case .touchDragInside: return touchDragInside
+        case .touchDragOutside: return touchDragOutside
+        case .touchDragEnter: return touchDragEnter
+        case .touchDragExit: return touchDragExit
+        case .touchUpInside: return touchUpInside
+        case .touchUpOutside: return touchUpOutside
+        case .touchCancel: return touchCancel
+        case .valueChanged: return valueChanged
+        case .primaryActionTriggered: return primaryActionTriggered
+        case .editingDidBegin: return editingDidBegin
+        case .editingChanged: return editingChanged
+        case .editingDidEnd: return editingDidEnd
+        case .editingDidEndOnExit: return editingDidEndOnExit
+        case .allTouchEvents: return allTouchEvents
+        case .allEditingEvents: return allEditingEvents
+        case .applicationReserved: return applicationReserved
+        case .systemReserved: return systemReserved
+        case .menuActionTriggered: return menuActionTriggered
+        case .allEvents: return allEvents
+        default: return nil
+        }
+    }
+}
+
+// MARK: - UIControl 事件 Block 桥接
+
+private final class TFYControlEventHandler: NSObject {
+    weak var target: UIControl?
+    let event: UIControl.Event
+    var handler: ((UIControl) -> Void)?
+
+    init(target: UIControl, event: UIControl.Event) {
+        self.target = target
+        self.event = event
+    }
+
+    @objc func invoke() {
+        guard let target else { return }
+        handler?(target)
+    }
 }
 
 public extension UIControl {

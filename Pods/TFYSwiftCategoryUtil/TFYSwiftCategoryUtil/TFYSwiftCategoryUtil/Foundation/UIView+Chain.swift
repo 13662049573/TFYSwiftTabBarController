@@ -20,12 +20,13 @@ public extension UIView {
     func loadViewFromNib() -> UIView {
         let className = type(of: self)
         let bundle = Bundle(for: className)
-        let name = NSStringFromClass(className).components(separatedBy: ".").last
-        let nib = UINib(nibName: name!, bundle: bundle)
-        let view = nib.instantiate(withOwner: self, options: nil).first as! UIView
+        guard let name = NSStringFromClass(className).components(separatedBy: ".").last,
+              let view = UINib(nibName: name, bundle: bundle).instantiate(withOwner: self, options: nil).first as? UIView else {
+            return self
+        }
         return view
     }
-    
+
     ///x轴坐标
     var x: CGFloat {
         get {
@@ -37,7 +38,7 @@ public extension UIView {
             self.frame = tmpFrame
         }
     }
-    
+
     ///y轴坐标
     var y: CGFloat {
         get {
@@ -49,7 +50,7 @@ public extension UIView {
             self.frame = tmpFrame
         }
     }
-    
+
     ///宽度
     var width: CGFloat {
         get {
@@ -61,7 +62,7 @@ public extension UIView {
             self.frame = tmpFrame
         }
     }
-    
+
     ///高度
     var height: CGFloat {
         get {
@@ -73,7 +74,7 @@ public extension UIView {
             self.frame = tmpFrame
         }
     }
-    
+
     /// 最右边约束x值
     var maxX: CGFloat {
         get {
@@ -85,7 +86,7 @@ public extension UIView {
             self.frame = tmpFrame;
         }
     }
-    
+
     /// 最下边约束y值
     var maxY: CGFloat {
         get {
@@ -97,7 +98,7 @@ public extension UIView {
             self.frame = tmpFrame;
         }
     }
-    
+
     /// 设置x轴中心点
     var centerX: CGFloat {
         get {
@@ -107,7 +108,7 @@ public extension UIView {
             self.center = CGPoint(x: newValue, y: self.center.y);
         }
     }
-    
+
     /// 设置y轴中心点
     var centerY: CGFloat {
         get {
@@ -116,9 +117,9 @@ public extension UIView {
         set {
             self.center = CGPoint(x: self.center.x, y: newValue);
         }
-        
+
     }
-    
+
     /// 设置size
     var size: CGSize {
         get {
@@ -128,7 +129,7 @@ public extension UIView {
             self.frame = CGRect(x: self.frame.origin.x, y: self.frame.origin.y, width: newValue.width, height: newValue.height)
         }
     }
-    
+
     /// 设置orgin
     var origin: CGPoint {
         get {
@@ -145,7 +146,7 @@ public extension UIView {
             self.subviews.last?.removeFromSuperview()
         }
     }
-    
+
     /// 屏幕适配
     func adaptSubViews() {
         // 约束
@@ -156,28 +157,24 @@ public extension UIView {
         layer.cornerRadius = adaptWidth(layer.cornerRadius)
 
         // 字体大小
-        if isKind(of: UILabel.self) == true {
-            let lbl = self as! UILabel
+        if let lbl = self as? UILabel {
             lbl.font = UIFont(name: lbl.font.fontName, size: adaptWidth(lbl.font.pointSize))
         }
-        if isKind(of: UITextField.self) == true {
-            let tf = self as! UITextField
+        if let tf = self as? UITextField {
             guard let f = tf.font else {
                 return
             }
             tf.font = UIFont(name: f.fontName, size: adaptWidth(f.pointSize))
         }
 
-        if isKind(of: UITextView.self) == true {
-            let tf = self as! UITextView
+        if let tf = self as? UITextView {
             guard let f = tf.font else {
                 return
             }
             tf.font = UIFont(name: f.fontName, size: adaptWidth(f.pointSize))
         }
 
-        if isKind(of: UIButton.self) == true {
-            let btn = self as! UIButton
+        if let btn = self as? UIButton {
             if let f = btn.titleLabel?.font {
                 btn.titleLabel?.font = UIFont(name: f.fontName, size: adaptWidth(f.pointSize))
             }
@@ -189,7 +186,7 @@ public extension UIView {
         setNeedsLayout()
         layoutIfNeeded()
     }
-    
+
     /// 添加圆角
     func cornerCut(radius:CGFloat,corner:UIRectCorner){
         let maskPath = UIBezierPath.init(roundedRect: bounds, byRoundingCorners: corner, cornerRadii: CGSize.init(width: radius, height: radius))
@@ -230,27 +227,27 @@ public extension UIView {
             layer.borderColor = newValue.cgColor
         }
     }
-    
+
     @objc @IBInspectable var shadowOffset:CGSize {
         set { layer.shadowOffset = newValue }
         get { return layer.shadowOffset }
     }
-    
+
     @objc @IBInspectable var shadowColor:UIColor? {
         set { layer.shadowColor = newValue?.cgColor }
         get { return layer.shadowColor?.uiColor }
     }
-    
+
     @objc @IBInspectable var shadowRadius:CGFloat {
         set { layer.shadowRadius = newValue }
         get { return layer.shadowRadius }
     }
-    
+
     @objc @IBInspectable var shadowOpacity:Float {
         set { layer.shadowOpacity = newValue }
         get { return layer.shadowOpacity }
     }
-    
+
     /// 添加阴影
     func shadow(ofColor color: UIColor = UIColor(red: 0.07, green: 0.47, blue: 0.57, alpha: 1.0), radius: CGFloat = 3, offset: CGSize = .zero, opacity: Float = 0.2) {
         layer.shadowColor = color.cgColor
@@ -261,7 +258,7 @@ public extension UIView {
     }
     /// 添加阴影图层
     func shadowLayer(ofColor color: UIColor = UIColor(red: 0.07, green: 0.47, blue: 0.57, alpha: 1.0), radius: CGFloat = 3, offset: CGSize = .zero, opacity: Float = 0.5,cornerRadius:CGFloat,bounds:CGRect) {
-        
+
         let layer = CALayer()
         layer.frame = bounds
         layer.shadowColor = color.cgColor
@@ -274,7 +271,7 @@ public extension UIView {
         self.layer.insertSublayer(layer, at: 0)
         self.layer.addSublayer(layer)
     }
-    
+
     func navigationController() -> UIViewController? {
         if let view = self.superview {
             let nextResponder = view.next
@@ -284,18 +281,19 @@ public extension UIView {
         }
         return nil
     }
-    
+
     /// 是否是某 View 的子 view，不止判断一层，会递归所有层级
     ///
     /// - Parameter view: 某 View
     /// - Returns: 是或不是
     func isRecursiveSubView(of view: UIView) -> Bool {
-        if superview == nil {
+        guard let superview = superview else {
             return self == view
-        } else if superview == view {
+        }
+        if superview == view {
             return true
         }
-        return superview!.isRecursiveSubView(of: view)
+        return superview.isRecursiveSubView(of: view)
     }
 
     /// 递归查找子类 UIView
@@ -341,7 +339,7 @@ public extension UIView {
         getSubview(view: self)
         return all
     }
-    
+
     func renderViewToImage(view: UIView) -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(view.bounds.size, view.isOpaque, 0.0)
         defer { UIGraphicsEndImageContext() }
@@ -356,169 +354,169 @@ public extension UIView {
 
 
 public extension TFY where Base: UIView {
-    
+
     @discardableResult
     func tag(_ tag: Int) -> Self {
         base.tag = tag
         return self
     }
-    
+
     @discardableResult
     func frame(_ frame: CGRect) -> Self {
         base.frame = frame
         return self
     }
-    
+
     @discardableResult
     func frame(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) -> Self {
         base.frame = CGRect(x: x, y: y, width: width, height: height)
         return self
     }
-    
+
     @discardableResult
     func bounds(_ bounds: CGRect) -> Self {
         base.bounds = bounds
         return self
     }
-    
+
     @discardableResult
     func center(_ center: CGPoint) -> Self {
         base.center = center
         return self
     }
-    
+
     @discardableResult
     func center(x: CGFloat, y: CGFloat) -> Self {
         base.center = CGPoint(x: x, y: y)
         return self
     }
-    
+
     @discardableResult
     func backgroundColor(_ backgroundColor: UIColor) -> Self {
         base.backgroundColor = backgroundColor
         return self
     }
-    
+
     @discardableResult
     func contentMode(_ contentMode: UIView.ContentMode) -> Self {
         base.contentMode = contentMode
         return self
     }
-    
+
     @discardableResult
     func clipsToBounds(_ clipsToBounds: Bool) -> Self {
         base.clipsToBounds = clipsToBounds
         return self
     }
-    
+
     @discardableResult
     func alpha(_ alpha: CGFloat) -> Self {
         base.alpha = alpha
         return self
     }
-    
+
     @discardableResult
     func isHidden(_ isHidden: Bool) -> Self {
         base.isHidden = isHidden
         return self
     }
-    
+
     @discardableResult
     func isOpaque(_ isOpaque: Bool) -> Self {
         base.isOpaque = isOpaque
         return self
     }
-    
+
     @discardableResult
     func isUserInteractionEnabled(_ isUserInteractionEnabled: Bool) -> Self {
         base.isUserInteractionEnabled = isUserInteractionEnabled
         return self
     }
-    
+
     @discardableResult
     func tintColor(_ tintColor: UIColor) -> Self {
         base.tintColor = tintColor
         return self
     }
-    
+
     @discardableResult
     func cornerRadius(_ cornerRadius: CGFloat) -> Self {
         base.cornerRadius = cornerRadius
         return self
     }
-    
+
     @discardableResult
     func borderWidth(_ borderWidth: CGFloat) -> Self {
         base.borderWidth = borderWidth
         return self
     }
-    
+
     @discardableResult
     func borderColor(_ borderColor: UIColor) -> Self {
         base.borderColor = borderColor
         return self
     }
-    
+
     @discardableResult
     func shadowColor(_ shadowColor: UIColor?) -> Self {
         base.shadowColor = shadowColor
         return self
     }
-    
+
     @discardableResult
     func shadowOpacity(_ shadowOpacity: Float) -> Self {
         base.shadowOpacity = shadowOpacity
         return self
     }
-    
+
     @discardableResult
     func shadowOffset(_ shadowOffset: CGSize) -> Self {
         base.shadowOffset = shadowOffset
         return self
     }
-    
+
     @discardableResult
     func shadowRadius(_ shadowRadius: CGFloat) -> Self {
         base.shadowRadius = shadowRadius
         return self
     }
-    
+
     @discardableResult
     func shadowPath(_ shadowPath: CGPath?) -> Self {
         base.layer.shadowPath = shadowPath
         return self
     }
-    
+
     @discardableResult
     func addToSuperView(_ view: UIView) -> Self {
         view.addSubview(base)
         return self
     }
-    
+
     @discardableResult
     func addGestureRecognizer(_ gestureRecognizer: UIGestureRecognizer) -> Self {
         base.addGestureRecognizer(gestureRecognizer)
         return self
     }
-    
+
     @discardableResult
     func addConstraint(_ constraint: NSLayoutConstraint) -> Self {
         base.addConstraint(constraint)
         return self
     }
-    
+
     @discardableResult
     func addConstraints(_ constraints: [NSLayoutConstraint]) -> Self {
         base.addConstraints(constraints)
         return self
     }
-    
+
     @discardableResult
     func addRadius(direction: UIRectCorner = .allCorners, vaule: CGFloat) -> Self {
         base.cornerCut(radius: vaule, corner: direction)
         return self
     }
-    
+
     /// 变形属性(平移\缩放\旋转)
     @discardableResult
     func transform(_ a: CGAffineTransform) -> Self {
@@ -537,7 +535,7 @@ public extension TFY where Base: UIView {
         base.autoresizingMask = mask
         return self
     }
-    
+
     /// 毛玻璃效果 view.blurEffect(UIColor.red.withAlphaComponent(0.5))
     @discardableResult
     func blurEffect(_ color:UIColor = UIColor.clear,  style:UIBlurEffect.Style = .light, block:((UIVisualEffectView) -> Void)? = nil) -> Self {
@@ -552,43 +550,43 @@ public extension TFY where Base: UIView {
         block?(blurEffectView)
         return self
     }
-    
+
     @discardableResult
     func insertSubview(_ subview:UIView, at index:Int = 0) -> Self {
         base.insertSubview(subview, at: index)
         return self
     }
-    
+
     @discardableResult
     func insertSubview(_ subview:UIView, below view:UIView) -> Self {
         base.insertSubview(subview, belowSubview: view)
         return self
     }
-    
+
     @discardableResult
     func insertSubview(_ subview:UIView, above view:UIView) -> Self {
         base.insertSubview(subview, aboveSubview: view)
         return self
     }
-    
+
     @discardableResult
     func exchangeSubview(_ subview1:Int, _ subview2:Int) -> Self {
         base.exchangeSubview(at: subview1, withSubviewAt: subview2)
         return self
     }
-    
+
     @discardableResult
     func bringSubviewToFront(subviewToFront view:UIView) -> Self {
         base.bringSubviewToFront(view)
         return self
     }
-    
+
     @discardableResult
     func sendSubviewToBack(subviewToBack view:UIView) -> Self {
         base.sendSubviewToBack(view)
         return self
     }
-    
+
     @discardableResult
     func insertSubview(toSuperview superview:UIView, below view:UIView) -> Self {
         superview.insertSubview(base, belowSubview: view)
@@ -599,7 +597,7 @@ public extension TFY where Base: UIView {
         superview.insertSubview(base, aboveSubview: view)
         return self
     }
-    
+
     @discardableResult
     func exchangeSubview(_ view:UIView) -> Self {
         guard let idx1 = base.superview?.subviews.firstIndex(of: base),
@@ -609,19 +607,19 @@ public extension TFY where Base: UIView {
         base.superview?.exchangeSubview(at: idx1, withSubviewAt: idx2)
         return self
     }
-    
+
     @discardableResult
     func bringSubviewToFront() -> Self {
         base.superview?.bringSubviewToFront(base)
         return self
     }
-    
+
     @discardableResult
     func sendSubviewToBack() -> Self {
         base.superview?.sendSubviewToBack(base)
         return self
     }
-    
+
     @discardableResult
     func addArrangedSubview(toSuperstack stack:UIStackView) -> Self {
         stack.addArrangedSubview(base)
@@ -632,101 +630,256 @@ public extension TFY where Base: UIView {
         stack.insertArrangedSubview(base, at: index)
         return self
     }
-    
+
     @discardableResult
     func removeFromSuperview() -> Self {
         base.removeFromSuperview()
         return self
     }
-    
+
     @discardableResult
     func remove(subview view:UIView) -> Self {
-        base.subviews
-            .filter{ $0 == view }
-            .forEach{ $0.removeFromSuperview() }
+        if view.superview === base {
+            view.removeFromSuperview()
+        }
         return self
     }
-    
+
     @discardableResult
     func remove(subviews views:[UIView]) -> Self {
+        guard !views.isEmpty else { return self }
+        let targets = Set(views.map(ObjectIdentifier.init))
         base.subviews
-            .filter{ views.contains($0)}
-            .forEach{ $0.removeFromSuperview() }
+            .filter { targets.contains(ObjectIdentifier($0)) }
+            .forEach { $0.removeFromSuperview() }
         return self
     }
-    
+
     @discardableResult
     func contents(contents:Any?) -> Self {
         base.layer.contents = contents
         return self
     }
-    
+
     /// 设置是否启用自动布局
     @discardableResult
     func translatesAutoresizingMaskIntoConstraints(_ translates: Bool) -> Self {
         base.translatesAutoresizingMaskIntoConstraints = translates
         return self
     }
-    
+
     /// 设置边框颜色
     @discardableResult
     func borderColor(_ color: UIColor?) -> Self {
         base.layer.borderColor = color?.cgColor
         return self
     }
-    
+
     /// 设置背景颜色
     @discardableResult
     func backgroundColor(_ color: UIColor?) -> Self {
         base.backgroundColor = color
         return self
     }
-    
+
     /// 设置是否启用辅助功能
     @discardableResult
     func isAccessibilityElement(_ isElement: Bool) -> Self {
         base.isAccessibilityElement = isElement
         return self
     }
-    
+
     /// 设置辅助功能标签
     @discardableResult
     func accessibilityLabel(_ label: String?) -> Self {
         base.accessibilityLabel = label
         return self
     }
-    
+
     /// 设置辅助功能提示
     @discardableResult
     func accessibilityHint(_ hint: String?) -> Self {
         base.accessibilityHint = hint
         return self
     }
-    
+
     /// 设置辅助功能值
     @discardableResult
     func accessibilityValue(_ value: String?) -> Self {
         base.accessibilityValue = value
         return self
     }
-    
+
     /// 设置辅助功能特征
     @discardableResult
     func accessibilityTraits(_ traits: UIAccessibilityTraits) -> Self {
         base.accessibilityTraits = traits
         return self
     }
-    
+
     /// 设置辅助功能标识符
     @discardableResult
     func accessibilityIdentifier(_ identifier: String?) -> Self {
         base.accessibilityIdentifier = identifier
         return self
     }
+
+    /// 为当前视图添加/更新渐变背景层，自动识别并跟随`bounds`变化
+    @discardableResult
+    func setGradientBackground(_ direction: UIColor.GradientChangeDirection,
+                               colors: [UIColor],
+                               locations: [NSNumber]? = nil,
+                               cornerRadius: CGFloat = 0,
+                               name: String = "zs_gradient") -> Self {
+        base.tfy_setGradientBackground(direction: direction, colors: colors,locations: locations,cornerRadius: cornerRadius,name: name)
+        return self
+    }
+
+    /// 移除指定名称的渐变层
+    @discardableResult
+    func removeGradientBackground(name: String = "zs_gradient") -> Self {
+        base.tfy_removeGradientBackground(name: name)
+        return self
+    }
+}
+
+// MARK: - UIView Gradient Extension (auto-size)
+
+private var zsGradientLayerKey: UInt8 = 0
+private var zsGradientNamesKey: UInt8 = 0
+private var zsDidSwizzleLayoutKey: UInt8 = 0
+
+extension UIView {
+    /// 为当前视图添加/更新渐变背景层，自动识别并跟随`bounds`变化
+    /// - Parameters:
+    ///   - direction: 渐变方向
+    ///   - colors: 颜色列表（至少两个）
+    ///   - locations: 可选的颜色位置（0...1），数量需与colors一致
+    ///   - cornerRadius: 可选圆角
+    ///   - name: 渐变层标识，用于同一视图多个渐变层场景
+    public func tfy_setGradientBackground(
+        direction: UIColor.GradientChangeDirection,
+        colors: [UIColor],
+        locations: [NSNumber]? = nil,
+        cornerRadius: CGFloat = 0,
+        name: String = "zs_gradient"
+    ) {
+        guard colors.count >= 2 else { return }
+
+        UIView.tfy_swizzleLayoutSubviewsIfNeeded()
+
+        let cgColors = colors.map { $0.cgColor }
+        let gradientLayer: CAGradientLayer
+        if let existing = tfy_gradientLayer(named: name) {
+            gradientLayer = existing
+        } else {
+            gradientLayer = CAGradientLayer()
+            gradientLayer.name = name
+            layer.insertSublayer(gradientLayer, at: 0)
+            tfy_storeGradientLayer(gradientLayer, named: name)
+        }
+
+        // 配置方向
+        switch direction {
+        case .level:
+            gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
+            gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
+        case .vertical:
+            gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.0)
+            gradientLayer.endPoint = CGPoint(x: 0.5, y: 1.0)
+        case .upwardDiagonal:
+            gradientLayer.startPoint = CGPoint(x: 0.0, y: 1.0)
+            gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.0)
+        case .downDiagonal:
+            gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.0)
+            gradientLayer.endPoint = CGPoint(x: 1.0, y: 1.0)
+        }
+
+        gradientLayer.colors = cgColors
+        if let locations = locations, locations.count == cgColors.count { gradientLayer.locations = locations }
+        gradientLayer.cornerRadius = cornerRadius
+        gradientLayer.masksToBounds = cornerRadius > 0
+        gradientLayer.frame = bounds
+        gradientLayer.needsDisplayOnBoundsChange = true
+
+        // 若在未布局完成时调用（如未加入层级或AutoLayout尚未生效），确保下一轮主队列刷新后同步frame
+        if bounds.isEmpty || bounds.equalTo(.zero) {
+            setNeedsLayout()
+            DispatchQueue.main.async { [weak self, weak gradientLayer] in
+                guard let self = self, let gl = gradientLayer else { return }
+                gl.frame = self.bounds
+            }
+        }
+    }
+
+    /// 移除指定名称的渐变层
+    public func tfy_removeGradientBackground(name: String = "zs_gradient") {
+        guard let layer = tfy_gradientLayer(named: name) else { return }
+        layer.removeFromSuperlayer()
+        tfy_removeStoredGradient(named: name)
+    }
+
+    // MARK: - Swizzle layoutSubviews 以自动更新渐变层大小
+
+    private static func tfy_swizzleLayoutSubviewsIfNeeded() {
+        let already = objc_getAssociatedObject(UIView.self, &zsDidSwizzleLayoutKey) as? Bool ?? false
+        guard !already else { return }
+        objc_setAssociatedObject(UIView.self, &zsDidSwizzleLayoutKey, true, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+
+        let originalSelector = #selector(UIView.layoutSubviews)
+        let swizzledSelector = #selector(UIView.tfy_layoutSubviews)
+
+        guard let originalMethod = class_getInstanceMethod(UIView.self, originalSelector),
+              let swizzledMethod = class_getInstanceMethod(UIView.self, swizzledSelector) else { return }
+
+        method_exchangeImplementations(originalMethod, swizzledMethod)
+    }
+
+    @objc private func tfy_layoutSubviews() {
+        // 调用原本的layoutSubviews（已交换实现）
+        tfy_layoutSubviews()
+
+        // 更新所有存储的渐变图层frame
+        guard let names = objc_getAssociatedObject(self, &zsGradientNamesKey) as? Set<String>, !names.isEmpty else { return }
+        for name in names {
+            if let gl = tfy_gradientLayer(named: name) {
+                gl.frame = bounds
+            }
+        }
+    }
+
+    // MARK: - 存取关联对象
+
+    private func tfy_storeGradientLayer(_ layer: CAGradientLayer, named name: String) {
+        // 存图层
+        var dict = objc_getAssociatedObject(self, &zsGradientLayerKey) as? [String: CAGradientLayer] ?? [:]
+        dict[name] = layer
+        objc_setAssociatedObject(self, &zsGradientLayerKey, dict, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+
+        // 存名称集合
+        var names = objc_getAssociatedObject(self, &zsGradientNamesKey) as? Set<String> ?? Set<String>()
+        names.insert(name)
+        objc_setAssociatedObject(self, &zsGradientNamesKey, names, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    }
+
+    private func tfy_gradientLayer(named name: String) -> CAGradientLayer? {
+        let dict = objc_getAssociatedObject(self, &zsGradientLayerKey) as? [String: CAGradientLayer]
+        return dict?[name]
+    }
+
+    private func tfy_removeStoredGradient(named name: String) {
+        var dict = objc_getAssociatedObject(self, &zsGradientLayerKey) as? [String: CAGradientLayer] ?? [:]
+        dict.removeValue(forKey: name)
+        objc_setAssociatedObject(self, &zsGradientLayerKey, dict, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+
+        var names = objc_getAssociatedObject(self, &zsGradientNamesKey) as? Set<String> ?? Set<String>()
+        names.remove(name)
+        objc_setAssociatedObject(self, &zsGradientNamesKey, names, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    }
 }
 
 public extension UIView {
-    
+
     var keyWindow: UIWindow? {
         var keyWindow:UIWindow?
         keyWindow = UIApplication.shared.connectedScenes
@@ -748,7 +901,7 @@ public extension UIView {
         addGestureRecognizer(obj)
         return obj
     }
-    
+
     ///手势 - 轻点 UITapGestureRecognizer
     @discardableResult
     func addGestureTap(_ action: @escaping ((UITapGestureRecognizer) ->Void)) -> UITapGestureRecognizer {
@@ -762,35 +915,36 @@ public extension UIView {
         obj.addAction(action)
         return obj
     }
-    
+
     ///手势 - 长按 UILongPressGestureRecognizer
     @discardableResult
     func addGestureLongPress(_ target: Any?, action: Selector?, for minimumPressDuration: TimeInterval = 0.5) -> UILongPressGestureRecognizer {
         let obj = UILongPressGestureRecognizer(target: target, action: action)
         obj.minimumPressDuration = minimumPressDuration
-      
+
         isUserInteractionEnabled = true
         isMultipleTouchEnabled = true
         addGestureRecognizer(obj)
         return obj
     }
-    
+
     ///手势 - 长按 UILongPressGestureRecognizer
     @discardableResult
     func addGestureLongPress(_ action: @escaping ((UILongPressGestureRecognizer) ->Void), for minimumPressDuration: TimeInterval = 0.5) -> UILongPressGestureRecognizer {
         let obj = UILongPressGestureRecognizer(target: nil, action: nil)
         obj.minimumPressDuration = minimumPressDuration
-      
+
         isUserInteractionEnabled = true
         isMultipleTouchEnabled = true
         addGestureRecognizer(obj)
-      
+
         obj.addAction { (recognizer) in
-            action(recognizer as! UILongPressGestureRecognizer)
+            guard let gesture = recognizer as? UILongPressGestureRecognizer else { return }
+            action(gesture)
         }
         return obj
     }
-      
+
     ///手势 - 拖拽 UIPanGestureRecognizer
     @discardableResult
     func addGesturePan(_ action: @escaping ((UIPanGestureRecognizer) ->Void)) -> UIPanGestureRecognizer {
@@ -798,23 +952,22 @@ public extension UIView {
           //最大最小的手势触摸次数
         obj.minimumNumberOfTouches = 1
         obj.maximumNumberOfTouches = 3
-          
+
         isUserInteractionEnabled = true
         isMultipleTouchEnabled = true
         addGestureRecognizer(obj)
-          
+
         obj.addAction { (recognizer) in
-            if let gesture = recognizer as? UIPanGestureRecognizer {
-                let translate: CGPoint = gesture.translation(in: gesture.view?.superview)
-                gesture.view!.center = CGPoint(x: gesture.view!.center.x + translate.x, y: gesture.view!.center.y + translate.y)
-                gesture.setTranslation( .zero, in: gesture.view!.superview)
-                             
-                action(gesture)
-            }
+            guard let gesture = recognizer as? UIPanGestureRecognizer,
+                  let view = gesture.view else { return }
+            let translate = gesture.translation(in: view.superview)
+            view.center = CGPoint(x: view.center.x + translate.x, y: view.center.y + translate.y)
+            gesture.setTranslation(.zero, in: view.superview)
+            action(gesture)
         }
         return obj
     }
-      
+
     ///手势 - 屏幕边缘 UIScreenEdgePanGestureRecognizer
     @discardableResult
     func addGestureEdgPan(_ target: Any?, action: Selector?, for edgs: UIRectEdge) -> UIScreenEdgePanGestureRecognizer {
@@ -825,7 +978,7 @@ public extension UIView {
         addGestureRecognizer(obj)
         return obj
     }
-    
+
     ///手势 - 屏幕边缘 UIScreenEdgePanGestureRecognizer
     @discardableResult
     func addGestureEdgPan(_ action: @escaping ((UIScreenEdgePanGestureRecognizer) ->Void), for edgs: UIRectEdge) -> UIScreenEdgePanGestureRecognizer {
@@ -834,41 +987,43 @@ public extension UIView {
         isUserInteractionEnabled = true
         isMultipleTouchEnabled = true
         addGestureRecognizer(obj)
-       
+
         obj.addAction { (recognizer) in
-            action(recognizer as! UIScreenEdgePanGestureRecognizer)
+            guard let gesture = recognizer as? UIScreenEdgePanGestureRecognizer else { return }
+            action(gesture)
         }
         return obj
     }
-      
+
     ///手势 - 清扫 UISwipeGestureRecognizer
     @discardableResult
     func addGestureSwip(_ target: Any?, action: Selector?, for direction: UISwipeGestureRecognizer.Direction) -> UISwipeGestureRecognizer {
         let obj = UISwipeGestureRecognizer(target: target, action: action)
         obj.direction = direction
-      
+
         isUserInteractionEnabled = true
         isMultipleTouchEnabled = true
         addGestureRecognizer(obj)
         return obj
     }
-    
+
     ///手势 - 清扫 UISwipeGestureRecognizer
     @discardableResult
     func addGestureSwip(_ action: @escaping ((UISwipeGestureRecognizer) ->Void), for direction: UISwipeGestureRecognizer.Direction) -> UISwipeGestureRecognizer {
         let obj = UISwipeGestureRecognizer(target: nil, action: nil)
         obj.direction = direction
-      
+
         isUserInteractionEnabled = true
         isMultipleTouchEnabled = true
         addGestureRecognizer(obj)
-      
+
         obj.addAction { (recognizer) in
-            action(recognizer as! UISwipeGestureRecognizer)
+            guard let gesture = recognizer as? UISwipeGestureRecognizer else { return }
+            action(gesture)
         }
         return obj
     }
-      
+
     ///手势 - 捏合 UIPinchGestureRecognizer
     @discardableResult
     func addGesturePinch(_ action: @escaping ((UIPinchGestureRecognizer) ->Void)) -> UIPinchGestureRecognizer {
@@ -876,19 +1031,19 @@ public extension UIView {
         isUserInteractionEnabled = true
         isMultipleTouchEnabled = true
         addGestureRecognizer(obj)
-      
+
         obj.addAction { (recognizer) in
-            if let gesture = recognizer as? UIPinchGestureRecognizer {
-                let location = recognizer.location(in: gesture.view!.superview)
-                gesture.view!.center = location
-                gesture.view!.transform = gesture.view!.transform.scaledBy(x: gesture.scale, y: gesture.scale)
-                gesture.scale = 1.0
-                action(gesture)
-            }
+            guard let gesture = recognizer as? UIPinchGestureRecognizer,
+                  let view = gesture.view else { return }
+            let location = recognizer.location(in: view.superview)
+            view.center = location
+            view.transform = view.transform.scaledBy(x: gesture.scale, y: gesture.scale)
+            gesture.scale = 1.0
+            action(gesture)
         }
         return obj
     }
-    
+
     ///手势 - 旋转 UIRotationGestureRecognizer
     @discardableResult
     func addGestureRotation(_ action: @escaping ((UIRotationGestureRecognizer) ->Void)) -> UIRotationGestureRecognizer {
@@ -896,14 +1051,13 @@ public extension UIView {
         isUserInteractionEnabled = true
         isMultipleTouchEnabled = true
         addGestureRecognizer(obj)
-      
+
         obj.addAction { (recognizer) in
-            if let gesture = recognizer as? UIRotationGestureRecognizer {
-                gesture.view!.transform = gesture.view!.transform.rotated(by: gesture.rotation)
-                gesture.rotation = 0.0
-                          
-                action(gesture)
-            }
+            guard let gesture = recognizer as? UIRotationGestureRecognizer,
+                  let view = gesture.view else { return }
+            view.transform = view.transform.rotated(by: gesture.rotation)
+            gesture.rotation = 0.0
+            action(gesture)
         }
         return obj
     }
@@ -914,18 +1068,18 @@ public extension UIView {
         if keyWindow.subviews.contains(self) {
             self.dismiss()
         }
-        
+
         if self.frame.equalTo(.zero) {
             self.frame = UIScreen.main.bounds
         }
-        
+
         keyWindow.endEditing(true)
         keyWindow.addSubview(self)
 
         let duration = animated ? 0.15 : 0
         UIView.animate(withDuration: duration, animations: {
             self.backgroundColor = UIColor.black.withAlphaComponent(0.3)
-            
+
         }, completion: completion)
     }
     ///从 UIApplication.shared.keyWindow 上移除
@@ -939,7 +1093,7 @@ public extension UIView {
             self.removeFromSuperview()
         }
     }
-    
+
     /// 获取特定类型父视图
     func findSupView(_ type: UIView.Type) -> UIView? {
         var supView = superview
@@ -951,7 +1105,7 @@ public extension UIView {
         }
         return nil
     }
-        
+
     /// 获取特定类型子视图
     func findSubView(_ type: UIView.Type) -> UIView? {
         for e in self.subviews.enumerated() {
@@ -971,7 +1125,7 @@ public extension UIView {
             return nil
         }
     }
-    
+
     ///往复动画
     func animationCycle(_ transformBlock: @escaping ((CGAffineTransform) -> Void), animated: Bool, completion: ((Bool) -> Void)? = nil) {
         let duration = animated ? 0.3 : 0
@@ -983,7 +1137,7 @@ public extension UIView {
             }
         }, completion: completion)
     }
-    
+
     ///移动动画
     func move(_ x: CGFloat, y: CGFloat, animated: Bool, completion: ((Bool) -> Void)? = nil) {
         let duration = animated ? 0.3 : 0
@@ -995,7 +1149,7 @@ public extension UIView {
             }
         }, completion: completion)
     }
-    
+
     ///旋转动画
     func rotate(_ angle: CGFloat, animated: Bool, completion: ((Bool) -> Void)? = nil) {
         let duration = animated ? 0.3 : 0
@@ -1016,13 +1170,13 @@ public extension UIView {
         let image = UIGraphicsGetImageFromCurrentImageContext()
         return image!
     }
-    
+
     func snapshotImage() -> UIImage?{
         UIGraphicsBeginImageContextWithOptions(self.bounds.size, self.isOpaque, 0)
         defer {
             UIGraphicsEndImageContext()
         }
-        
+
         guard let ctx = UIGraphicsGetCurrentContext() else { return nil }
         // 截图:实际是把layer上面的东西绘制到上下文中
         layer.render(in: ctx)
@@ -1032,7 +1186,7 @@ public extension UIView {
         // UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil) // 注释掉，因为参数不正确
         return image
     }
-    
+
     func snapshotImageAfterScreenUpdates(_ afterUpdates: Bool) -> UIImage?{
         if !self.responds(to: #selector(drawHierarchy(in:afterScreenUpdates:))) {
             return self.snapshotImage()
@@ -1043,7 +1197,7 @@ public extension UIView {
         UIGraphicsEndImageContext()
         return snap
     }
-        
+
     /// 插入模糊背景
     @discardableResult
     func insertVisualEffectView(style: UIBlurEffect.Style = .light) -> UIVisualEffectView {
@@ -1057,7 +1211,7 @@ public extension UIView {
 
 
 public extension UIView{
-    
+
     /// 获取特定类型父视图
     final func supView<T: UIView>(_ type: T.Type) -> T? {
         var supView = superview
@@ -1066,7 +1220,7 @@ public extension UIView{
         }
         return supView.self as? T
     }
-        
+
     /// 获取特定类型子视图
     final func subView<T: UIView>(_ type: T.Type) -> T? {
         for e in self.subviews.enumerated() {
@@ -1082,7 +1236,7 @@ public extension Array where Element : UIView {
     ///手势 - 轻点 UITapGestureRecognizer
     @discardableResult
     func addGestureTap(_ action: @escaping ((UIGestureRecognizer) ->Void)) -> [UITapGestureRecognizer] {
-        
+
         var list = [UITapGestureRecognizer]()
         forEach {
             let obj = $0.addGestureTap(action)
@@ -1105,15 +1259,21 @@ public extension Array where Element : UIView {
         leftAnchor.constraint(equalTo: superview.leftAnchor, constant: inset.left).isActive = true
         bottomAnchor.constraint(equalTo: superview.bottomAnchor, constant: -inset.bottom).isActive = true
     }
-    
+
     func heightEqualTo(_ constant: CGFloat) {
         translatesAutoresizingMaskIntoConstraints = false
         heightAnchor.constraint(equalToConstant: constant).isActive = true
     }
-    
+
     func widthEqualTo(_ constant: CGFloat) {
         translatesAutoresizingMaskIntoConstraints = false
         widthAnchor.constraint(equalToConstant: constant).isActive = true
+    }
+
+    func getTabBarPlatterViews(_ viewStr:String) -> [UIView] {
+        return self.subviews.filter { view in
+            String(describing: type(of: view)).contains(viewStr)
+        }
     }
 
 }

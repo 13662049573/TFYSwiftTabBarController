@@ -20,7 +20,8 @@ public extension TFY where Base: NSMutableAttributedString {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func addAttribute(_ name: NSAttributedString.Key, value: Any, range: NSRange) -> Self {
-        base.addAttribute(name, value: value, range: range)
+        guard let safeRange = resolvedRange(range) else { return self }
+        base.addAttribute(name, value: value, range: safeRange)
         return self
     }
     
@@ -33,7 +34,8 @@ public extension TFY where Base: NSMutableAttributedString {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func addAttributes(_ attrs: [NSAttributedString.Key : Any] = [:], range: NSRange) -> Self {
-        base.addAttributes(attrs, range: range)
+        guard let safeRange = resolvedRange(range), !attrs.isEmpty else { return self }
+        base.addAttributes(attrs, range: safeRange)
         return self
     }
     
@@ -46,7 +48,8 @@ public extension TFY where Base: NSMutableAttributedString {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func removeAttribute(_ name: NSAttributedString.Key, range: NSRange) -> Self {
-        base.removeAttribute(name, range: range)
+        guard let safeRange = resolvedRange(range) else { return self }
+        base.removeAttribute(name, range: safeRange)
         return self
     }
     
@@ -677,6 +680,16 @@ public extension TFY where Base: NSMutableAttributedString {
         // 可以通过其他方式实现，比如使用Core Graphics
         TFYUtils.Logger.log("渐变背景功能需要特殊实现")
         return self
+    }
+}
+
+private extension TFY where Base: NSMutableAttributedString {
+    func resolvedRange(_ range: NSRange?) -> NSRange? {
+        let fullRange = NSRange(location: 0, length: base.length)
+        guard let range = range else { return fullRange }
+        guard range.location != NSNotFound else { return nil }
+        let safeRange = range.tfy.clamped(to: base.length)
+        return safeRange.length > 0 || range.length == 0 ? safeRange : nil
     }
 }
 

@@ -132,6 +132,7 @@ public class TFYSwiftJsonKit: NSObject {
         return c
     }()
     private static let cacheQueue = DispatchQueue(label: "com.tfy.jsonkit.cache", attributes: .concurrent)
+    private static let formatterCache = NSCache<NSString, DateFormatter>()
     
     // MARK: - 编码方法 (对象 -> JSON)
     
@@ -181,7 +182,9 @@ public class TFYSwiftJsonKit: NSObject {
                                           from data: Data, 
                                           config: TFYJsonConfig = defaultConfig) -> Result<T, TFYJsonError> {
         guard !data.isEmpty else {
+#if DEBUG
             print("TFYSwiftJsonKit: decode 传入数据为空")
+#endif
             return .failure(.invalidData)
         }
         do {
@@ -247,6 +250,16 @@ public class TFYSwiftJsonKit: NSObject {
             return .failure(.decodingFailed(error))
         }
     }
+
+    /// 将JSON字符串转换为字典
+    /// - Parameter string: JSON字符串
+    /// - Returns: 转换结果
+    public static func dictionary(from string: String) -> Result<[String: Any], TFYJsonError> {
+        guard let data = string.data(using: .utf8), !data.isEmpty else {
+            return .failure(.invalidData)
+        }
+        return dictionary(from: data)
+    }
     
     /// 将JSON数据转换为数组
     /// - Parameter data: JSON数据
@@ -260,6 +273,16 @@ public class TFYSwiftJsonKit: NSObject {
         } catch {
             return .failure(.decodingFailed(error))
         }
+    }
+
+    /// 将JSON字符串转换为数组
+    /// - Parameter string: JSON字符串
+    /// - Returns: 转换结果
+    public static func array(from string: String) -> Result<[Any], TFYJsonError> {
+        guard let data = string.data(using: .utf8), !data.isEmpty else {
+            return .failure(.invalidData)
+        }
+        return array(from: data)
     }
     
     // MARK: - 模型转换
@@ -400,8 +423,7 @@ public class TFYSwiftJsonKit: NSObject {
         var config = TFYJsonConfig()
         
         if let dateFormat = dateFormat {
-            let formatter = DateFormatter()
-            formatter.dateFormat = dateFormat
+            let formatter = cachedFormatter(for: dateFormat)
             config.dateEncodingStrategy = .formatted(formatter)
             config.dateDecodingStrategy = .formatted(formatter)
         }
@@ -409,6 +431,18 @@ public class TFYSwiftJsonKit: NSObject {
         config.keyEncodingStrategy = keyStrategy
         config.outputFormatting = outputFormatting
         return config
+    }
+    
+    private static func cachedFormatter(for dateFormat: String) -> DateFormatter {
+        let key = dateFormat as NSString
+        if let formatter = formatterCache.object(forKey: key) {
+            return formatter.copy() as? DateFormatter ?? formatter
+        }
+        let formatter = DateFormatter()
+        formatter.dateFormat = dateFormat
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatterCache.setObject(formatter, forKey: key)
+        return formatter.copy() as? DateFormatter ?? formatter
     }
     
     // MARK: - 高级功能
@@ -783,8 +817,10 @@ public class TFYSwiftJsonKit: NSObject {
         queue: DispatchQueue = .global(qos: .userInitiated),
         completion: @escaping (Result<T, TFYJsonError>) -> Void
     ) {
+        // 使用 nonisolated(unsafe) 捕获类型，因为 T.Type 是元类型，不包含可变状态，线程安全
+        nonisolated(unsafe) let capturedType = type
         queue.async {
-            let result = decode(type, from: data, config: config)
+            let result = decode(capturedType, from: data, config: config)
             DispatchQueue.main.async {
                 completion(result)
             }

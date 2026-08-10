@@ -227,6 +227,13 @@ public protocol UINibInstantiable: AnyObject {
 }
 
 extension UINibInstantiable where Self: UIView {
+    public static func instantiateSafely(atNib index: Int = 0, withOwner owner: Any? = nil) -> Self? {
+        let identifier = String(describing: self)
+        let views = identifier.nib().instantiate(withOwner: owner, options: nil)
+        guard views.indices.contains(index) else { return nil }
+        return views[index] as? Self
+    }
+
     public static func instantiate(atNib index: Int, withOwner owner: Any? = nil) -> Self {
         let identifier = String(describing: self)
         return identifier.nib().instantiate(withOwner: owner, options: nil)[index] as! Self
@@ -237,6 +244,13 @@ extension UINibInstantiable where Self: UIView {
 }
 
 extension UINibInstantiable where Self: NSObject {
+    public static func instantiateSafely(atNib index: Int = 0, withOwner owner: Any? = nil) -> Self? {
+        let identifier = String(describing: self)
+        let objects = identifier.nib().instantiate(withOwner: owner, options: nil)
+        guard objects.indices.contains(index) else { return nil }
+        return objects[index] as? Self
+    }
+
     public static func instantiate(atNib index: Int, withOwner owner: Any? = nil) -> Self {
         let identifier = String(describing: self)
         return identifier.nib().instantiate(withOwner: owner, options: nil)[index] as! Self

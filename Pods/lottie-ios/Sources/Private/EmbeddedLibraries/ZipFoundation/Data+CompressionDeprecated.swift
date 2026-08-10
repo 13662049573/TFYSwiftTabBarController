@@ -2,7 +2,7 @@
 //  Data+CompressionDeprecated.swift
 //  ZIPFoundation
 //
-//  Copyright © 2017-2021 Thomas Zoechling, https://www.peakstep.com and the ZIP Foundation project authors.
+//  Copyright © 2017-2025 Thomas Zoechling, https://www.peakstep.com and the ZIP Foundation project authors.
 //  Released under the MIT License.
 //
 //  See https://github.com/weichsel/ZIPFoundation/blob/master/LICENSE for license information.
@@ -17,9 +17,8 @@ extension Data {
     size: Int,
     bufferSize: Int,
     provider: (_ position: Int, _ size: Int) throws -> Data,
-    consumer: Consumer)
-    throws -> CRC32
-  {
+    consumer: Consumer
+  ) throws -> CRC32 {
     let newProvider: Provider = { try provider(Int($0), $1) }
     return try compress(size: Int64(size), bufferSize: bufferSize, provider: newProvider, consumer: consumer)
   }
@@ -30,15 +29,15 @@ extension Data {
     bufferSize: Int,
     skipCRC32: Bool,
     provider: (_ position: Int, _ size: Int) throws -> Data,
-    consumer: Consumer)
-    throws -> CRC32
-  {
+    consumer: Consumer
+  ) throws -> CRC32 {
     let newProvider: Provider = { try provider(Int($0), $1) }
     return try decompress(
       size: Int64(size),
       bufferSize: bufferSize,
       skipCRC32: skipCRC32,
       provider: newProvider,
-      consumer: consumer)
+      consumer: consumer
+    )
   }
 }

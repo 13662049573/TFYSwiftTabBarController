@@ -33,9 +33,15 @@ public extension TFY where Base == NSRange {
     /// - Returns: 是否有效
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func isValid(in stringLength: Int) -> Bool {
-        return self.base.location >= 0 && 
-               self.base.length >= 0 && 
-               self.base.location + self.base.length <= stringLength
+        guard stringLength >= 0,
+              self.base.location >= 0,
+              self.base.length >= 0 else {
+            return false
+        }
+        guard self.base.location <= stringLength - self.base.length else {
+            return false
+        }
+        return true
     }
     
     // MARK: 1.3、获取范围的结束位置
@@ -43,7 +49,8 @@ public extension TFY where Base == NSRange {
     /// - Returns: 结束位置
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     var endLocation: Int {
-        return self.base.location + self.base.length
+        guard self.base.location >= 0, self.base.length >= 0 else { return self.base.location }
+        return self.base.location.addingReportingOverflow(self.base.length).overflow ? Int.max : self.base.location + self.base.length
     }
     
     // MARK: 1.4、检查范围是否为空
@@ -60,8 +67,11 @@ public extension TFY where Base == NSRange {
     /// - Returns: 是否重叠
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func overlaps(with other: NSRange) -> Bool {
-        let selfEnd = self.base.location + self.base.length
-        let otherEnd = other.location + other.length
+        guard self.base.location >= 0, self.base.length >= 0, other.location >= 0, other.length >= 0 else {
+            return false
+        }
+        let selfEnd = self.endLocation
+        let otherEnd = other.tfy.endLocation
         return self.base.location < otherEnd && other.location < selfEnd
     }
     
@@ -87,8 +97,8 @@ public extension TFY where Base == NSRange {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func union(with other: NSRange) -> NSRange {
         let startLocation = min(self.base.location, other.location)
-        let selfEnd = self.base.location + self.base.length
-        let otherEnd = other.location + other.length
+        let selfEnd = self.endLocation
+        let otherEnd = other.tfy.endLocation
         let endLocation = max(selfEnd, otherEnd)
         return NSRange(location: startLocation, length: endLocation - startLocation)
     }
@@ -99,7 +109,8 @@ public extension TFY where Base == NSRange {
     /// - Returns: 是否包含
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func contains(_ location: Int) -> Bool {
-        let selfEnd = self.base.location + self.base.length
+        guard self.base.location >= 0, self.base.length >= 0 else { return false }
+        let selfEnd = self.endLocation
         return location >= self.base.location && location < selfEnd
     }
     
@@ -109,8 +120,11 @@ public extension TFY where Base == NSRange {
     /// - Returns: 是否完全包含
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func contains(_ other: NSRange) -> Bool {
-        let selfEnd = self.base.location + self.base.length
-        let otherEnd = other.location + other.length
+        guard self.base.location >= 0, self.base.length >= 0, other.location >= 0, other.length >= 0 else {
+            return false
+        }
+        let selfEnd = self.endLocation
+        let otherEnd = other.tfy.endLocation
         return self.base.location <= other.location && selfEnd >= otherEnd
     }
     
@@ -122,8 +136,12 @@ public extension TFY where Base == NSRange {
     /// - Returns: 扩展后的范围
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func expanded(by length: Int, in stringLength: Int) -> NSRange {
-        let newLocation = max(0, self.base.location - length)
-        let newLength = min(stringLength - newLocation, self.base.length + 2 * length)
+        let expansion = max(0, length)
+        let safeStringLength = max(0, stringLength)
+        let clampedRange = clamped(to: safeStringLength)
+        let newLocation = max(0, clampedRange.location - expansion)
+        let desiredEnd = min(safeStringLength, clampedRange.tfy.endLocation + expansion)
+        let newLength = max(0, desiredEnd - newLocation)
         return NSRange(location: newLocation, length: newLength)
     }
     
@@ -133,8 +151,10 @@ public extension TFY where Base == NSRange {
     /// - Returns: 缩小后的范围
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func contracted(by length: Int) -> NSRange {
-        let newLocation = self.base.location + length
-        let newLength = max(0, self.base.length - 2 * length)
+        let contraction = max(0, length)
+        let appliedContraction = min(contraction, self.base.length / 2)
+        let newLocation = self.base.location + appliedContraction
+        let newLength = max(0, self.base.length - 2 * appliedContraction)
         return NSRange(location: newLocation, length: newLength)
     }
     
@@ -146,6 +166,19 @@ public extension TFY where Base == NSRange {
     func moved(by offset: Int) -> NSRange {
         return NSRange(location: self.base.location + offset, length: self.base.length)
     }
+
+    // MARK: 1.12.1、安全移动范围
+    /// 安全移动范围，移动后会被限制在指定长度内
+    /// - Parameters:
+    ///   - offset: 移动距离
+    ///   - stringLength: 最大长度
+    /// - Returns: 移动后的范围
+    func safelyMoved(by offset: Int, in stringLength: Int) -> NSRange {
+        let clampedRange = clamped(to: stringLength)
+        let maxLocation = max(0, max(0, stringLength) - clampedRange.length)
+        let newLocation = min(max(0, clampedRange.location + offset), maxLocation)
+        return NSRange(location: newLocation, length: clampedRange.length)
+    }
     
     // MARK: 1.13、调整范围长度
     /// 调整范围长度
@@ -153,7 +186,18 @@ public extension TFY where Base == NSRange {
     /// - Returns: 调整后的范围
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func resized(to length: Int) -> NSRange {
-        return NSRange(location: self.base.location, length: length)
+        return NSRange(location: self.base.location, length: max(0, length))
+    }
+
+    // MARK: 1.13.1、限制范围到指定长度内
+    /// 限制范围到指定长度内
+    /// - Parameter stringLength: 最大长度
+    /// - Returns: 限制后的范围
+    func clamped(to stringLength: Int) -> NSRange {
+        let safeStringLength = max(0, stringLength)
+        let safeLocation = min(max(0, self.base.location), safeStringLength)
+        let safeLength = min(max(0, self.base.length), safeStringLength - safeLocation)
+        return NSRange(location: safeLocation, length: safeLength)
     }
     
     // MARK: 1.14、获取范围的描述
@@ -174,7 +218,7 @@ public extension NSRange {
     /// - Returns: 空范围
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func empty(at location: Int = 0) -> NSRange {
-        return NSRange(location: location, length: 0)
+        return NSRange(location: max(0, location), length: 0)
     }
     
     // MARK: 2.2、创建全范围
@@ -183,7 +227,7 @@ public extension NSRange {
     /// - Returns: 全范围
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func full(length: Int) -> NSRange {
-        return NSRange(location: 0, length: length)
+        return NSRange(location: 0, length: max(0, length))
     }
     
     // MARK: 2.3、从Range创建NSRange
@@ -246,6 +290,7 @@ public extension NSRange {
     /// - Returns: 子范围，失败返回nil
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func subrange(offset: Int, length: Int) -> NSRange? {
+        guard offset >= 0, length >= 0 else { return nil }
         let newLocation = self.location + offset
         let selfEnd = self.location + self.length
         guard newLocation >= self.location && newLocation + length <= selfEnd else {
@@ -295,4 +340,3 @@ public extension NSRange {
         return selfEnd == other.location || otherEnd == self.location
     }
 }
-

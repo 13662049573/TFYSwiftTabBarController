@@ -11,42 +11,54 @@ public extension TFY where Base: UserDefaults {
     
     @discardableResult
     func removeObject(forKey defaultName: String) -> Self {
+        guard isValidKey(defaultName) else { return self }
         base.removeObject(forKey: defaultName)
         return self
     }
     
     @discardableResult
     func set(_ value: Any?, forKey defaultName: String) -> Self {
+        guard isValidKey(defaultName) else { return self }
+        guard let value = value else {
+            base.removeObject(forKey: defaultName)
+            return self
+        }
+        guard isValidPropertyListValue(value) else { return self }
         base.set(value, forKey: defaultName)
         return self
     }
     
     @discardableResult
     func set(_ value: Bool, forKey defaultName: String) -> Self {
+        guard isValidKey(defaultName) else { return self }
         base.set(value, forKey: defaultName)
         return self
     }
     
     @discardableResult
     func set(_ value: Int, forKey defaultName: String) -> Self {
+        guard isValidKey(defaultName) else { return self }
         base.set(value, forKey: defaultName)
         return self
     }
     
     @discardableResult
     func set(_ value: Double, forKey defaultName: String) -> Self {
+        guard isValidKey(defaultName) else { return self }
         base.set(value, forKey: defaultName)
         return self
     }
     
     @discardableResult
     func set(_ value: Float, forKey defaultName: String) -> Self {
+        guard isValidKey(defaultName) else { return self }
         base.set(value, forKey: defaultName)
         return self
     }
     
     @discardableResult
     func set(_ url: URL?, forKey defaultName: String) -> Self {
+        guard isValidKey(defaultName) else { return self }
         base.set(url, forKey: defaultName)
         return self
     }
@@ -64,6 +76,7 @@ public extension TFY where Base: UserDefaults {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func set(_ value: String, forKey defaultName: String) -> Self {
+        guard isValidKey(defaultName) else { return self }
         base.set(value, forKey: defaultName)
         return self
     }
@@ -76,6 +89,7 @@ public extension TFY where Base: UserDefaults {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func set(_ value: Data, forKey defaultName: String) -> Self {
+        guard isValidKey(defaultName) else { return self }
         base.set(value, forKey: defaultName)
         return self
     }
@@ -88,6 +102,7 @@ public extension TFY where Base: UserDefaults {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func set(_ value: [Any], forKey defaultName: String) -> Self {
+        guard isValidKey(defaultName), isValidPropertyListValue(value) else { return self }
         base.set(value, forKey: defaultName)
         return self
     }
@@ -100,6 +115,7 @@ public extension TFY where Base: UserDefaults {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func set(_ value: [String: Any], forKey defaultName: String) -> Self {
+        guard isValidKey(defaultName), isValidPropertyListValue(value) else { return self }
         base.set(value, forKey: defaultName)
         return self
     }
@@ -112,6 +128,7 @@ public extension TFY where Base: UserDefaults {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func set(_ value: Date, forKey defaultName: String) -> Self {
+        guard isValidKey(defaultName) else { return self }
         base.set(value, forKey: defaultName)
         return self
     }
@@ -123,6 +140,7 @@ public extension TFY where Base: UserDefaults {
     @discardableResult
     func setValues(_ dictionary: [String: Any]) -> Self {
         for (key, value) in dictionary {
+            guard isValidKey(key), isValidPropertyListValue(value) else { continue }
             base.set(value, forKey: key)
         }
         return self
@@ -133,6 +151,7 @@ public extension TFY where Base: UserDefaults {
     /// - Returns: 如果键存在返回true
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func hasKey(_ defaultName: String) -> Bool {
+        guard isValidKey(defaultName) else { return false }
         return base.object(forKey: defaultName) != nil
     }
     
@@ -140,7 +159,7 @@ public extension TFY where Base: UserDefaults {
     /// - Returns: 所有键的数组
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func allKeys() -> [String] {
-        return Array(base.dictionaryRepresentation().keys)
+        return Array(base.dictionaryRepresentation().keys).sorted()
     }
     
     /// 获取所有值
@@ -167,7 +186,10 @@ public extension TFY where Base: UserDefaults {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func resetToDefaults() -> Self {
-        base.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
+        guard let bundleIdentifier = Bundle.main.bundleIdentifier, !bundleIdentifier.isEmpty else {
+            return self
+        }
+        base.removePersistentDomain(forName: bundleIdentifier)
         return self
     }
     
@@ -178,6 +200,7 @@ public extension TFY where Base: UserDefaults {
     /// - Returns: 字符串值
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func string(forKey defaultName: String, defaultValue: String = "") -> String {
+        guard hasKey(defaultName) else { return defaultValue }
         return base.string(forKey: defaultName) ?? defaultValue
     }
     
@@ -188,6 +211,7 @@ public extension TFY where Base: UserDefaults {
     /// - Returns: 整数值
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func integer(forKey defaultName: String, defaultValue: Int = 0) -> Int {
+        guard hasKey(defaultName) else { return defaultValue }
         return base.integer(forKey: defaultName)
     }
     
@@ -198,6 +222,7 @@ public extension TFY where Base: UserDefaults {
     /// - Returns: 浮点数值
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func float(forKey defaultName: String, defaultValue: Float = 0.0) -> Float {
+        guard hasKey(defaultName) else { return defaultValue }
         return base.float(forKey: defaultName)
     }
     
@@ -208,6 +233,7 @@ public extension TFY where Base: UserDefaults {
     /// - Returns: 双精度值
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func double(forKey defaultName: String, defaultValue: Double = 0.0) -> Double {
+        guard hasKey(defaultName) else { return defaultValue }
         return base.double(forKey: defaultName)
     }
     
@@ -218,6 +244,7 @@ public extension TFY where Base: UserDefaults {
     /// - Returns: 布尔值
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func bool(forKey defaultName: String, defaultValue: Bool = false) -> Bool {
+        guard hasKey(defaultName) else { return defaultValue }
         return base.bool(forKey: defaultName)
     }
     
@@ -228,6 +255,7 @@ public extension TFY where Base: UserDefaults {
     /// - Returns: 数组值
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func array(forKey defaultName: String, defaultValue: [Any] = []) -> [Any] {
+        guard hasKey(defaultName) else { return defaultValue }
         return base.array(forKey: defaultName) ?? defaultValue
     }
     
@@ -238,6 +266,7 @@ public extension TFY where Base: UserDefaults {
     /// - Returns: 字典值
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func dictionary(forKey defaultName: String, defaultValue: [String: Any] = [:]) -> [String: Any] {
+        guard hasKey(defaultName) else { return defaultValue }
         return base.dictionary(forKey: defaultName) ?? defaultValue
     }
     
@@ -248,6 +277,7 @@ public extension TFY where Base: UserDefaults {
     /// - Returns: 数据值
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func data(forKey defaultName: String, defaultValue: Data = Data()) -> Data {
+        guard hasKey(defaultName) else { return defaultValue }
         return base.data(forKey: defaultName) ?? defaultValue
     }
     
@@ -258,6 +288,7 @@ public extension TFY where Base: UserDefaults {
     /// - Returns: URL值
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func url(forKey defaultName: String, defaultValue: URL? = nil) -> URL? {
+        guard hasKey(defaultName) else { return defaultValue }
         return base.url(forKey: defaultName) ?? defaultValue
     }
     
@@ -268,6 +299,7 @@ public extension TFY where Base: UserDefaults {
     /// - Returns: 日期值
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func date(forKey defaultName: String, defaultValue: Date? = nil) -> Date? {
+        guard hasKey(defaultName) else { return defaultValue }
         return base.object(forKey: defaultName) as? Date ?? defaultValue
     }
     
@@ -279,7 +311,7 @@ public extension TFY where Base: UserDefaults {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func setIfNotNil(_ value: Any?, forKey defaultName: String) -> Self {
-        if let value = value {
+        if let value = value, isValidKey(defaultName), isValidPropertyListValue(value) {
             base.set(value, forKey: defaultName)
         }
         return self
@@ -323,5 +355,15 @@ public extension TFY where Base: UserDefaults {
         formatter.allowedUnits = [.useKB, .useMB, .useGB]
         formatter.countStyle = .file
         return formatter.string(fromByteCount: storageSize())
+    }
+}
+
+private extension TFY where Base: UserDefaults {
+    func isValidKey(_ key: String) -> Bool {
+        return !key.isEmpty
+    }
+
+    func isValidPropertyListValue(_ value: Any) -> Bool {
+        return PropertyListSerialization.propertyList(value, isValidFor: .binary)
     }
 }

@@ -23,17 +23,20 @@ public extension TFY where Base: UIApplication {
     /// - Returns: 当前显示的视图控制器
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static var currentViewController: UIViewController {
-        let window = self.appDelegate.window
-        var viewController = window!!.rootViewController
-        while ((viewController?.presentedViewController) != nil) {
-            viewController = viewController?.presentedViewController
-            if ((viewController?.isKind(of: UINavigationController.classForCoder())) == true) {
-                viewController = (viewController as! UINavigationController).visibleViewController
-            } else if ((viewController?.isKind(of: UITabBarController.classForCoder())) == true) {
-                viewController = (viewController as! UITabBarController).selectedViewController
-            }
-        }
-        return viewController!
+        return currentViewControllerIfAvailable ?? UIViewController()
+    }
+
+    // MARK: 1.3、当前视图控制器（安全可选）
+    /// 当前显示的视图控制器，无法获取时返回 nil
+    /// - Note: 支持iOS 15+，适配iPhone和iPad
+    static var currentViewControllerIfAvailable: UIViewController? {
+        let rootViewController = UIWindow.currentWindow?.rootViewController
+            ?? UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .flatMap { $0.windows }
+                .first(where: { !$0.isHidden && $0.alpha > 0 })?
+                .rootViewController
+        return rootViewController?.tfy_visibleViewController
     }
 }
 
@@ -131,11 +134,13 @@ public extension UIApplication {
     /// - Returns: 截图图片
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func snapShot(_ inView: UIView) -> UIImage {
-        UIGraphicsBeginImageContext(inView.bounds.size)
-        inView.layer.render(in: UIGraphicsGetCurrentContext()!)
-        let snapShot: UIImage = UIGraphicsGetImageFromCurrentImageContext()!
-        UIGraphicsEndImageContext()
-        return snapShot
+        let size = inView.bounds.size
+        guard size.width > 0, size.height > 0 else { return UIImage() }
+
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { context in
+            inView.layer.render(in: context.cgContext)
+        }
     }
     
     // MARK: 3.2、App Store链接
@@ -144,7 +149,7 @@ public extension UIApplication {
     /// - Returns: App Store链接字符串
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func appUrlWithID(_ appStoreID: String) -> String {
-        let appStoreUrl = "itms-apps://itunes.apple.com/app/id\(appStoreID)?mt=8"
+        let appStoreUrl = "itms-apps://itunes.apple.com/app/id\(appStoreID.tfy_appStoreID)?mt=8"
         return appStoreUrl
     }
     
@@ -154,7 +159,7 @@ public extension UIApplication {
     /// - Returns: App详情链接字符串
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func appDetailUrlWithID(_ appStoreID: String) -> String {
-        let detailUrl = "http://itunes.apple.com/cn/lookup?id=\(appStoreID)"
+        let detailUrl = "https://itunes.apple.com/cn/lookup?id=\(appStoreID.tfy_appStoreID)"
         return detailUrl
     }
     
@@ -167,7 +172,11 @@ public extension UIApplication {
     static func updateVersion(appStoreID: String, block:@escaping (([String: Any], String, String, Bool)->Void)) {
 //        let path = "http://itunes.apple.com/cn/lookup?id=\(appStoreID)"
         let path =  UIApplication.appDetailUrlWithID(appStoreID)
-        let request = URLRequest(url:NSURL(string: path)! as URL, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 6)
+        guard let url = URL(string: path) else {
+            block([:], "", "", false)
+            return
+        }
+        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 6)
         let dataTask = URLSession.shared.dataTask(with: request) { (data, respone, error) in
             guard let data = data,
                   let dic = try? JSONSerialization.jsonObject(with: data, options: .mutableLeaves) as? [String: Any] else {
@@ -215,9 +224,16 @@ public extension UIApplication {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func openURLString(_ string: String, prefix: String = "") {
 
-        var tmp = string
-        if string.hasPrefix(prefix) == false {
-            tmp = prefix + string
+        let trimmedString = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedPrefix = prefix.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedString.isEmpty else {
+            TFYUtils.Logger.log("\(#function):链接无法打开!!!\n\(string)")
+            return
+        }
+
+        var tmp = trimmedString
+        if !trimmedPrefix.isEmpty, tmp.hasPrefix(trimmedPrefix) == false {
+            tmp = trimmedPrefix + tmp
         }
         if tmp.hasPrefix("tel") {
             tmp = tmp.replacingOccurrences(of: "-", with: "")
@@ -348,7 +364,7 @@ public extension UIApplication {
     /// - Returns: 启动时间
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static var appLaunchTime: Date {
-        return Date(timeIntervalSince1970: ProcessInfo.processInfo.systemUptime)
+        return Date(timeIntervalSinceNow: -ProcessInfo.processInfo.systemUptime)
     }
     
     // MARK: 3.19、获取应用运行时间
@@ -438,3 +454,23 @@ public extension UIApplication {
     }
 }
 
+private extension UIViewController {
+    var tfy_visibleViewController: UIViewController {
+        if let navigationController = self as? UINavigationController {
+            return navigationController.visibleViewController?.tfy_visibleViewController ?? navigationController
+        }
+        if let tabBarController = self as? UITabBarController {
+            return tabBarController.selectedViewController?.tfy_visibleViewController ?? tabBarController
+        }
+        if let presentedViewController = presentedViewController {
+            return presentedViewController.tfy_visibleViewController
+        }
+        return self
+    }
+}
+
+private extension String {
+    var tfy_appStoreID: String {
+        return trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}

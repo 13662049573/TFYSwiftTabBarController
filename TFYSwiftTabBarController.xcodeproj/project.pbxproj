@@ -7,12 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		09C01651F539408C93085943 /* DemoFactories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BFDAE670EB34350A703C4A5 /* DemoFactories.swift */; };
+		0A4BB6D5AD4A2D53B36C5D50 /* Pods_TFYSwiftTabBarControllerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1C0D599B12B3964A78C16E8 /* Pods_TFYSwiftTabBarControllerTests.framework */; };
 		3654A9202E7AFDA5008B1DF0 /* AllDemosViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3654A91F2E7AFDA5008B1DF0 /* AllDemosViewController.swift */; };
-		3654A9262E7CBFDE008B1DF0 /* TFYSwiftTabBarBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3654A9222E7CBFDE008B1DF0 /* TFYSwiftTabBarBadgeView.swift */; };
-		3654A9272E7CBFDE008B1DF0 /* TFYSwiftTabBarItemContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3654A9252E7CBFDE008B1DF0 /* TFYSwiftTabBarItemContentView.swift */; };
-		3654A9282E7CBFDE008B1DF0 /* TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3654A9212E7CBFDE008B1DF0 /* TFYSwiftTabBar.swift */; };
-		3654A9292E7CBFDE008B1DF0 /* TFYSwiftTabbarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3654A9232E7CBFDE008B1DF0 /* TFYSwiftTabbarController.swift */; };
-		3654A92A2E7CBFDE008B1DF0 /* TFYSwiftTabBarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3654A9242E7CBFDE008B1DF0 /* TFYSwiftTabBarItem.swift */; };
 		3666A58928220B0D0054F22E /* Pods_TFYSwiftTabBarController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7225CA48D6E76B8327E2B824 /* Pods_TFYSwiftTabBarController.framework */; };
 		369F464726421E56002D8566 /* TFYSwiftTabBarControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F464626421E56002D8566 /* TFYSwiftTabBarControllerTests.swift */; };
 		369F465226421E56002D8566 /* TFYSwiftTabBarControllerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F465126421E56002D8566 /* TFYSwiftTabBarControllerUITests.swift */; };
@@ -20,6 +17,56 @@
 		369F466D26421EAE002D8566 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F466326421EAD002D8566 /* SceneDelegate.swift */; };
 		369F466E26421EAE002D8566 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 369F466526421EAD002D8566 /* Assets.xcassets */; };
 		369F466F26421EAE002D8566 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 369F466626421EAD002D8566 /* LaunchScreen.storyboard */; };
+		56644AB45E32442ABF1FCEFA /* DemoSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD4B3D988E1E4F1E842FCA51 /* DemoSupport.swift */; };
+		7EB27D62F6974AB08A11943A /* DemoPlusButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25933383ECE5498BA63C300E /* DemoPlusButtons.swift */; };
+		843B1CB23029B35400D50057 /* UIControl+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA33029B35400D50057 /* UIControl+TFYSwiftTabBar.swift */; };
+		843B1CB33029B35400D50057 /* TFYSwiftBaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C993029B35400D50057 /* TFYSwiftBaseViewController.swift */; };
+		843B1CB43029B35400D50057 /* TFYSwiftConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C9A3029B35400D50057 /* TFYSwiftConstants.swift */; };
+		843B1CB53029B35400D50057 /* TFYSwiftTabBar+Extention.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C9D3029B35400D50057 /* TFYSwiftTabBar+Extention.swift */; };
+		843B1CB63029B35400D50057 /* TFYSwiftFlatDesignTabBarHideTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CAD3029B35400D50057 /* TFYSwiftFlatDesignTabBarHideTabBar.swift */; };
+		843B1CB73029B35400D50057 /* TFYSwiftBadgeProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C903029B35400D50057 /* TFYSwiftBadgeProtocol.swift */; };
+		843B1CB83029B35400D50057 /* TFYSwiftFlatDesignPrivate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CAA3029B35400D50057 /* TFYSwiftFlatDesignPrivate.swift */; };
+		843B1CB93029B35400D50057 /* TFYSwiftBaseNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C973029B35400D50057 /* TFYSwiftBaseNavigationController.swift */; };
+		843B1CBA3029B35400D50057 /* UIViewController+TFYSwiftNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA73029B35400D50057 /* UIViewController+TFYSwiftNavigation.swift */; };
+		843B1CBB3029B35400D50057 /* TFYSwiftFlatDesignTabBarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CAC3029B35400D50057 /* TFYSwiftFlatDesignTabBarButton.swift */; };
+		843B1CBC3029B35400D50057 /* UIControl+TFYSwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C933029B35400D50057 /* UIControl+TFYSwiftBadge.swift */; };
+		843B1CBD3029B35400D50057 /* TFYSwiftCompatibleLottie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CB03029B35400D50057 /* TFYSwiftCompatibleLottie.swift */; };
+		843B1CBE3029B35400D50057 /* TFYSwiftTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C9E3029B35400D50057 /* TFYSwiftTabBarController.swift */; };
+		843B1CBF3029B35400D50057 /* UIColor+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA23029B35400D50057 /* UIColor+TFYSwiftTabBar.swift */; };
+		843B1CC03029B35400D50057 /* TFYSwiftPlusButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C9B3029B35400D50057 /* TFYSwiftPlusButton.swift */; };
+		843B1CC13029B35400D50057 /* TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C9C3029B35400D50057 /* TFYSwiftTabBar.swift */; };
+		843B1CC23029B35400D50057 /* UIViewController+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA83029B35400D50057 /* UIViewController+TFYSwiftTabBar.swift */; };
+		843B1CC33029B35400D50057 /* UITabBarItem+TFYSwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C943029B35400D50057 /* UITabBarItem+TFYSwiftBadge.swift */; };
+		843B1CC43029B35400D50057 /* TFYSwiftAssociatedStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA13029B35400D50057 /* TFYSwiftAssociatedStorage.swift */; };
+		843B1CC53029B35400D50057 /* UIImage+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA43029B35400D50057 /* UIImage+TFYSwiftTabBar.swift */; };
+		843B1CC63029B35400D50057 /* UIBarButtonItem+TFYSwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C923029B35400D50057 /* UIBarButtonItem+TFYSwiftBadge.swift */; };
+		843B1CC73029B35400D50057 /* TFYSwiftFlatDesignTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CAB3029B35400D50057 /* TFYSwiftFlatDesignTabBar.swift */; };
+		843B1CC83029B35400D50057 /* CAAnimation+TFYSwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C8F3029B35400D50057 /* CAAnimation+TFYSwiftBadge.swift */; };
+		843B1CC93029B35400D50057 /* UIView+TFYSwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C953029B35400D50057 /* UIView+TFYSwiftBadge.swift */; };
+		843B1CCA3029B35400D50057 /* TFYSwiftBaseTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C983029B35400D50057 /* TFYSwiftBaseTableViewController.swift */; };
+		843B1CCB3029B35400D50057 /* UIView+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA63029B35400D50057 /* UIView+TFYSwiftTabBar.swift */; };
+		843B1CCC3029B35400D50057 /* UITabBarItem+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA53029B35400D50057 /* UITabBarItem+TFYSwiftTabBar.swift */; };
+		843B1CCD3029B35400D50057 /* TFYSwiftFlatDesignTabBarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CAE3029B35400D50057 /* TFYSwiftFlatDesignTabBarItem.swift */; };
+		843B1CCE3029B35400D50057 /* TFYSwiftTabBarBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C913029B35400D50057 /* TFYSwiftTabBarBadgeView.swift */; };
+		843B1CCF3029B35400D50057 /* NSObject+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA03029B35400D50057 /* NSObject+TFYSwiftTabBar.swift */; };
+		843B1CE33029CFC400D50057 /* green_lottie_tab_news.json in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CD63029CFC400D50057 /* green_lottie_tab_news.json */; };
+		843B1CE43029CFC400D50057 /* gray_tabbar_me_animation.json in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CD13029CFC400D50057 /* gray_tabbar_me_animation.json */; };
+		843B1CE53029CFC400D50057 /* tab_search_animate.json in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CE13029CFC400D50057 /* tab_search_animate.json */; };
+		843B1CE63029CFC400D50057 /* img_tab_me_0.png in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CDA3029CFC400D50057 /* img_tab_me_0.png */; };
+		843B1CE73029CFC400D50057 /* green_lottie_tab_mine.json in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CD53029CFC400D50057 /* green_lottie_tab_mine.json */; };
+		843B1CE83029CFC400D50057 /* img_tab_home_0.png in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CD73029CFC400D50057 /* img_tab_home_0.png */; };
+		843B1CE93029CFC400D50057 /* tab_message_animate.json in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CE03029CFC400D50057 /* tab_message_animate.json */; };
+		843B1CEA3029CFC400D50057 /* green_lottie_tab_home.json in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CD43029CFC400D50057 /* green_lottie_tab_home.json */; };
+		843B1CEB3029CFC400D50057 /* img_tab_message_0.png in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CDC3029CFC400D50057 /* img_tab_message_0.png */; };
+		843B1CEC3029CFC400D50057 /* tab_me_animate.json in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CDF3029CFC400D50057 /* tab_me_animate.json */; };
+		843B1CED3029CFC400D50057 /* gray_tabbar_message_animation.json in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CD23029CFC400D50057 /* gray_tabbar_message_animation.json */; };
+		843B1CEE3029CFC400D50057 /* img_tab_me_1.png in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CDB3029CFC400D50057 /* img_tab_me_1.png */; };
+		843B1CEF3029CFC400D50057 /* img_tab_message_1.png in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CDD3029CFC400D50057 /* img_tab_message_1.png */; };
+		843B1CF03029CFC400D50057 /* gray_tabbar_home_animation.json in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CD03029CFC400D50057 /* gray_tabbar_home_animation.json */; };
+		843B1CF13029CFC400D50057 /* green_lottie_tab_discover.json in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CD33029CFC400D50057 /* green_lottie_tab_discover.json */; };
+		843B1CF23029CFC400D50057 /* img_tab_home_2.png in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CD93029CFC400D50057 /* img_tab_home_2.png */; };
+		843B1CF33029CFC400D50057 /* tab_home_animate.json in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CDE3029CFC400D50057 /* tab_home_animate.json */; };
+		843B1CF43029CFC400D50057 /* img_tab_home_1.png in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CD83029CFC400D50057 /* img_tab_home_1.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,12 +87,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		25933383ECE5498BA63C300E /* DemoPlusButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoPlusButtons.swift; sourceTree = "<group>"; };
 		3654A91F2E7AFDA5008B1DF0 /* AllDemosViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllDemosViewController.swift; sourceTree = "<group>"; };
-		3654A9212E7CBFDE008B1DF0 /* TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBar.swift; sourceTree = "<group>"; };
-		3654A9222E7CBFDE008B1DF0 /* TFYSwiftTabBarBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarBadgeView.swift; sourceTree = "<group>"; };
-		3654A9232E7CBFDE008B1DF0 /* TFYSwiftTabbarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabbarController.swift; sourceTree = "<group>"; };
-		3654A9242E7CBFDE008B1DF0 /* TFYSwiftTabBarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarItem.swift; sourceTree = "<group>"; };
-		3654A9252E7CBFDE008B1DF0 /* TFYSwiftTabBarItemContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarItemContentView.swift; sourceTree = "<group>"; };
 		369F462C26421E55002D8566 /* TFYSwiftTabBarController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TFYSwiftTabBarController.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		369F464226421E56002D8566 /* TFYSwiftTabBarControllerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TFYSwiftTabBarControllerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		369F464626421E56002D8566 /* TFYSwiftTabBarControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarControllerTests.swift; sourceTree = "<group>"; };
@@ -60,6 +103,59 @@
 		369F466A26421EAD002D8566 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3ED0DD7FF3393B7F53426101 /* Pods-TFYSwiftTabBarController.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarController.debug.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarController/Pods-TFYSwiftTabBarController.debug.xcconfig"; sourceTree = "<group>"; };
 		7225CA48D6E76B8327E2B824 /* Pods_TFYSwiftTabBarController.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TFYSwiftTabBarController.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		843B1C8F3029B35400D50057 /* CAAnimation+TFYSwiftBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CAAnimation+TFYSwiftBadge.swift"; sourceTree = "<group>"; };
+		843B1C903029B35400D50057 /* TFYSwiftBadgeProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftBadgeProtocol.swift; sourceTree = "<group>"; };
+		843B1C913029B35400D50057 /* TFYSwiftTabBarBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarBadgeView.swift; sourceTree = "<group>"; };
+		843B1C923029B35400D50057 /* UIBarButtonItem+TFYSwiftBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIBarButtonItem+TFYSwiftBadge.swift"; sourceTree = "<group>"; };
+		843B1C933029B35400D50057 /* UIControl+TFYSwiftBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIControl+TFYSwiftBadge.swift"; sourceTree = "<group>"; };
+		843B1C943029B35400D50057 /* UITabBarItem+TFYSwiftBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITabBarItem+TFYSwiftBadge.swift"; sourceTree = "<group>"; };
+		843B1C953029B35400D50057 /* UIView+TFYSwiftBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+TFYSwiftBadge.swift"; sourceTree = "<group>"; };
+		843B1C973029B35400D50057 /* TFYSwiftBaseNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftBaseNavigationController.swift; sourceTree = "<group>"; };
+		843B1C983029B35400D50057 /* TFYSwiftBaseTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftBaseTableViewController.swift; sourceTree = "<group>"; };
+		843B1C993029B35400D50057 /* TFYSwiftBaseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftBaseViewController.swift; sourceTree = "<group>"; };
+		843B1C9A3029B35400D50057 /* TFYSwiftConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftConstants.swift; sourceTree = "<group>"; };
+		843B1C9B3029B35400D50057 /* TFYSwiftPlusButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftPlusButton.swift; sourceTree = "<group>"; };
+		843B1C9C3029B35400D50057 /* TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBar.swift; sourceTree = "<group>"; };
+		843B1C9D3029B35400D50057 /* TFYSwiftTabBar+Extention.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TFYSwiftTabBar+Extention.swift"; sourceTree = "<group>"; };
+		843B1C9E3029B35400D50057 /* TFYSwiftTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarController.swift; sourceTree = "<group>"; };
+		843B1CA03029B35400D50057 /* NSObject+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSObject+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
+		843B1CA13029B35400D50057 /* TFYSwiftAssociatedStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftAssociatedStorage.swift; sourceTree = "<group>"; };
+		843B1CA23029B35400D50057 /* UIColor+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
+		843B1CA33029B35400D50057 /* UIControl+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIControl+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
+		843B1CA43029B35400D50057 /* UIImage+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
+		843B1CA53029B35400D50057 /* UITabBarItem+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITabBarItem+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
+		843B1CA63029B35400D50057 /* UIView+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
+		843B1CA73029B35400D50057 /* UIViewController+TFYSwiftNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+TFYSwiftNavigation.swift"; sourceTree = "<group>"; };
+		843B1CA83029B35400D50057 /* UIViewController+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
+		843B1CAA3029B35400D50057 /* TFYSwiftFlatDesignPrivate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftFlatDesignPrivate.swift; sourceTree = "<group>"; };
+		843B1CAB3029B35400D50057 /* TFYSwiftFlatDesignTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftFlatDesignTabBar.swift; sourceTree = "<group>"; };
+		843B1CAC3029B35400D50057 /* TFYSwiftFlatDesignTabBarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftFlatDesignTabBarButton.swift; sourceTree = "<group>"; };
+		843B1CAD3029B35400D50057 /* TFYSwiftFlatDesignTabBarHideTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftFlatDesignTabBarHideTabBar.swift; sourceTree = "<group>"; };
+		843B1CAE3029B35400D50057 /* TFYSwiftFlatDesignTabBarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftFlatDesignTabBarItem.swift; sourceTree = "<group>"; };
+		843B1CB03029B35400D50057 /* TFYSwiftCompatibleLottie.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftCompatibleLottie.swift; sourceTree = "<group>"; };
+		843B1CD03029CFC400D50057 /* gray_tabbar_home_animation.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gray_tabbar_home_animation.json; sourceTree = "<group>"; };
+		843B1CD13029CFC400D50057 /* gray_tabbar_me_animation.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gray_tabbar_me_animation.json; sourceTree = "<group>"; };
+		843B1CD23029CFC400D50057 /* gray_tabbar_message_animation.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gray_tabbar_message_animation.json; sourceTree = "<group>"; };
+		843B1CD33029CFC400D50057 /* green_lottie_tab_discover.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = green_lottie_tab_discover.json; sourceTree = "<group>"; };
+		843B1CD43029CFC400D50057 /* green_lottie_tab_home.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = green_lottie_tab_home.json; sourceTree = "<group>"; };
+		843B1CD53029CFC400D50057 /* green_lottie_tab_mine.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = green_lottie_tab_mine.json; sourceTree = "<group>"; };
+		843B1CD63029CFC400D50057 /* green_lottie_tab_news.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = green_lottie_tab_news.json; sourceTree = "<group>"; };
+		843B1CD73029CFC400D50057 /* img_tab_home_0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = img_tab_home_0.png; sourceTree = "<group>"; };
+		843B1CD83029CFC400D50057 /* img_tab_home_1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = img_tab_home_1.png; sourceTree = "<group>"; };
+		843B1CD93029CFC400D50057 /* img_tab_home_2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = img_tab_home_2.png; sourceTree = "<group>"; };
+		843B1CDA3029CFC400D50057 /* img_tab_me_0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = img_tab_me_0.png; sourceTree = "<group>"; };
+		843B1CDB3029CFC400D50057 /* img_tab_me_1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = img_tab_me_1.png; sourceTree = "<group>"; };
+		843B1CDC3029CFC400D50057 /* img_tab_message_0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = img_tab_message_0.png; sourceTree = "<group>"; };
+		843B1CDD3029CFC400D50057 /* img_tab_message_1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = img_tab_message_1.png; sourceTree = "<group>"; };
+		843B1CDE3029CFC400D50057 /* tab_home_animate.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = tab_home_animate.json; sourceTree = "<group>"; };
+		843B1CDF3029CFC400D50057 /* tab_me_animate.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = tab_me_animate.json; sourceTree = "<group>"; };
+		843B1CE03029CFC400D50057 /* tab_message_animate.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = tab_message_animate.json; sourceTree = "<group>"; };
+		843B1CE13029CFC400D50057 /* tab_search_animate.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = tab_search_animate.json; sourceTree = "<group>"; };
+		8BFDAE670EB34350A703C4A5 /* DemoFactories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoFactories.swift; sourceTree = "<group>"; };
+		B1C0D599B12B3964A78C16E8 /* Pods_TFYSwiftTabBarControllerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TFYSwiftTabBarControllerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		BDCD4064C5B7C7B113B98962 /* Pods-TFYSwiftTabBarControllerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarControllerTests.release.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarControllerTests/Pods-TFYSwiftTabBarControllerTests.release.xcconfig"; sourceTree = "<group>"; };
+		C608986C04E4C03923A8A79C /* Pods-TFYSwiftTabBarControllerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarControllerTests.debug.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarControllerTests/Pods-TFYSwiftTabBarControllerTests.debug.xcconfig"; sourceTree = "<group>"; };
+		CD4B3D988E1E4F1E842FCA51 /* DemoSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSupport.swift; sourceTree = "<group>"; };
 		E1977E78E9D9FFD0AE3A2D3A /* Pods-TFYSwiftTabBarController.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarController.release.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarController/Pods-TFYSwiftTabBarController.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -76,6 +172,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0A4BB6D5AD4A2D53B36C5D50 /* Pods_TFYSwiftTabBarControllerTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -94,6 +191,8 @@
 			children = (
 				3ED0DD7FF3393B7F53426101 /* Pods-TFYSwiftTabBarController.debug.xcconfig */,
 				E1977E78E9D9FFD0AE3A2D3A /* Pods-TFYSwiftTabBarController.release.xcconfig */,
+				C608986C04E4C03923A8A79C /* Pods-TFYSwiftTabBarControllerTests.debug.xcconfig */,
+				BDCD4064C5B7C7B113B98962 /* Pods-TFYSwiftTabBarControllerTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -154,6 +253,9 @@
 			isa = PBXGroup;
 			children = (
 				3654A91F2E7AFDA5008B1DF0 /* AllDemosViewController.swift */,
+				CD4B3D988E1E4F1E842FCA51 /* DemoSupport.swift */,
+				8BFDAE670EB34350A703C4A5 /* DemoFactories.swift */,
+				25933383ECE5498BA63C300E /* DemoPlusButtons.swift */,
 			);
 			path = Class;
 			sourceTree = "<group>";
@@ -170,6 +272,7 @@
 		369F466426421EAD002D8566 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				843B1CE23029CFC400D50057 /* LottieResources */,
 				369F466526421EAD002D8566 /* Assets.xcassets */,
 				369F466626421EAD002D8566 /* LaunchScreen.storyboard */,
 				369F466A26421EAD002D8566 /* Info.plist */,
@@ -180,19 +283,110 @@
 		369F46742642213B002D8566 /* TFYSwiftTabbarKit */ = {
 			isa = PBXGroup;
 			children = (
-				3654A9212E7CBFDE008B1DF0 /* TFYSwiftTabBar.swift */,
-				3654A9222E7CBFDE008B1DF0 /* TFYSwiftTabBarBadgeView.swift */,
-				3654A9232E7CBFDE008B1DF0 /* TFYSwiftTabbarController.swift */,
-				3654A9242E7CBFDE008B1DF0 /* TFYSwiftTabBarItem.swift */,
-				3654A9252E7CBFDE008B1DF0 /* TFYSwiftTabBarItemContentView.swift */,
+				843B1C963029B35400D50057 /* Badge */,
+				843B1C9F3029B35400D50057 /* Core */,
+				843B1CA93029B35400D50057 /* Extensions */,
+				843B1CAF3029B35400D50057 /* FlatDesign */,
+				843B1CB13029B35400D50057 /* Lottie */,
 			);
 			path = TFYSwiftTabbarKit;
+			sourceTree = "<group>";
+		};
+		843B1C963029B35400D50057 /* Badge */ = {
+			isa = PBXGroup;
+			children = (
+				843B1C8F3029B35400D50057 /* CAAnimation+TFYSwiftBadge.swift */,
+				843B1C903029B35400D50057 /* TFYSwiftBadgeProtocol.swift */,
+				843B1C913029B35400D50057 /* TFYSwiftTabBarBadgeView.swift */,
+				843B1C923029B35400D50057 /* UIBarButtonItem+TFYSwiftBadge.swift */,
+				843B1C933029B35400D50057 /* UIControl+TFYSwiftBadge.swift */,
+				843B1C943029B35400D50057 /* UITabBarItem+TFYSwiftBadge.swift */,
+				843B1C953029B35400D50057 /* UIView+TFYSwiftBadge.swift */,
+			);
+			path = Badge;
+			sourceTree = "<group>";
+		};
+		843B1C9F3029B35400D50057 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				843B1C973029B35400D50057 /* TFYSwiftBaseNavigationController.swift */,
+				843B1C983029B35400D50057 /* TFYSwiftBaseTableViewController.swift */,
+				843B1C993029B35400D50057 /* TFYSwiftBaseViewController.swift */,
+				843B1C9A3029B35400D50057 /* TFYSwiftConstants.swift */,
+				843B1C9B3029B35400D50057 /* TFYSwiftPlusButton.swift */,
+				843B1C9C3029B35400D50057 /* TFYSwiftTabBar.swift */,
+				843B1C9D3029B35400D50057 /* TFYSwiftTabBar+Extention.swift */,
+				843B1C9E3029B35400D50057 /* TFYSwiftTabBarController.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		843B1CA93029B35400D50057 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				843B1CA03029B35400D50057 /* NSObject+TFYSwiftTabBar.swift */,
+				843B1CA13029B35400D50057 /* TFYSwiftAssociatedStorage.swift */,
+				843B1CA23029B35400D50057 /* UIColor+TFYSwiftTabBar.swift */,
+				843B1CA33029B35400D50057 /* UIControl+TFYSwiftTabBar.swift */,
+				843B1CA43029B35400D50057 /* UIImage+TFYSwiftTabBar.swift */,
+				843B1CA53029B35400D50057 /* UITabBarItem+TFYSwiftTabBar.swift */,
+				843B1CA63029B35400D50057 /* UIView+TFYSwiftTabBar.swift */,
+				843B1CA73029B35400D50057 /* UIViewController+TFYSwiftNavigation.swift */,
+				843B1CA83029B35400D50057 /* UIViewController+TFYSwiftTabBar.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		843B1CAF3029B35400D50057 /* FlatDesign */ = {
+			isa = PBXGroup;
+			children = (
+				843B1CAA3029B35400D50057 /* TFYSwiftFlatDesignPrivate.swift */,
+				843B1CAB3029B35400D50057 /* TFYSwiftFlatDesignTabBar.swift */,
+				843B1CAC3029B35400D50057 /* TFYSwiftFlatDesignTabBarButton.swift */,
+				843B1CAD3029B35400D50057 /* TFYSwiftFlatDesignTabBarHideTabBar.swift */,
+				843B1CAE3029B35400D50057 /* TFYSwiftFlatDesignTabBarItem.swift */,
+			);
+			path = FlatDesign;
+			sourceTree = "<group>";
+		};
+		843B1CB13029B35400D50057 /* Lottie */ = {
+			isa = PBXGroup;
+			children = (
+				843B1CB03029B35400D50057 /* TFYSwiftCompatibleLottie.swift */,
+			);
+			path = Lottie;
+			sourceTree = "<group>";
+		};
+		843B1CE23029CFC400D50057 /* LottieResources */ = {
+			isa = PBXGroup;
+			children = (
+				843B1CD03029CFC400D50057 /* gray_tabbar_home_animation.json */,
+				843B1CD13029CFC400D50057 /* gray_tabbar_me_animation.json */,
+				843B1CD23029CFC400D50057 /* gray_tabbar_message_animation.json */,
+				843B1CD33029CFC400D50057 /* green_lottie_tab_discover.json */,
+				843B1CD43029CFC400D50057 /* green_lottie_tab_home.json */,
+				843B1CD53029CFC400D50057 /* green_lottie_tab_mine.json */,
+				843B1CD63029CFC400D50057 /* green_lottie_tab_news.json */,
+				843B1CD73029CFC400D50057 /* img_tab_home_0.png */,
+				843B1CD83029CFC400D50057 /* img_tab_home_1.png */,
+				843B1CD93029CFC400D50057 /* img_tab_home_2.png */,
+				843B1CDA3029CFC400D50057 /* img_tab_me_0.png */,
+				843B1CDB3029CFC400D50057 /* img_tab_me_1.png */,
+				843B1CDC3029CFC400D50057 /* img_tab_message_0.png */,
+				843B1CDD3029CFC400D50057 /* img_tab_message_1.png */,
+				843B1CDE3029CFC400D50057 /* tab_home_animate.json */,
+				843B1CDF3029CFC400D50057 /* tab_me_animate.json */,
+				843B1CE03029CFC400D50057 /* tab_message_animate.json */,
+				843B1CE13029CFC400D50057 /* tab_search_animate.json */,
+			);
+			path = LottieResources;
 			sourceTree = "<group>";
 		};
 		97549CD3453ACE389340D529 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				7225CA48D6E76B8327E2B824 /* Pods_TFYSwiftTabBarController.framework */,
+				B1C0D599B12B3964A78C16E8 /* Pods_TFYSwiftTabBarControllerTests.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -223,6 +417,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 369F465926421E56002D8566 /* Build configuration list for PBXNativeTarget "TFYSwiftTabBarControllerTests" */;
 			buildPhases = (
+				B17200D1055F55B89363AAD5 /* [CP] Check Pods Manifest.lock */,
 				369F463E26421E56002D8566 /* Sources */,
 				369F463F26421E56002D8566 /* Frameworks */,
 				369F464026421E56002D8566 /* Resources */,
@@ -307,6 +502,24 @@
 			files = (
 				369F466E26421EAE002D8566 /* Assets.xcassets in Resources */,
 				369F466F26421EAE002D8566 /* LaunchScreen.storyboard in Resources */,
+				843B1CE33029CFC400D50057 /* green_lottie_tab_news.json in Resources */,
+				843B1CE43029CFC400D50057 /* gray_tabbar_me_animation.json in Resources */,
+				843B1CE53029CFC400D50057 /* tab_search_animate.json in Resources */,
+				843B1CE63029CFC400D50057 /* img_tab_me_0.png in Resources */,
+				843B1CE73029CFC400D50057 /* green_lottie_tab_mine.json in Resources */,
+				843B1CE83029CFC400D50057 /* img_tab_home_0.png in Resources */,
+				843B1CE93029CFC400D50057 /* tab_message_animate.json in Resources */,
+				843B1CEA3029CFC400D50057 /* green_lottie_tab_home.json in Resources */,
+				843B1CEB3029CFC400D50057 /* img_tab_message_0.png in Resources */,
+				843B1CEC3029CFC400D50057 /* tab_me_animate.json in Resources */,
+				843B1CED3029CFC400D50057 /* gray_tabbar_message_animation.json in Resources */,
+				843B1CEE3029CFC400D50057 /* img_tab_me_1.png in Resources */,
+				843B1CEF3029CFC400D50057 /* img_tab_message_1.png in Resources */,
+				843B1CF03029CFC400D50057 /* gray_tabbar_home_animation.json in Resources */,
+				843B1CF13029CFC400D50057 /* green_lottie_tab_discover.json in Resources */,
+				843B1CF23029CFC400D50057 /* img_tab_home_2.png in Resources */,
+				843B1CF33029CFC400D50057 /* tab_home_animate.json in Resources */,
+				843B1CF43029CFC400D50057 /* img_tab_home_1.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -349,6 +562,28 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		B17200D1055F55B89363AAD5 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-TFYSwiftTabBarControllerTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
 		C72E2562D2AE99E11C13C2FC /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -357,13 +592,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TFYSwiftTabBarController/Pods-TFYSwiftTabBarController-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TFYSwiftTabBarController/Pods-TFYSwiftTabBarController-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -377,13 +608,41 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3654A9262E7CBFDE008B1DF0 /* TFYSwiftTabBarBadgeView.swift in Sources */,
-				3654A9272E7CBFDE008B1DF0 /* TFYSwiftTabBarItemContentView.swift in Sources */,
-				3654A9282E7CBFDE008B1DF0 /* TFYSwiftTabBar.swift in Sources */,
-				3654A9292E7CBFDE008B1DF0 /* TFYSwiftTabbarController.swift in Sources */,
-				3654A92A2E7CBFDE008B1DF0 /* TFYSwiftTabBarItem.swift in Sources */,
 				369F466C26421EAE002D8566 /* AppDelegate.swift in Sources */,
 				3654A9202E7AFDA5008B1DF0 /* AllDemosViewController.swift in Sources */,
+				56644AB45E32442ABF1FCEFA /* DemoSupport.swift in Sources */,
+				09C01651F539408C93085943 /* DemoFactories.swift in Sources */,
+				7EB27D62F6974AB08A11943A /* DemoPlusButtons.swift in Sources */,
+				843B1CB23029B35400D50057 /* UIControl+TFYSwiftTabBar.swift in Sources */,
+				843B1CB33029B35400D50057 /* TFYSwiftBaseViewController.swift in Sources */,
+				843B1CB43029B35400D50057 /* TFYSwiftConstants.swift in Sources */,
+				843B1CB53029B35400D50057 /* TFYSwiftTabBar+Extention.swift in Sources */,
+				843B1CB63029B35400D50057 /* TFYSwiftFlatDesignTabBarHideTabBar.swift in Sources */,
+				843B1CB73029B35400D50057 /* TFYSwiftBadgeProtocol.swift in Sources */,
+				843B1CB83029B35400D50057 /* TFYSwiftFlatDesignPrivate.swift in Sources */,
+				843B1CB93029B35400D50057 /* TFYSwiftBaseNavigationController.swift in Sources */,
+				843B1CBA3029B35400D50057 /* UIViewController+TFYSwiftNavigation.swift in Sources */,
+				843B1CBB3029B35400D50057 /* TFYSwiftFlatDesignTabBarButton.swift in Sources */,
+				843B1CBC3029B35400D50057 /* UIControl+TFYSwiftBadge.swift in Sources */,
+				843B1CBD3029B35400D50057 /* TFYSwiftCompatibleLottie.swift in Sources */,
+				843B1CBE3029B35400D50057 /* TFYSwiftTabBarController.swift in Sources */,
+				843B1CBF3029B35400D50057 /* UIColor+TFYSwiftTabBar.swift in Sources */,
+				843B1CC03029B35400D50057 /* TFYSwiftPlusButton.swift in Sources */,
+				843B1CC13029B35400D50057 /* TFYSwiftTabBar.swift in Sources */,
+				843B1CC23029B35400D50057 /* UIViewController+TFYSwiftTabBar.swift in Sources */,
+				843B1CC33029B35400D50057 /* UITabBarItem+TFYSwiftBadge.swift in Sources */,
+				843B1CC43029B35400D50057 /* TFYSwiftAssociatedStorage.swift in Sources */,
+				843B1CC53029B35400D50057 /* UIImage+TFYSwiftTabBar.swift in Sources */,
+				843B1CC63029B35400D50057 /* UIBarButtonItem+TFYSwiftBadge.swift in Sources */,
+				843B1CC73029B35400D50057 /* TFYSwiftFlatDesignTabBar.swift in Sources */,
+				843B1CC83029B35400D50057 /* CAAnimation+TFYSwiftBadge.swift in Sources */,
+				843B1CC93029B35400D50057 /* UIView+TFYSwiftBadge.swift in Sources */,
+				843B1CCA3029B35400D50057 /* TFYSwiftBaseTableViewController.swift in Sources */,
+				843B1CCB3029B35400D50057 /* UIView+TFYSwiftTabBar.swift in Sources */,
+				843B1CCC3029B35400D50057 /* UITabBarItem+TFYSwiftTabBar.swift in Sources */,
+				843B1CCD3029B35400D50057 /* TFYSwiftFlatDesignTabBarItem.swift in Sources */,
+				843B1CCE3029B35400D50057 /* TFYSwiftTabBarBadgeView.swift in Sources */,
+				843B1CCF3029B35400D50057 /* NSObject+TFYSwiftTabBar.swift in Sources */,
 				369F466D26421EAE002D8566 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -486,6 +745,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				LM_SKIP_METADATA_EXTRACTION = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -545,6 +805,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				LM_SKIP_METADATA_EXTRACTION = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -565,7 +826,6 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = TFYSwiftTabBarController/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -593,7 +853,6 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = TFYSwiftTabBarController/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -612,6 +871,7 @@
 		};
 		369F465A26421E56002D8566 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C608986C04E4C03923A8A79C /* Pods-TFYSwiftTabBarControllerTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -632,6 +892,7 @@
 		};
 		369F465B26421E56002D8566 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = BDCD4064C5B7C7B113B98962 /* Pods-TFYSwiftTabBarControllerTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;

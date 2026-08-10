@@ -1,33 +1,33 @@
 PODS:
-  - lottie-ios (4.5.2)
+  - lottie-ios (4.6.1)
   - SnapKit (5.7.1)
-  - TFYSwiftCategoryUtil (2.3.1):
-    - TFYSwiftCategoryUtil/Base (= 2.3.1)
-    - TFYSwiftCategoryUtil/CoreUiit (= 2.3.1)
-    - TFYSwiftCategoryUtil/Foundation (= 2.3.1)
-    - TFYSwiftCategoryUtil/Gesture (= 2.3.1)
-    - TFYSwiftCategoryUtil/UIKit (= 2.3.1)
-    - TFYSwiftCategoryUtil/Utils (= 2.3.1)
-    - TFYSwiftCategoryUtil/WKWeb (= 2.3.1)
-  - TFYSwiftCategoryUtil/Base (2.3.1)
-  - TFYSwiftCategoryUtil/CoreUiit (2.3.1)
-  - TFYSwiftCategoryUtil/Foundation (2.3.1):
+  - TFYSwiftCategoryUtil (2.4.5):
+    - TFYSwiftCategoryUtil/Base (= 2.4.5)
+    - TFYSwiftCategoryUtil/CoreUiit (= 2.4.5)
+    - TFYSwiftCategoryUtil/Foundation (= 2.4.5)
+    - TFYSwiftCategoryUtil/Gesture (= 2.4.5)
+    - TFYSwiftCategoryUtil/UIKit (= 2.4.5)
+    - TFYSwiftCategoryUtil/Utils (= 2.4.5)
+    - TFYSwiftCategoryUtil/WKWeb (= 2.4.5)
+  - TFYSwiftCategoryUtil/Base (2.4.5)
+  - TFYSwiftCategoryUtil/CoreUiit (2.4.5)
+  - TFYSwiftCategoryUtil/Foundation (2.4.5):
     - TFYSwiftCategoryUtil/Base
     - TFYSwiftCategoryUtil/CoreUiit
     - TFYSwiftCategoryUtil/Gesture
     - TFYSwiftCategoryUtil/UIKit
     - TFYSwiftCategoryUtil/Utils
-  - TFYSwiftCategoryUtil/Gesture (2.3.1):
+  - TFYSwiftCategoryUtil/Gesture (2.4.5):
     - TFYSwiftCategoryUtil/Base
     - TFYSwiftCategoryUtil/Utils
-  - TFYSwiftCategoryUtil/UIKit (2.3.1):
+  - TFYSwiftCategoryUtil/UIKit (2.4.5):
     - TFYSwiftCategoryUtil/Base
     - TFYSwiftCategoryUtil/Utils
-  - TFYSwiftCategoryUtil/Utils (2.3.1):
+  - TFYSwiftCategoryUtil/Utils (2.4.5):
     - TFYSwiftCategoryUtil/Base
-  - TFYSwiftCategoryUtil/WKWeb (2.3.1):
+  - TFYSwiftCategoryUtil/WKWeb (2.4.5):
     - TFYSwiftCategoryUtil/Utils
-  - TFYSwiftNavigationKit (2.1.9)
+  - TFYSwiftNavigationKit (2.2.0)
 
 DEPENDENCIES:
   - lottie-ios
@@ -43,11 +43,11 @@ SPEC REPOS:
     - TFYSwiftNavigationKit
 
 SPEC CHECKSUMS:
-  lottie-ios: 96784afc26ea031d3e2b6cae342a4b8915072489
+  lottie-ios: 6467ca7035120c5b0e0acee58bb679cf15875686
   SnapKit: d612e99e678a2d3b95bf60b0705ed0a35c03484a
-  TFYSwiftCategoryUtil: 32d82c44c9cfff0d149d266584719ec9f113dbcc
-  TFYSwiftNavigationKit: 5a86462f973a683ebe19c0a092246cc1ddc2f50f
+  TFYSwiftCategoryUtil: 601ccdfd07afaefccfc47cf4869467841fd5d2d4
+  TFYSwiftNavigationKit: ffe295f0cef2a524a68ead1df9d6915d4c3b0a05
 
-PODFILE CHECKSUM: c1bafff69015c48e944b4d63178ee3105162cbbd
+PODFILE CHECKSUM: 23dd336925f39d7dadc7b1af89b0e8b787cedf55
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.17.0

@@ -18,8 +18,21 @@ class BaseAnimationLayer: CALayer, AnimationLayer {
   }
 
   func setupAnimations(context: LayerAnimationContext) throws {
-    for childAnimationLayer in managedSublayers {
+    // Only set up animations for sublayers here, not MaskCompositionLayer masks.
+    // MaskCompositionLayer animations must be set up separately with the parent's context
+    // (without precomp time remapping), since mask keyframes are defined
+    // in the parent's global timeline. See BaseCompositionLayer.setupLayerAnimations.
+    for childAnimationLayer in sublayers ?? [] {
       try (childAnimationLayer as? AnimationLayer)?.setupAnimations(context: context)
+    }
+
+    // Set up animations for non-MaskCompositionLayer masks (e.g. alpha matte masks
+    // created in CALayer+setupLayerHierarchy.swift). These receive the same context
+    // as the layer they're masking. MaskCompositionLayer is excluded here because it
+    // is handled explicitly in BaseCompositionLayer.setupLayerAnimations with the
+    // parent's non-remapped context.
+    if let maskAnimationLayer = mask as? AnimationLayer, !(mask is MaskCompositionLayer) {
+      try maskAnimationLayer.setupAnimations(context: context)
     }
   }
 

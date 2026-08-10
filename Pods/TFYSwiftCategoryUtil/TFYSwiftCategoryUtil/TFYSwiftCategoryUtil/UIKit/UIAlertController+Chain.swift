@@ -58,6 +58,7 @@ public extension UIAlertController {
     var messageLabel: UILabel? {
         guard let subView5 = subView5 else { return nil }
         let messageLabelIndex = title == nil ? 1 : 2
+        guard subView5.subviews.indices.contains(messageLabelIndex) else { return nil }
         return subView5.subviews[messageLabelIndex] as? UILabel
     }
     
@@ -276,9 +277,10 @@ public extension UIAlertController {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func setContent(vc: UIViewController, height: CGFloat) -> Self {
+        let safeHeight = max(0, height)
         setValue(vc, forKey: AlertKeys.contentViewController)
-        vc.preferredContentSize.height = height
-        preferredContentSize.height = height
+        vc.preferredContentSize.height = safeHeight
+        preferredContentSize.height = safeHeight
         return self
     }
     
@@ -292,6 +294,7 @@ public extension UIAlertController {
         if preferredStyle != .alert {
             return self
         }
+        let safeWidth = max(1, newWidth)
         let widthConstraints = view.constraints.filter({ return $0.firstAttribute == .width})
         view.removeConstraints(widthConstraints)
         // Here you can enter any width that you want
@@ -303,9 +306,9 @@ public extension UIAlertController {
                                                  toItem: nil,
                                                  attribute: .notAnAttribute,
                                                  multiplier: 1,
-                                                 constant: newWidth)
+                                                 constant: safeWidth)
         view.addConstraint(widthConstraint)
-        let firstContainer = view.subviews[0]
+        guard let firstContainer = view.subviews.first else { return self }
         // Finding first child width constraint
         let constraint = firstContainer.constraints.filter({ return $0.firstAttribute == .width && $0.secondItem == nil })
         firstContainer.removeConstraints(constraint)
@@ -318,7 +321,7 @@ public extension UIAlertController {
                                                     multiplier: 1.0,
                                                     constant: 0))
         // Same for the second child with width constraint with 998 priority
-        let innerBackground = firstContainer.subviews[0]
+        guard let innerBackground = firstContainer.subviews.first else { return self }
         let innerConstraints = innerBackground.constraints.filter({ return $0.firstAttribute == .width && $0.secondItem == nil })
         innerBackground.removeConstraints(innerConstraints)
         firstContainer.addConstraint(NSLayoutConstraint(item: innerBackground,
@@ -342,7 +345,7 @@ public extension UIAlertController {
     @discardableResult
     func setAlertStyle(cornerRadius: CGFloat = 8.0, backgroundColor: UIColor = .white, tintColor: UIColor? = nil) -> Self {
         if let alertView = view.subviews.first?.subviews.first?.subviews.first?.subviews.first?.subviews.first {
-            alertView.layer.cornerRadius = cornerRadius
+            alertView.layer.cornerRadius = max(0, cornerRadius)
             alertView.backgroundColor = backgroundColor
         }
         if let tintColor = tintColor {
@@ -431,7 +434,8 @@ public extension TFY where Base: UIAlertController {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func dismiss(after delay: TimeInterval, completion: (() -> Void)? = nil) -> Self {
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak base] in
+        let safeDelay = delay.isFinite ? max(0, delay) : 0
+        DispatchQueue.main.asyncAfter(deadline: .now() + safeDelay) { [weak base] in
             base?.dismiss(animated: true, completion: completion)
         }
         return self
@@ -597,5 +601,4 @@ public extension TFY where Base: UIAlertAction {
         return self
     }
 }
-
 

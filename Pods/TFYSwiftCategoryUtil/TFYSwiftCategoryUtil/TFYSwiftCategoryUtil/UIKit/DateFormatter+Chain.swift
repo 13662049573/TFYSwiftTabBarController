@@ -176,12 +176,24 @@ public extension DateFormatter {
     /// - Parameter format: 日期格式
     /// - Returns: 配置好的DateFormatter
     /// - Note: 支持iOS 15+，适配iPhone和iPad
-    static func standard(format: String) -> DateFormatter {
+    static func standard(format: String,
+                         locale: Locale = Locale.current,
+                         timeZone: TimeZone = TimeZone.current) -> DateFormatter {
         let formatter = DateFormatter()
         formatter.dateFormat = format
-        formatter.locale = Locale.current
-        formatter.timeZone = TimeZone.current
+        formatter.locale = locale
+        formatter.timeZone = timeZone
         return formatter
+    }
+
+    // MARK: 2.1.1、创建 POSIX 日期格式器
+    /// 创建 POSIX 日期格式器，适合固定格式解析和序列化
+    /// - Parameters:
+    ///   - format: 日期格式
+    ///   - timeZone: 时区，默认 UTC
+    /// - Returns: 配置好的 DateFormatter
+    static func posix(format: String, timeZone: TimeZone = TimeZone(secondsFromGMT: 0) ?? .current) -> DateFormatter {
+        return standard(format: format, locale: Locale(identifier: "en_US_POSIX"), timeZone: timeZone)
     }
     
     // MARK: 2.2、创建ISO8601格式器
@@ -237,7 +249,7 @@ public extension DateFormatter {
     /// - Returns: 解析后的日期，失败返回nil
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func safeDate(from string: String?) -> Date? {
-        guard let string = string, !string.isEmpty else { return nil }
+        guard let string = string?.trimmingCharacters(in: .whitespacesAndNewlines), !string.isEmpty else { return nil }
         return self.date(from: string)
     }
     

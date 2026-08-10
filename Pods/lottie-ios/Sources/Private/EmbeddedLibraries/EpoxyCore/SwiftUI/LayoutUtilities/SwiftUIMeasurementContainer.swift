@@ -1,7 +1,6 @@
 // Created by Bryn Bodayle on 1/24/22.
 // Copyright © 2022 Airbnb Inc. All rights reserved.
 
-#if canImport(SwiftUI)
 import SwiftUI
 
 // MARK: - SwiftUIMeasurementContainer
@@ -205,7 +204,10 @@ final class SwiftUIMeasurementContainer<Content: ViewType>: ViewType {
     let trailing = content.trailingAnchor.constraint(equalTo: trailingAnchor)
     let bottom = content.bottomAnchor.constraint(equalTo: bottomAnchor)
     let newConstraints: [NSLayoutConstraint.Attribute: NSLayoutConstraint] = [
-      .leading: leading, .top: top, .trailing: trailing, .bottom: bottom,
+      .leading: leading,
+      .top: top,
+      .trailing: trailing,
+      .bottom: bottom,
     ]
     // Start with the lowest priority constraints so we aren't measuring the view too early, the
     // priorities will be updated later on.
@@ -219,8 +221,8 @@ final class SwiftUIMeasurementContainer<Content: ViewType>: ViewType {
   /// Prioritizes the given constraints based on the provided resolved strategy.
   private func prioritizeConstraints(
     _ constraints: [NSLayoutConstraint.Attribute: NSLayoutConstraint],
-    strategy: ResolvedSwiftUIMeasurementContainerStrategy)
-  {
+    strategy: ResolvedSwiftUIMeasurementContainerStrategy
+  ) {
     // Give a required constraint in the dimensions that are fixed to the bounds, otherwise almost
     // required.
     switch strategy {
@@ -353,7 +355,10 @@ enum SwiftUIMeasurementContainerStrategy {
 /// The resolved measurement strategy of a `SwiftUIMeasurementContainer`, matching the cases of the
 /// `SwiftUIMeasurementContainerStrategy` without the automatic case.
 private enum ResolvedSwiftUIMeasurementContainerStrategy {
-  case proposed, intrinsicHeightProposedWidth, intrinsicWidthProposedHeight, intrinsic(CGSize)
+  case proposed
+  case intrinsicHeightProposedWidth
+  case intrinsicWidthProposedHeight
+  case intrinsic(CGSize)
 }
 
 // MARK: - UILayoutPriority
@@ -362,7 +367,9 @@ extension LayoutPriorityType {
   /// An "almost required" constraint, useful for creating near-required constraints that don't
   /// error when unable to be satisfied.
   @nonobjc
-  fileprivate static var almostRequired: LayoutPriorityType { .init(rawValue: required.rawValue - 1) }
+  fileprivate static var almostRequired: LayoutPriorityType {
+    .init(rawValue: required.rawValue - 1)
+  }
 }
 
 // MARK: - UIView
@@ -377,7 +384,8 @@ extension ViewType {
     systemLayoutSizeFitting(
       UIView.layoutFittingCompressedSize,
       withHorizontalFittingPriority: .fittingSizeLevel,
-      verticalFittingPriority: .fittingSizeLevel)
+      verticalFittingPriority: .fittingSizeLevel
+    )
     #endif
   }
 
@@ -386,9 +394,8 @@ extension ViewType {
   @nonobjc
   fileprivate func systemLayoutFittingIntrinsicHeightFixedWidth(
     _ width: CGFloat,
-    priority: LayoutPriorityType = .almostRequired)
-    -> CGSize
-  {
+    priority: LayoutPriorityType = .almostRequired
+  ) -> CGSize {
     #if os(macOS)
     return CGSize(width: width, height: intrinsicContentSize.height)
     #else
@@ -397,7 +404,8 @@ extension ViewType {
     return systemLayoutSizeFitting(
       targetSize,
       withHorizontalFittingPriority: priority,
-      verticalFittingPriority: .fittingSizeLevel)
+      verticalFittingPriority: .fittingSizeLevel
+    )
     #endif
   }
 
@@ -406,9 +414,8 @@ extension ViewType {
   @nonobjc
   fileprivate func systemLayoutFittingIntrinsicWidthFixedHeight(
     _ height: CGFloat,
-    priority: LayoutPriorityType = .almostRequired)
-    -> CGSize
-  {
+    priority: LayoutPriorityType = .almostRequired
+  ) -> CGSize {
     #if os(macOS)
     return CGSize(width: intrinsicContentSize.width, height: height)
     #else
@@ -417,7 +424,8 @@ extension ViewType {
     return systemLayoutSizeFitting(
       targetSize,
       withHorizontalFittingPriority: .fittingSizeLevel,
-      verticalFittingPriority: priority)
+      verticalFittingPriority: priority
+    )
     #endif
   }
 
@@ -454,7 +462,7 @@ extension CGSize {
   fileprivate func replacingNoIntrinsicMetric(with fallback: CGSize) -> CGSize {
     .init(
       width: width == ViewType.noIntrinsicMetric ? fallback.width : width,
-      height: height == ViewType.noIntrinsicMetric ? fallback.height : height)
+      height: height == ViewType.noIntrinsicMetric ? fallback.height : height
+    )
   }
 }
-#endif

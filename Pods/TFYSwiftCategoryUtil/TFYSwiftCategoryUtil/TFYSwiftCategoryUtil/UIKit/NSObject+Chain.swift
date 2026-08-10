@@ -9,6 +9,8 @@
 import Foundation
 import UIKit
 
+private var tfySwizzledMethodKeys = Set<String>()
+
 // MARK: - 一、 NSObject 属性的扩展
 #if os(iOS) || os(tvOS)
 public extension NSObject {
@@ -153,8 +155,18 @@ public extension NSObject {
             TFYUtils.Logger.log("方法 \(selector) 不存在于类 \(className) 中")
             return nil
         }
-        
-        return perform(selector, with: arguments)
+
+        switch arguments.count {
+        case 0:
+            return perform(selector)?.takeUnretainedValue()
+        case 1:
+            return perform(selector, with: arguments[0])?.takeUnretainedValue()
+        case 2:
+            return perform(selector, with: arguments[0], with: arguments[1])?.takeUnretainedValue()
+        default:
+            TFYUtils.Logger.log("方法 \(selector) 参数过多，NSObject.perform 最多支持两个参数")
+            return nil
+        }
     }
 }
 
@@ -272,16 +284,18 @@ public extension NSObject {
             return false
         }
         
-        // 检查是否已经替换过
-        let key = "\(NSStringFromClass(clz))_\(origSel)_\(replSel)"
-        if UserDefaults.standard.bool(forKey: key) {
+        let key = "\(NSStringFromClass(clz))_\(origSel)_\(replSel)_\(isClassMethod)"
+        objc_sync_enter(self)
+        defer { objc_sync_exit(self) }
+
+        if tfySwizzledMethodKeys.contains(key) {
             TFYUtils.Logger.log("方法已经替换过，跳过：\(origSel)")
             return true
         }
         
         let success = hookMethod(of: origSel, with: replSel, isClassMethod: isClassMethod)
         if success {
-            UserDefaults.standard.set(true, forKey: key)
+            tfySwizzledMethodKeys.insert(key)
         }
         
         return success
@@ -299,10 +313,7 @@ public extension NSObject {
     ///   - object: 关联对象
     ///   - key: 关联键
     func associate(assignObject object: Any?, forKey key: UnsafeRawPointer) {
-        let strKey: String = convertUnsafePointerToSwiftType(key)
-        willChangeValue(forKey: strKey)
         objc_setAssociatedObject(self, key, object, .OBJC_ASSOCIATION_ASSIGN)
-        didChangeValue(forKey: strKey)
     }
 
     /// 设置关联对象（强引用）
@@ -310,10 +321,7 @@ public extension NSObject {
     ///   - object: 关联对象
     ///   - key: 关联键
     func associate(retainObject object: Any?, forKey key: UnsafeRawPointer) {
-        let strKey: String = convertUnsafePointerToSwiftType(key)
-        willChangeValue(forKey: strKey)
         objc_setAssociatedObject(self, key, object, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        didChangeValue(forKey: strKey)
     }
 
     /// 设置关联对象（拷贝引用）
@@ -321,10 +329,7 @@ public extension NSObject {
     ///   - object: 关联对象
     ///   - key: 关联键
     func associate(copyObject object: Any?, forKey key: UnsafeRawPointer) {
-        let strKey: String = convertUnsafePointerToSwiftType(key)
-        willChangeValue(forKey: strKey)
         objc_setAssociatedObject(self, key, object, .OBJC_ASSOCIATION_COPY_NONATOMIC)
-        didChangeValue(forKey: strKey)
     }
 
     /// 获取关联对象
@@ -337,10 +342,7 @@ public extension NSObject {
     /// 移除关联对象
     /// - Parameter key: 关联键
     func removeAssociatedObject(forKey key: UnsafeRawPointer) {
-        let strKey: String = convertUnsafePointerToSwiftType(key)
-        willChangeValue(forKey: strKey)
         objc_setAssociatedObject(self, key, nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        didChangeValue(forKey: strKey)
     }
     
     /// 移除所有关联对象
@@ -370,5 +372,3 @@ public let swizzling: (AnyClass, Selector, Selector) -> Void = { forClass, origi
     
     TFYUtils.Logger.log("Swizzling successful: \(originalSelector) <-> \(swizzledSelector)")
 }
-
-

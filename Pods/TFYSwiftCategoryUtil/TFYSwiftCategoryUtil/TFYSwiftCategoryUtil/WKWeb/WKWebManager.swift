@@ -11,6 +11,13 @@ import UIKit
 
 /// 定义关联键，用于存储URL相关信息
 private let kCurrentLoadURLKey = UnsafeRawPointer(bitPattern: "current.load.url".hashValue)!
+private let tfyCookieDateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "EEE, d MMM yyyy HH:mm:ss 'GMT'"
+    formatter.locale = Locale(identifier: "en_US")
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    return formatter
+}()
 
 // MARK: - WKWebView扩展
 extension WKWebView {
@@ -55,10 +62,7 @@ extension WKWebView {
                 
                 // 处理过期时间
                 if let date = cookie.expiresDate {
-                    let formatter = DateFormatter()
-                    formatter.dateFormat = "EEE, d MMM yyyy HH:mm:ss 'GMT'"
-                    formatter.locale = Locale(identifier: "en_US")
-                    htmlCookies += " expires=\(formatter.string(from: date));';"
+                    htmlCookies += " expires=\(tfyCookieDateFormatter.string(from: date));';"
                 } else {
                     htmlCookies += "';"
                 }
@@ -104,11 +108,25 @@ class WKWebManager: NSObject, WKUIDelegate, WKNavigationDelegate {
     
     /// Cookie存储数组
     var cookieStorage: [HTTPCookie] = []
+    private let cookieStorageLock = NSLock()
     
     /// 保存Cookies
     /// - Parameter cookies: Cookie数组
     func save(cookies: [HTTPCookie]) {
-        cookieStorage.append(contentsOf: cookies)
+        guard !cookies.isEmpty else { return }
+        let now = Date()
+        cookieStorageLock.lock()
+        defer { cookieStorageLock.unlock() }
+        cookieStorage.removeAll { cookie in
+            isCookieExpired(cookie, now: now)
+        }
+        var existingKeys = Set(cookieStorage.map(cookieKey(for:)))
+        for cookie in cookies {
+            let key = cookieKey(for: cookie)
+            if existingKeys.contains(key) { continue }
+            cookieStorage.append(cookie)
+            existingKeys.insert(key)
+        }
     }
     
     /// 获取指定URL的Cookies
@@ -118,11 +136,25 @@ class WKWebManager: NSObject, WKUIDelegate, WKNavigationDelegate {
         let host = url.host ?? ""
         let path = url.path
         let now = Date()
+        cookieStorageLock.lock()
+        defer { cookieStorageLock.unlock() }
+        cookieStorage.removeAll { cookie in
+            isCookieExpired(cookie, now: now)
+        }
         return cookieStorage.filter {
             host.hasSuffix($0.domain) &&
             path.hasPrefix($0.path) &&
-            ($0.expiresDate == nil || $0.expiresDate! < now)
+            !isCookieExpired($0, now: now)
         }
+    }
+    
+    private func cookieKey(for cookie: HTTPCookie) -> String {
+        "\(cookie.name)|\(cookie.domain)|\(cookie.path)"
+    }
+    
+    private func isCookieExpired(_ cookie: HTTPCookie, now: Date) -> Bool {
+        guard let expiry = cookie.expiresDate else { return false }
+        return expiry <= now
     }
     
     // MARK: - JavaScript处理方法
@@ -133,7 +165,9 @@ class WKWebManager: NSObject, WKUIDelegate, WKNavigationDelegate {
     ///   - url: 目标URL
     func onSyncCookie(_ value: String, for url: URL) {
         save(cookies: HTTPCookie.cookies(withResponseHeaderFields: ["Set-Cookie":value], for: url))
+#if DEBUG
         print("==sync cookies==>", value, url)
+#endif
     }
     
     /// JavaScript错误处理
@@ -317,7 +351,9 @@ class WKWebManager: NSObject, WKUIDelegate, WKNavigationDelegate {
     /// 导航策略处理
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         let url = navigationAction.request.url ?? webView.url ?? URL(string: "about:blank")!
+#if DEBUG
         print("==request==>>", navigationAction.navigationType, url)
+#endif
         
         if navigationAction.targetFrame?.isMainFrame ?? true {
             switch navigationAction.navigationType {
@@ -368,9 +404,11 @@ class WKWebManager: NSObject, WKUIDelegate, WKNavigationDelegate {
     func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
         // 打印响应信息
         if let response = navigationResponse.response as? HTTPURLResponse {
+#if DEBUG
             print("==response==\(response.statusCode)===>>",
                   response.url ?? "",
                   response.allHeaderFields)
+#endif
         }
         
         // 清除当前URL

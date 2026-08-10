@@ -55,7 +55,7 @@ public struct TFYAdaptiveConfigValidation {
         /// 默认适配类型
         public static var defaultAdaptiveType: TFYAdaptiveType = .width
         /// 是否启用配置验证
-        public static var enableConfigValidation: Bool = true
+        public static var enableConfigValidation: Bool = false // 默认关闭验证，避免误报
         
         /// 验证配置的有效性
         public static func validate() -> TFYAdaptiveConfigValidation {
@@ -302,17 +302,18 @@ public struct TFYAdaptiveConfigValidation {
     private func setupDefaultConfig() {
         if !Config.isInitialized {
             if Device.isIPad {
-                Config.referenceWidth = 768.0
-                Config.referenceHeight = 1024.0
-                Config.isIPhoneXSeriesHeight = false
-                Config.iPadFitMultiple = 1.2 // iPad默认放大
+                // iPad使用iPhone设计稿作为参照，通过倍数适配
+                Config.referenceWidth = 375.0
+                Config.referenceHeight = 812.0
+                Config.isIPhoneXSeriesHeight = true
+                Config.iPadFitMultiple = 1.2 // iPad默认放大1.2倍
             } else {
                 Config.referenceWidth = 375.0
                 Config.referenceHeight = 812.0
                 Config.isIPhoneXSeriesHeight = true
                 Config.iPadFitMultiple = 1.0
             }
-            Config.calcResultType = .ceil
+            Config.calcResultType = .round // 修复：使用四舍五入而不是向上取整
             Config.enableCache = true
             Config.enablePerformanceMonitor = false
             Config.defaultAdaptiveType = .width
@@ -322,6 +323,9 @@ public struct TFYAdaptiveConfigValidation {
             setupCache()
             
             print("TFYSwiftAdaptiveKit: 自动初始化完成 - \(Device.isIPad ? "iPad" : "iPhone") 模式")
+            print("TFYSwiftAdaptiveKit: 参照尺寸 - 宽度:\(Config.referenceWidth), 高度:\(Config.referenceHeight)")
+            print("TFYSwiftAdaptiveKit: 当前屏幕 - 宽度:\(Screen.width), 高度:\(Screen.height)")
+            print("TFYSwiftAdaptiveKit: iPad适配倍数:\(Config.iPadFitMultiple)")
         }
     }
     
@@ -418,15 +422,28 @@ public struct TFYAdaptiveConfigValidation {
     private static func validateAdaptationResult(originalValue: CGFloat, result: CGFloat, type: TFYAdaptiveType) {
         // 检查结果是否合理
         let scale = getCurrentScale(type: type)
-        let expectedResult = originalValue * scale
+        let rawExpectedResult = originalValue * scale
+        
+        // 应用与计算结果相同的处理方式
+        let expectedResult = shared.applyCalcResultType(rawExpectedResult)
         
         let difference = abs(result - expectedResult)
-        let tolerance = originalValue * 0.01 // 1%的容差
+        
+        // 智能容差计算
+        let tolerance: CGFloat
+        if originalValue < 1.0 {
+            tolerance = 1.0 // 对于小于1的值，容差为1
+        } else if originalValue < 10.0 {
+            tolerance = max(originalValue * 0.2, 1.0) // 20%的容差，最小1.0
+        } else {
+            tolerance = max(originalValue * 0.1, 2.0) // 10%的容差，最小2.0
+        }
         
         if difference > tolerance {
             print("TFYSwiftAdaptiveKit: 警告 - 适配结果可能异常")
             print("TFYSwiftAdaptiveKit: 原始值: \(originalValue), 结果: \(result), 期望: \(expectedResult)")
             print("TFYSwiftAdaptiveKit: 差异: \(difference), 容差: \(tolerance)")
+            print("TFYSwiftAdaptiveKit: 当前比例: \(scale), 设备类型: \(Device.isIPad ? "iPad" : "iPhone")")
         }
     }
     
@@ -628,7 +645,22 @@ public struct TFYAdaptiveConfigValidation {
     }
     
     private func getFitMultiple() -> CGFloat {
-        return Device.isIPad ? max(1.0, Config.iPadFitMultiple) : 1.0
+        if Device.isIPad {
+            // 智能计算iPad适配倍数
+            let screenWidth = Screen.width
+            let referenceWidth = Config.referenceWidth
+            let baseScale = screenWidth / referenceWidth
+            
+            // 如果基础比例已经很大，就不需要额外放大
+            if baseScale >= 2.0 {
+                return 1.0
+            } else if baseScale >= 1.5 {
+                return 1.1
+            } else {
+                return max(1.0, Config.iPadFitMultiple)
+            }
+        }
+        return 1.0
     }
     
     private func getReferenceSafeAreaCenterHeight() -> CGFloat {
@@ -645,7 +677,7 @@ public struct TFYAdaptiveConfigValidation {
         return Config.referenceHeight - Device.getSafeAreaTopMargin()
     }
     
-    private func applyCalcResultType(_ value: CGFloat) -> CGFloat {
+    internal func applyCalcResultType(_ value: CGFloat) -> CGFloat {
         switch Config.calcResultType {
         case .raw:
             return value
@@ -1478,6 +1510,68 @@ public extension TFYSwiftAdaptiveKit {
         print("TFYSwiftAdaptiveKit: 已重置为默认配置")
     }
     
+    /// 强制重新初始化（用于测试）
+    static func forceReinitialize() {
+        Config.isInitialized = false
+        shared.cache.removeAllObjects()
+        shared.setupDefaultConfig()
+        print("TFYSwiftAdaptiveKit: 强制重新初始化完成")
+    }
+    
+    /// 调试适配计算过程
+    static func debugAdaptation(_ value: CGFloat, type: TFYAdaptiveType = .width) -> [String: Any] {
+        let screenWidth = Screen.width
+        let referenceWidth = Config.referenceWidth
+        let baseScale = screenWidth / referenceWidth
+        let fitMultiple = shared.getFitMultiple()
+        let finalScale = baseScale * fitMultiple
+        let rawResult = value * finalScale
+        let finalResult = shared.applyCalcResultType(rawResult)
+        
+        return [
+            "originalValue": value,
+            "screenWidth": screenWidth,
+            "referenceWidth": referenceWidth,
+            "baseScale": baseScale,
+            "fitMultiple": fitMultiple,
+            "finalScale": finalScale,
+            "rawResult": rawResult,
+            "finalResult": finalResult,
+            "calcResultType": Config.calcResultType.rawValue,
+            "isIPad": Device.isIPad
+        ]
+    }
+    
+    /// 启用配置验证
+    static func enableConfigValidation() {
+        Config.enableConfigValidation = true
+        print("TFYSwiftAdaptiveKit: 配置验证已启用")
+    }
+    
+    /// 禁用配置验证
+    static func disableConfigValidation() {
+        Config.enableConfigValidation = false
+        print("TFYSwiftAdaptiveKit: 配置验证已禁用")
+    }
+    
+    /// 测试适配功能
+    static func testAdaptation() {
+        print("\n=== TFYSwiftAdaptiveKit 适配测试 ===")
+        
+        let testValues: [CGFloat] = [1.0, 10.0, 20.0, 50.0, 100.0]
+        
+        for value in testValues {
+            let debug = debugAdaptation(value)
+            print("原始值: \(value) -> 适配值: \(debug["finalResult"] ?? "N/A")")
+            print("  屏幕宽度: \(debug["screenWidth"] ?? "N/A"), 参照宽度: \(debug["referenceWidth"] ?? "N/A")")
+            print("  基础比例: \(debug["baseScale"] ?? "N/A"), 适配倍数: \(debug["fitMultiple"] ?? "N/A")")
+            print("  最终比例: \(debug["finalScale"] ?? "N/A"), 计算结果类型: \(debug["calcResultType"] ?? "N/A")")
+            print("---")
+        }
+        
+        print("=== 测试完成 ===\n")
+    }
+    
     /// 获取当前适配比例
     static func getCurrentScale(type: TFYAdaptiveType = .width) -> CGFloat {
         switch type {
@@ -1596,7 +1690,10 @@ public extension TFYSwiftAdaptiveKit {
 /**
  * 适配说明：
  * - iPhone 适配倍数始终为1.0，等比例缩放。
- * - iPad 适配倍数推荐1.2，所有含iPad倍数的类型都放大。
+ * - iPad 智能适配：根据屏幕尺寸自动调整适配倍数
+ *   * 基础比例 >= 2.0：不额外放大（倍数=1.0）
+ *   * 基础比例 >= 1.5：轻微放大（倍数=1.1）
+ *   * 基础比例 < 1.5：使用配置倍数（默认1.2）
  * - force类型（forceWidth/forceHeight等）不乘iPad倍数，严格等比例。
  * - 其它类型如safeArea等同理。
  * - 若需自定义iPad放大倍数，可通过setup/Config.iPadFitMultiple设置。
@@ -1607,24 +1704,26 @@ public extension TFYSwiftAdaptiveKit {
  * let width = 100.adap_width
  * let height = 200.adap_height
  * 
- * // 2. 配置验证
- * let validation = TFYSwiftAdaptiveKit.validateCurrentConfig()
- * if !validation.isValid {
- *     print("配置无效: \(validation.errors)")
- * }
+ * // 2. 调试适配过程
+ * let debug = TFYSwiftAdaptiveKit.debugAdaptation(100)
+ * print("适配详情: \(debug)")
  * 
- * // 3. 适配统计
- * print(TFYSwiftAdaptiveKit.getAdaptiveReport())
+ * // 3. 测试适配功能
+ * TFYSwiftAdaptiveKit.testAdaptation()
  * 
- * // 4. 配置持久化
+ * // 4. 配置管理
+ * TFYSwiftAdaptiveKit.enableConfigValidation() // 启用验证
+ * TFYSwiftAdaptiveKit.disableConfigValidation() // 禁用验证
+ * 
+ * // 5. 配置持久化
  * TFYSwiftAdaptiveKit.saveConfigToUserDefaults()
  * TFYSwiftAdaptiveKit.loadConfigFromUserDefaults()
  * 
- * // 5. 性能监控
+ * // 6. 性能监控
  * TFYSwiftAdaptiveKit.enablePerformanceMonitoring()
  * let performanceData = TFYSwiftAdaptiveKit.getPerformanceData()
  * 
- * // 6. 设备信息
+ * // 7. 设备信息
  * let deviceInfo = TFYSwiftAdaptiveKit.getDeviceInfo()
  * let isSplitScreen = TFYSwiftAdaptiveKit.Device.isSplitScreen
  * let splitRatio = TFYSwiftAdaptiveKit.Device.splitScreenRatio

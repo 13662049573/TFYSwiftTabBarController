@@ -207,10 +207,12 @@ public extension Array {
     /// - Returns: 如果包含重复元素返回true
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     var hasDuplicates: Bool {
-        // 对于非Hashable元素，使用简单的循环比较
+        guard count > 1 else { return false }
+        let nsArray = self as NSArray
         for i in 0..<count {
-            for j in (i+1)..<count {
-                if self[i] as AnyObject === self[j] as AnyObject {
+            let current = nsArray[i] as AnyObject
+            for j in (i + 1)..<count {
+                if current.isEqual(nsArray[j]) {
                     return true
                 }
             }
@@ -227,7 +229,7 @@ public extension Array where Element: Hashable {
     /// - Returns: 去重后的数组
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func unique() -> [Element] where Element: Hashable {
-        return Array(Set(self))
+        return uniqueOrdered()
     }
     
     // MARK: 6.2、数组去重（保持顺序）
@@ -235,9 +237,20 @@ public extension Array where Element: Hashable {
     /// - Returns: 去重后的数组
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func uniqueOrdered() -> [Element] where Element: Equatable {
-        return reduce([]) { result, element in
-            result.contains(element) ? result : result + [element]
+        var seen = Set<Element>()
+        return filter { seen.insert($0).inserted }
+    }
+    
+    /// Hashable数组是否包含重复元素（O(n)）
+    /// - Returns: 如果包含重复元素返回true
+    var hasDuplicates: Bool {
+        var seen = Set<Element>()
+        for element in self {
+            if !seen.insert(element).inserted {
+                return true
+            }
         }
+        return false
     }
     
     // MARK: 6.3、数组分组

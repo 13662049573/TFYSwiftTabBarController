@@ -185,20 +185,27 @@ public extension TFY where Base == Date {
     /// - Parameter timestamp: 时间戳
     /// - Returns: 返回 Date
     static func timestampToFormatterDate(timestamp: String) -> Date {
-        guard timestamp.count == 10 || timestamp.count == 13 else {
+        guard let date = date(fromTimestamp: timestamp) else {
             TFYUtils.Logger.log("时间戳位数不是 10 也不是 13: \(timestamp)")
             return Date()
         }
-        
-        guard let timestampInt = timestamp.tfy.toInt(), timestampInt > 0 else {
-            TFYUtils.Logger.log("时间戳格式有问题: \(timestamp)")
-            return Date()
-        }
-        
-        let timestampValue = timestamp.count == 10 ? timestampInt : timestampInt / 1000
-        // 时间戳转为Date
-        let date = Date(timeIntervalSince1970: TimeInterval(timestampValue))
         return date
+    }
+
+    // MARK: 2.2.1、安全时间戳转 Date
+    /// 安全时间戳转 Date，支持 10 位秒级和 13 位毫秒级
+    /// - Parameter timestamp: 时间戳字符串
+    /// - Returns: 转换后的 Date，失败返回 nil
+    static func date(fromTimestamp timestamp: String) -> Date? {
+        let trimmedTimestamp = timestamp.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedTimestamp.count == 10 || trimmedTimestamp.count == 13 else {
+            return nil
+        }
+        guard let timestampValue = TimeInterval(trimmedTimestamp), timestampValue >= 0 else {
+            return nil
+        }
+        let seconds = trimmedTimestamp.count == 10 ? timestampValue : timestampValue / 1000.0
+        return Date(timeIntervalSince1970: seconds)
     }
     
     /// 根据本地时区转换
@@ -241,11 +248,7 @@ public extension TFY where Base == Date {
     ///   - timestampType: 返回的时间戳类型，默认是秒 10 为的时间戳字符串
     /// - Returns: 返回转化后的时间戳
     static func formatterTimeStringToTimestamp(timesString: String, formatter: String, timestampType: TFYTimestampType = .second) -> String {
-        let forma = DateFormatter()
-        forma.dateFormat = formatter
-        forma.timeZone = TimeZone.current
-        
-        guard let date = forma.date(from: timesString) else {
+        guard let date = date(from: timesString, formatter: formatter) else {
             TFYUtils.Logger.log("时间格式转换失败: \(timesString)")
             return ""
         }
@@ -263,15 +266,33 @@ public extension TFY where Base == Date {
     ///   - formatter: 格式
     /// - Returns: 返回 Date
     static func formatterTimeStringToDate(timesString: String, formatter: String) -> Date {
-        let forma = DateFormatter()
-        forma.dateFormat = formatter
-        forma.timeZone = TimeZone.current
-        
-        guard let date = forma.date(from: timesString) else {
+        guard let date = date(from: timesString, formatter: formatter) else {
             TFYUtils.Logger.log("时间格式转换失败: \(timesString)")
             return Date()
         }
         return date
+    }
+
+    // MARK: 2.5.1、安全带格式字符串转 Date
+    /// 安全带格式字符串转 Date
+    /// - Parameters:
+    ///   - timesString: 时间字符串
+    ///   - formatter: 格式
+    ///   - locale: 地区
+    ///   - timeZone: 时区
+    /// - Returns: 转换后的 Date，失败返回 nil
+    static func date(from timesString: String,
+                     formatter: String,
+                     locale: Locale = Locale(identifier: "en_US_POSIX"),
+                     timeZone: TimeZone = TimeZone.current) -> Date? {
+        let trimmedTimeString = timesString.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTimeString.isEmpty, !formatter.isEmpty else { return nil }
+
+        let forma = DateFormatter()
+        forma.dateFormat = formatter
+        forma.locale = locale
+        forma.timeZone = timeZone
+        return forma.date(from: trimmedTimeString)
     }
     
     // MARK: 2.6、秒转换成播放时间条的格式
@@ -357,12 +378,30 @@ public extension TFY where Base == Date {
         let components = Calendar.current.dateComponents([.year, .month], from: base)
         return Calendar.current.date(from: components) ?? base
     }
+
+    /// 获取月份的结束时间
+    /// - Returns: 月份结束时间
+    func endOfMonth() -> Date {
+        var components = DateComponents()
+        components.month = 1
+        components.second = -1
+        return Calendar.current.date(byAdding: components, to: startOfMonth()) ?? base
+    }
     
     /// 获取年份的开始时间
     /// - Returns: 年份开始时间
     func startOfYear() -> Date {
         let components = Calendar.current.dateComponents([.year], from: base)
         return Calendar.current.date(from: components) ?? base
+    }
+
+    /// 获取年份的结束时间
+    /// - Returns: 年份结束时间
+    func endOfYear() -> Date {
+        var components = DateComponents()
+        components.year = 1
+        components.second = -1
+        return Calendar.current.date(byAdding: components, to: startOfYear()) ?? base
     }
 }
 

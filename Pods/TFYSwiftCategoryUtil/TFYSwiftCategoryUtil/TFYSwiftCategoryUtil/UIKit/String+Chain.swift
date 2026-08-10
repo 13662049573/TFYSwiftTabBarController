@@ -12,6 +12,19 @@ import CommonCrypto
 
 extension String: TFYCompatible {}
 
+private enum TFYStringChainFormatterPool {
+    private static let formatterKey = "com.tfy.string.chain.number.formatter"
+
+    static func numberFormatter() -> NumberFormatter {
+        if let cached = Thread.current.threadDictionary[formatterKey] as? NumberFormatter {
+            return cached
+        }
+        let formatter = NumberFormatter()
+        Thread.current.threadDictionary[formatterKey] = formatter
+        return formatter
+    }
+}
+
 public extension TFY where Base == String {
     /// - Returns:  md5 加密 (deprecated, use sha256 instead)
     @available(*, deprecated, message: "MD5 is cryptographically broken. Use sha256 instead.")
@@ -30,7 +43,7 @@ public extension TFY where Base == String {
         free(result)
         return String(format: hash as String)
      }
-     
+
      /// - Returns:  sha256 加密 (recommended)
      var sha256 : String {
          guard !base.isEmpty else { return "" }
@@ -48,14 +61,14 @@ public extension TFY where Base == String {
         let rect = NSString(string: base).boundingRect(with: CGSize(width: CGFloat(MAXFLOAT), height: height), options: .usesLineFragmentOrigin, attributes: [NSAttributedString.Key.font: font], context: nil)
         return ceil(rect.width)
     }
-    
+
     /// - Returns: 计算文本高度
     func heightForComment(fontSize: CGFloat, width: CGFloat) -> CGFloat {
         let font = UIFont.systemFont(ofSize: fontSize)
         let rect = NSString(string: base).boundingRect(with: CGSize(width: width, height: CGFloat(MAXFLOAT)), options: .usesLineFragmentOrigin, attributes: [NSAttributedString.Key.font: font], context: nil)
         return ceil(rect.height)
     }
-           
+
     /// - Returns: 计算文本最大高度
     func heightForComment(fontSize: CGFloat, width: CGFloat, maxHeight: CGFloat) -> CGFloat {
         let font = UIFont.systemFont(ofSize: fontSize)
@@ -84,24 +97,24 @@ public extension String {
         let vc = typeClass.init()
         return vc
     }
-    
+
     /// 初始化 base64
     init?(base64: String) {
         guard let decodedData = Data(base64Encoded: base64) else { return nil }
         guard let str = String(data: decodedData, encoding: .utf8) else { return nil }
         self.init(str)
     }
-    
+
     func stringByTrim() -> String {
         let set:CharacterSet = CharacterSet.whitespacesAndNewlines
         return self.trimmingCharacters(in: set)
     }
-    
+
     /// 初始化 base64
     func toModel<T>(_ type: T.Type) -> T? where T: Decodable {
         return self.data(using: .utf8)?.toModel(type)
     }
-    
+
     /// 文字高度
     ///
     /// - Parameters:
@@ -146,22 +159,26 @@ public extension String {
 }
 
 public extension String {
+    private func tfy_clampedUTF16Offset(_ value: Int) -> Int {
+        min(max(value, 0), utf16.count)
+    }
+
     func contains(regular: String) -> Bool {
         return range(of: regular, options: .regularExpression, range: nil, locale: nil) != nil
     }
-    
+
     var toInt: Int? {
         return Int(self)
     }
-    
+
     var toFloat: Float? {
         return Float(self)
     }
-    
+
     var toDouble: Double? {
         return Double(self)
     }
-    
+
     func indexOf(_ target: Character) -> Int? {
         #if swift(>=5.0)
         return self.firstIndex(of: target)?.utf16Offset(in: self)
@@ -169,43 +186,45 @@ public extension String {
         return self.firstIndex(of: target)?.encodedOffset
         #endif
     }
-    
+
     func subString(to: Int) -> String {
+        let safeOffset = tfy_clampedUTF16Offset(to)
         #if swift(>=5.0)
-        let endIndex = String.Index(utf16Offset: to, in: self)
+        let endIndex = String.Index(utf16Offset: safeOffset, in: self)
         #else
-        let endIndex = String.Index.init(encodedOffset: to)
+        let endIndex = String.Index.init(encodedOffset: safeOffset)
         #endif
         let subStr = self[self.startIndex..<endIndex]
         return String(subStr)
     }
-    
+
     func subString(from: Int) -> String {
+        let safeOffset = tfy_clampedUTF16Offset(from)
         #if swift(>=5.0)
-        let startIndex = String.Index(utf16Offset: from, in: self)
+        let startIndex = String.Index(utf16Offset: safeOffset, in: self)
         #else
-        let startIndex = String.Index.init(encodedOffset: from)
+        let startIndex = String.Index.init(encodedOffset: safeOffset)
         #endif
         let subStr = self[startIndex..<self.endIndex]
         return String(subStr)
     }
-    
+
     /// 移除空格
     func trim() -> String {
         return self.trimmingCharacters(in: CharacterSet.whitespaces)
     }
-    
+
     /// compatibility API for NSString
     var length: Int {
         return self.utf16.count
     }
-    
+
     static var stringWithUUID: String {
         let uuid = CFUUIDCreate(nil)
         let string = CFUUIDCreateString(nil, uuid)
         return string! as String
     }
-    
+
     /**
      return a md5 string (deprecated, use sha256String instead)
      */
@@ -222,7 +241,7 @@ public extension String {
                          result[12], result[13], result[14], result[15])
         return str
     }
-    
+
     /**
      return a sha256 string (recommended)
      */
@@ -235,7 +254,7 @@ public extension String {
         }
         return hash.map { String(format: "%02x", $0) }.joined()
     }
-    
+
     /// returns the size of the string if it were rendered with the specified constraints
     func size(forFont font: UIFont, size: CGSize, lineBreakMode: NSLineBreakMode) -> CGSize {
         var result = CGSize.zero
@@ -249,19 +268,19 @@ public extension String {
         result = rect.size
         return result
     }
-    
+
     /// return the width of the string
     func width(forFont font: UIFont) -> CGFloat {
         let size = self.size(forFont: font, size: CGSize(width: CGFloat(HUGE), height: CGFloat(HUGE)), lineBreakMode: NSLineBreakMode.byWordWrapping)
         return size.width
     }
-    
+
     /// return the height of the string
     func height(forFont font: UIFont) -> CGFloat {
         let size = self.size(forFont: font, size: CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude), lineBreakMode: NSLineBreakMode.byWordWrapping)
         return size.height
     }
-    
+
     /// check if has blank
     func isNotBlank() -> Bool {
         let blank = CharacterSet.whitespacesAndNewlines
@@ -272,22 +291,22 @@ public extension String {
         }
         return true
     }
-    
+
     /// return a Data using utf8 encoding
     func dataValue() -> Data? {
         return self.data(using: Encoding.utf8)
     }
-    
+
     /// return range of all string
     func range() -> NSRange {
         return NSRange(location: 0, length: self.count)
     }
-    
+
     /// return Dictionary/Array which is decoded from receiver
     func jsonValueDecoded() -> Any? {
         return self.dataValue()?.jsonValueDecoded()
     }
-    
+
     /// return string from local .txt file
     func string(named name: String) -> String {
         var path = Bundle.main.path(forResource: name, ofType: "") ?? ""
@@ -301,7 +320,7 @@ public extension String {
         }
         return ""
     }
-    
+
     // 验证手机号
     func validatePhono() -> Bool {
         //手机号以13,15,17,18开头，八个 \d 数字字符
@@ -309,50 +328,50 @@ public extension String {
         let predicate = NSPredicate(format: "SELF MATCHES %@", pattern)
         return predicate.evaluate(with: self)
     }
-    
+
     // 验证车牌
     func validateLicence() -> Bool {
-        
+
         let pattern = "^[\\u4e00-\\u9fa5]{1}[A-Z]{1}[A-Z_0-9]{5}$"
         let predicate = NSPredicate(format: "SELF MATCHES %@", pattern)
         return predicate.evaluate(with: self)
     }
-    
+
     // 验证密码
     func validatePassword() -> Bool {
-        
+
         let pattern = "^[a-zA-Z0-9]{6,20}+$"
         let predicate = NSPredicate(format: "SELF MATCHES %@", pattern)
         return predicate.evaluate(with: self)
     }
-    
+
     // 验证邮箱
     func validateEmail() -> Bool {
-        
+
         let emailString = "[A-Z0-9a-z._% -] @[A-Za-z0-9.-] \\.[A-Za-z]{2,4}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailString)
         return emailPredicate.evaluate(with: self)
     }
-    
+
     // 验证昵称
     func validateNickName() -> Bool {
-        
+
         let emailString = "^(?!_)(?!.*?_$)[a-zA-Z0-9_\\u4e00-\\u9fa5]+$"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailString)
         return emailPredicate.evaluate(with: self)
     }
-    
+
     // 验证用户名
     func validateUserName() -> Bool {
-        
+
         let string = "^[A-Za-z0-9]{6,20}+$"
         let predicate = NSPredicate(format: "SELF MATCHES %@", string)
         return predicate.evaluate(with: self)
     }
-    
+
     // 验证纯数字
     func validateNumber() -> Bool {
-        
+
         let string = "^[0-9]*$"
         let predicate = NSPredicate(format: "SELF MATCHES %@", string)
         return predicate.evaluate(with: self)
@@ -397,14 +416,14 @@ public extension String {
 
 // MARK: - 一：字符串基本的扩展
 public extension TFY where Base: ExpressibleByStringLiteral {
-    
+
     // MARK: 1.1、字符串的长度
     /// 字符串的长度
     var length: Int {
         let string = base as! String
         return string.count
     }
-    
+
     // MARK: 1.2、判断是否包含某个子串
     /// 判断是否包含某个子串
     /// - Parameter find: 子串
@@ -412,7 +431,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
     func contains(find: String) -> Bool {
         return (base as! String).range(of: find) != nil
     }
-    
+
     // MARK: 1.3、判断是否包含某个子串 -- 忽略大小写
     ///  判断是否包含某个子串 -- 忽略大小写
     /// - Parameter find: 子串
@@ -420,7 +439,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
     func containsIgnoringCase(find: String) -> Bool {
         return (base as! String).range(of: find, options: .caseInsensitive) != nil
     }
-    
+
     // MARK: 1.4、字符串转 base64
     /// 字符串 Base64 编码
     var base64Encode: String? {
@@ -437,13 +456,13 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
         return String(data: decryptionData, encoding: .utf8)
     }
-    
+
     // MARK: 1.6、将16进制字符串转为Int
     /// 将16进制字符串转为Int
     var hexInt: Int {
         return Int(base as! String, radix: 16) ?? 0
     }
-    
+
     // MARK: 1.7、判断是不是九宫格键盘
     /// 判断是不是九宫格键盘
     func isNineKeyBoard() -> Bool {
@@ -456,7 +475,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
         return true
     }
-    
+
     // MARK: 1.8、字符串转 UIViewController
     /// 字符串转 UIViewController
     /// - Returns: 对应的控制器
@@ -473,7 +492,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         let vc = vcClass.init()
         return vc
     }
-    
+
     // MARK: 1.9、字符串转 AnyClass
     /// 字符串转 AnyClass
     /// - Returns: 对应的 Class
@@ -488,7 +507,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
         return Class
     }
-    
+
     // MARK: 1.10、字符串转数组
     /// 字符串转数组
     /// - Returns: 转化后的数组
@@ -496,7 +515,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         let a = Array(base as! String)
         return a
     }
-    
+
     // MARK: 1.11、JSON 字符串 ->  Dictionary
     /// JSON 字符串 ->  Dictionary
     /// - Returns: Dictionary
@@ -509,7 +528,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
         return nil
     }
-    
+
     // MARK: 1.12、JSON 字符串 -> Array
     /// JSON 字符串 ->  Array
     /// - Returns: Array
@@ -522,7 +541,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
         return nil
     }
-    
+
     // MARK: 1.13、转成拼音
     /// 转成拼音
     /// - Parameter isLatin: true：带声调，false：不带声调，默认 false
@@ -536,7 +555,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
         return mutableString as String
     }
-    
+
     // MARK: 1.14、提取首字母, "爱国" --> AG
     /// 提取首字母, "爱国" --> AG
     /// - Parameter isUpper:  true：大写首字母，false: 小写首字母，默认 true
@@ -546,7 +565,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         let initials = pinyin.compactMap { String(format: "%c", $0.cString(using:.utf8)![0]) }
         return isUpper ? initials.joined().uppercased() : initials.joined()
     }
-    
+
     // MARK: 1.15、字符串根据某个字符进行分隔成数组
     /// 字符串根据某个字符进行分隔成数组
     /// - Parameter char: 分隔符
@@ -554,7 +573,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
     func separatedByString(with char: String) -> Array<Any> {
         return (base as! String).components(separatedBy: char)
     }
-    
+
     // MARK: 1.16、设备的UUID
     /// UUID
     static func stringWithUUID() -> String? {
@@ -562,13 +581,13 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         let cfString = CFUUIDCreateString(kCFAllocatorDefault, uuid)
         return cfString as String?
     }
-    
+
     // MARK: 1.17、复制
     /// 复制
     func copy() {
         UIPasteboard.general.string = (self.base as! String)
     }
-    
+
     // MARK: 1.18、提取出字符串中所有的URL链接
     /// 提取出字符串中所有的URL链接
     /// - Returns: URL链接数组
@@ -586,7 +605,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
         return urls
     }
-    
+
     // MARK: 1.19、String或者String HTML标签转富文本设置
     /// String 或者String HTML标签 转 html 富文本设置
     /// - Parameters:
@@ -615,7 +634,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
                 NSAttributedString.Key.font: font
             ], range: NSRange(location: 0, length: htmlString?.length ?? 0))
         }
-        
+
         // 设置行间距
         if let weakLineSpacing = lineSpacing {
             let paragraphStyle = NSMutableParagraphStyle()
@@ -624,7 +643,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
         return htmlString ?? NSMutableAttributedString(string: self.base as! String)
     }
-    
+
     // MARK: 1.20、计算字符个数（英文 = 1，数字 = 1，汉语 = 2）
     /// 计算字符个数（英文 = 1，数字 = 1，汉语 = 2）
     /// - Returns: 返回字符的个数
@@ -652,7 +671,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         let homeDirectory = NSHomeDirectory()
         return homeDirectory
     }
-    
+
     // MARK: 2.2、获取Documnets的完整路径名
     /// 获取Documnets的完整路径名
     /// - Returns: Documnets的完整路径名
@@ -660,7 +679,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         let ducumentPath = NSHomeDirectory() + "/Documents"
         return ducumentPath
     }
-    
+
     // MARK: 2.3、获取Library的完整路径名
     /**
      这个目录下有两个子目录：Caches 和 Preferences
@@ -673,7 +692,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         let libraryPath = NSHomeDirectory() + "/Library"
         return libraryPath
     }
-    
+
     // MARK: 2.4、获取/Library/Caches的完整路径名
     /// 获取/Library/Caches的完整路径名
     /// - Returns: /Library/Caches的完整路径名
@@ -682,7 +701,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         let cachesPath = NSHomeDirectory() + "/Library/Caches"
         return cachesPath
     }
-    
+
     // MARK: 2.5、获取Library/Preferences的完整路径名
     /// 获取Library/Preferences的完整路径名
     /// - Returns: Library/Preferences的完整路径名
@@ -691,7 +710,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         let preferencesPath = NSHomeDirectory() + "/Library/Preferences"
         return preferencesPath
     }
-    
+
     // MARK: 2.6、获取Tmp的完整路径名
     /// 获取Tmp的完整路径名，用于存放临时文件，保存应用程序再次启动过程中不需要的信息，重启后清空。
     /// - Returns: Tmp的完整路径名
@@ -705,21 +724,21 @@ public extension TFY where Base: ExpressibleByStringLiteral {
 }
 
 public extension TFY where Base: ExpressibleByStringLiteral {
-    
+
     // MARK: 3.1、去除字符串前后的 空格
     /// 去除字符串前后的换行和换行
     var removeBeginEndAllSapcefeed: String {
         let resultString = (base as! String).trimmingCharacters(in: CharacterSet.whitespaces)
         return resultString
     }
-    
+
     // MARK: 3.2、去除字符串前后的 换行
     /// 去除字符串前后的 换行
     var removeBeginEndAllLinefeed: String {
         let resultString = (base as! String).trimmingCharacters(in: CharacterSet.newlines)
         return resultString
     }
-    
+
     // MARK: 3.3、去除字符串前后的 换行和空格
     /// 去除字符串前后的 换行和空格
     var removeBeginEndAllSapceAndLinefeed: String {
@@ -727,19 +746,19 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         resultString = resultString.trimmingCharacters(in: CharacterSet.newlines)
         return resultString
     }
-    
+
     // MARK: 3.4、去掉所有空格
     /// 去掉所有空格
     var removeAllSapce: String {
         return (base as! String).replacingOccurrences(of: " ", with: "", options: .literal, range: nil)
     }
-    
+
     // MARK: 3.5、去掉所有换行
     /// 去掉所有换行
     var removeAllLinefeed: String {
         return (base as! String).replacingOccurrences(of: "\n", with: "", options: .literal, range: nil)
     }
-    
+
     // MARK: 3.6、去掉所有空格 和 换行
     /// 去掉所有的空格 和 换行
     var removeAllLineAndSapcefeed: String {
@@ -749,7 +768,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         resultString = resultString.replacingOccurrences(of: "\n", with: "", options: .literal, range: nil)
         return resultString
     }
-    
+
     // MARK: 3.7、是否是 0-9 的数字，也不包含小数点
     /// 是否是 0-9 的数字，也不包含小数点
     /// - Returns: 结果
@@ -761,7 +780,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
         return true
     }
-    
+
     // MARK: 3.8、url进行编码
     /// url 进行编码
     /// - Returns: 返回对应的URL
@@ -771,13 +790,13 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         charSet.insert(charactersIn: "%")
         return (base as! String).addingPercentEncoding(withAllowedCharacters: charSet) ?? ""
     }
-    
+
     // MARK: 3.9、url进行解码
     /// url解码
     func urlDecode() -> String {
         return (base as! String).removingPercentEncoding ?? ""
     }
-    
+
     // MARK: 3.10、某个字符使用某个字符替换掉
     /// 某个字符使用某个字符替换掉
     /// - Parameters:
@@ -787,7 +806,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
     func removeSomeStringUseSomeString(removeString: String, replacingString: String = "") -> String {
         return (base as! String).replacingOccurrences(of: removeString, with: replacingString)
     }
-    
+
     // MARK: 3.11、使用正则表达式替换某些子串
     /// 使用正则表达式替换
     /// - Parameters:
@@ -797,12 +816,15 @@ public extension TFY where Base: ExpressibleByStringLiteral {
     /// - Returns: 返回替换后的字符串
     func pregReplace(pattern: String, with: String,
                      options: NSRegularExpression.Options = []) -> String {
-        let regex = try! NSRegularExpression(pattern: pattern, options: options)
-        return regex.stringByReplacingMatches(in: (base as! String), options: [],
-                                              range: NSMakeRange(0, (base as! String).count),
+        let string = base as! String
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else {
+            return string
+        }
+        return regex.stringByReplacingMatches(in: string, options: [],
+                                              range: NSRange(location: 0, length: string.utf16.count),
                                               withTemplate: with)
     }
-    
+
     // MARK: 3.12、删除指定的字符
     /// 删除指定的字符
     /// - Parameter characterString: 指定的字符
@@ -815,7 +837,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
 
 // MARK: - 四、字符串的转换
 public extension TFY where Base: ExpressibleByStringLiteral {
-    
+
     // MARK: 4.1、字符串 转 CGFloat
     /// 字符串 转 Float
     /// - Returns: CGFloat
@@ -825,7 +847,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
         return nil
     }
-    
+
     // MARK: 4.2、字符串转 bool
     /// 字符串转 bool
     var bool: Bool? {
@@ -838,40 +860,40 @@ public extension TFY where Base: ExpressibleByStringLiteral {
             return nil
         }
     }
-    
+
     // MARK: 4.3、字符串转 Int
     /// 字符串转 Int
     /// - Returns: Int
     func toInt() -> Int? {
-        if let num = NumberFormatter().number(from: base as! String) {
+        if let num = TFYStringChainFormatterPool.numberFormatter().number(from: base as! String) {
             return num.intValue
         } else {
             return nil
         }
     }
-    
+
     // MARK: 4.4、字符串转 Double
     /// 字符串转 Double
     /// - Returns: Double
     func toDouble() -> Double? {
-        if let num = NumberFormatter().number(from: base as! String) {
+        if let num = TFYStringChainFormatterPool.numberFormatter().number(from: base as! String) {
             return num.doubleValue
         } else {
             return nil
         }
     }
-    
+
     // MARK: 4.5、字符串转 Float
     /// 字符串转 Float
     /// - Returns: Float
     func toFloat() -> Float? {
-        if let num = NumberFormatter().number(from: base as! String) {
+        if let num = TFYStringChainFormatterPool.numberFormatter().number(from: base as! String) {
             return num.floatValue
         } else {
             return nil
         }
     }
-    
+
     // MARK: 4.6、字符串转 Bool
     /// 字符串转 Bool
     /// - Returns: Bool
@@ -882,19 +904,19 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
         return nil
     }
-    
+
     // MARK: 4.7、字符串转 NSString
     /// 字符串转 NSString
     var toNSString: NSString {
         return (base as! String) as NSString
     }
-    
+
     // MARK: 4.8、字符串转 Int64
     /// 字符串转 Int64
     var toInt64Value: Int64 {
         return Int64(base as! String) ?? 0
     }
-    
+
     // MARK: 4.9、字符串转 NSNumber
     /// 字符串转 NSNumber
     var toNumber: NSNumber? {
@@ -904,7 +926,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
 
 // MARK: - 五、字符串UI的处理
 extension TFY where Base: ExpressibleByStringLiteral {
-    
+
     // MARK: 5.1、对字符串(多行)指定出字体大小和最大的 Size，获取 (Size)
     /// 对字符串(多行)指定出字体大小和最大的 Size，获取展示的 Size
     /// - Parameters:
@@ -924,7 +946,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         let rect: CGRect = (base as! String).boundingRect(with: size, options: option, attributes: attributes, context: nil)
         return rect.size
     }
-    
+
     // MARK: 5.2、对字符串(多行)指定字体及Size，获取 (高度)
     /// 对字符串指定字体及Size，获取 (高度)
     /// - Parameters:
@@ -934,7 +956,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
     public func rectHeight(font: UIFont, size: CGSize) -> CGFloat {
         return rectSize(font: font, size: size).height
     }
-    
+
     // MARK: 5.3、对字符串(多行)指定字体及Size，获取 (宽度)
     /// 对字符串指定字体及Size，获取 (宽度)
     /// - Parameters:
@@ -944,7 +966,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
     public func rectWidth(font: UIFont, size: CGSize) -> CGFloat {
         return rectSize(font: font, size: size).width
     }
-    
+
     // MARK: 5.4、对字符串(单行)指定字体，获取 (Size)
     /// 对字符串(单行)指定字体，获取 (Size)
     /// - Parameter font: 字体的大小
@@ -953,7 +975,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         let attrs = [NSAttributedString.Key.font: font]
         return (base as! String).size(withAttributes: attrs as [NSAttributedString.Key: Any])
     }
-    
+
     // MARK: 5.5、对字符串(单行)指定字体，获取 (width)
     /// 对字符串(单行)指定字体，获取 (width)
     /// - Parameter font: 字体的大小
@@ -962,7 +984,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         let attrs = [NSAttributedString.Key.font: font]
         return (base as! String).size(withAttributes: attrs as [NSAttributedString.Key: Any]).width
     }
-    
+
     // MARK: 5.6、对字符串(单行)指定字体，获取 (Height)
     /// 对字符串(单行)指定字体，获取 (height)
     /// - Parameter font: 字体的大小
@@ -980,7 +1002,7 @@ public enum StringCutType {
 }
 
 public extension TFY where Base: ExpressibleByStringLiteral {
-    
+
     // MARK: 6.1、将金额字符串转化为带逗号的金额 按照千分位划分，如  "1234567" => 1,234,567   1234567.56 => 1,234,567.56
     /// 将金额字符串转化为带逗号的金额 按照千分位划分，如  "1234567" => 1,234,567   1234567.56 => 1,234,567.56
     /// - Returns: 千分位的字符串
@@ -1002,7 +1024,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         let result = formatter.string(from: num)
         return result
     }
-    
+
     // MARK: 6.2、字符串差不多精确转换成Double——之所以差不多，是因为有精度损失
     /// - Important: 字符串差不多精确转换成Double——之所以差不多，是因为有精度损失
     func accuraterDouble() -> Double? {
@@ -1010,7 +1032,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         print(NSDecimalNumber(decimal: decimal).doubleValue)
         return NSDecimalNumber(decimal: decimal).doubleValue
     }
-    
+
     // MARK: 6.3、去掉小数点后多余的0
     /// 去掉小数点后多余的0
     /// - Returns: 返回小数点后没有 0 的金额
@@ -1034,7 +1056,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
             return (base as! String)
         }
     }
-    
+
     // MARK: 6.4、将数字的字符串处理成  几位 位小数的情况
     /// 将数字的字符串处理成  几位 位小数的情况
     /// - Parameters:
@@ -1090,7 +1112,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         let final = ln.adding(rn)
         return final.stringValue
     }
-    
+
     // MARK: 7.2、－
     /// －
     /// - Parameter strNumber: strNumber description
@@ -1107,7 +1129,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         let final = ln.subtracting(rn)
         return final.stringValue
     }
-    
+
     // MARK: 7.3、*
     /// ✖️
     /// - Parameter strNumber: strNumber description
@@ -1124,7 +1146,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         let final = ln.multiplying(by: rn)
         return final.stringValue
     }
-    
+
     // MARK: 7.4、/
     /// ➗
     /// - Parameter strNumber: strNumber description
@@ -1148,7 +1170,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
 
 // MARK: - 八、字符串包含表情的处理
 extension TFY where Base: ExpressibleByStringLiteral {
-    
+
     // MARK: 8.1、检查字符串是否包含 Emoji 表情
     /// 检查字符串是否包含 Emoji 表情
     /// - Returns: bool
@@ -1168,20 +1190,22 @@ extension TFY where Base: ExpressibleByStringLiteral {
         }
         return false
     }
-    
+
     // MARK: 8.2、检查字符串是否包含 Emoji 表情
     /// 检查字符串是否包含 Emoji 表情
     /// - Returns: bool
     public func includesEmoji() -> Bool {
-        for i in 0...length {
-            let c: unichar = ((base as! String) as NSString).character(at: i)
+        guard length > 0 else { return false }
+        let nsString = (base as! String) as NSString
+        for i in 0..<length {
+            let c: unichar = nsString.character(at: i)
             if (0xD800 <= c && c <= 0xDBFF) || (0xDC00 <= c && c <= 0xDFFF) {
                 return true
             }
         }
         return false
     }
-    
+
     // MARK: 8.3、去除字符串中的Emoji表情
     /// 去除字符串中的Emoji表情
     /// - Parameter text: 字符串
@@ -1189,9 +1213,9 @@ extension TFY where Base: ExpressibleByStringLiteral {
     public func deleteEmoji() -> String {
         do {
             let regex = try NSRegularExpression(pattern: "[^\\u0020-\\u007E\\u00A0-\\u00BE\\u2E80-\\uA4CF\\uF900-\\uFAFF\\uFE30-\\uFE4F\\uFF00-\\uFFEF\\u0080-\\u009F\\u2000-\\u201f\r\n]", options: NSRegularExpression.Options.caseInsensitive)
-            
+
             let modifiedString = regex.stringByReplacingMatches(in: (base as! String), options: NSRegularExpression.MatchingOptions(rawValue: 0), range: NSMakeRange(0, self.length), withTemplate: "")
-            
+
             return modifiedString
         } catch {
              print(error)
@@ -1202,13 +1226,13 @@ extension TFY where Base: ExpressibleByStringLiteral {
 
 // MARK: - 九、字符串的一些正则校验
 extension TFY where Base: ExpressibleByStringLiteral {
-    
+
     // MARK: 9.1、判断是否全是空白,包括空白字符和换行符号，长度为0返回true
     /// 判断是否全是空白,包括空白字符和换行符号，长度为0返回true
     public var isBlank: Bool {
         return (base as! String).trimmingCharacters(in: NSCharacterSet.whitespacesAndNewlines) == ""
     }
-    
+
     // MARK: 9.2、判断是否全十进制数字，长度为0返回false
     /// 判断是否全十进制数字，长度为0返回false
     public var isDecimalDigits: Bool {
@@ -1218,7 +1242,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         // 去除什么的操作
         return (base as! String).trimmingCharacters(in: NSCharacterSet.decimalDigits) == ""
     }
-    
+
     // MARK: 9.3、判断是否是整数
     /// 判断是否是整数
     public var isPureInt: Bool {
@@ -1226,7 +1250,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         var n: Int = 0
         return scan.scanInt(&n) && scan.isAtEnd
     }
-    
+
     // MARK: 9.4、判断是否是Float,此处Float是包含Int的，即Int是特殊的Float
     /// 判断是否是Float，此处Float是包含Int的，即Int是特殊的Float
     public var isPureFloat: Bool {
@@ -1244,7 +1268,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
             return scan.scanFloat(&n) && scan.isAtEnd
         }
     }
-    
+
     // MARK: 9.5、判断是否全是字母，长度为0返回false
     /// 判断是否全是字母，长度为0返回false
     public var isLetters: Bool {
@@ -1253,42 +1277,42 @@ extension TFY where Base: ExpressibleByStringLiteral {
         }
         return (base as! String).trimmingCharacters(in: NSCharacterSet.letters) == ""
     }
-    
+
     // MARK: 9.6、判断是否是中文, 这里的中文不包括数字及标点符号
     /// 判断是否是中文, 这里的中文不包括数字及标点符号
     public var isChinese: Bool {
         let rgex = "(^[\u{4e00}-\u{9fef}]+$)"
         return predicateValue(rgex: rgex)
     }
-    
+
     // MARK: 9.7、是否是有效昵称，即允许"中文"、"英文"、"数字"
     /// 是否是有效昵称，即允许"中文"、"英文"、"数字"
     public var isValidNickName: Bool {
         let rgex = "(^[\u{4e00}-\u{9faf}_a-zA-Z0-9]+$)"
         return predicateValue(rgex: rgex)
     }
-    
+
     // MARK: 9.8、判断是否是有效的手机号码
     /// 判断是否是有效的手机号码
     public var isValidMobile: Bool {
         let rgex = "^((13[0-9])|(14[5,7])|(15[0-3,5-9])|(17[0,3,5-8])|(18[0-9])|166|198|199)\\d{8}$"
         return predicateValue(rgex: rgex)
     }
-    
+
     // MARK: 9.9、判断是否是有效的电子邮件地址
     /// 判断是否是有效的电子邮件地址
     public var isValidEmail: Bool {
         let rgex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}"
         return predicateValue(rgex: rgex)
     }
-    
+
     // MARK: 9.10、判断是否有效的身份证号码，不是太严格
     /// 判断是否有效的身份证号码，不是太严格
     public var isValidIDCardNumber: Bool {
         let rgex = "^(\\d{15})|((\\d{17})(\\d|[X]))$"
         return predicateValue(rgex: rgex)
     }
-    
+
     // MARK: 9.11、严格判断是否有效的身份证号码,检验了省份，生日，校验位，不过没检查市县的编码
     /// 严格判断是否有效的身份证号码,检验了省份，生日，校验位，不过没检查市县的编码
     public var isValidIDCardNumStrict: Bool {
@@ -1322,7 +1346,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
                 } catch {}
             }
             numberOfMatch = regex.numberOfMatches(in: str, options: NSRegularExpression.MatchingOptions.reportProgress, range: NSMakeRange(0, len))
-            
+
             if numberOfMatch > 0 {
                 return true
             } else {
@@ -1369,7 +1393,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
             return false
         }
     }
-    
+
     // MARK: 9.12、校验字符串位置是否合理，并返回String.Index
     /// 校验字符串位置是否合理，并返回String.Index
     /// - Parameter original: 位置
@@ -1384,7 +1408,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
             return (base as! String).index((base as! String).startIndex, offsetBy: original)
         }
     }
-    
+
     // MARK: 9.13、隐藏手机号中间的几位
     /// 隐藏手机号中间的几位
     /// - Parameter combine: 隐藏的字符串(替换的类型)
@@ -1398,7 +1422,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
             return (base as! String)
         }
     }
-    
+
     // MARK: 9.14、检查字符串是否有特定前缀：hasPrefix
     /// 检查字符串是否有特定前缀：hasPrefix
     /// - Parameter prefix: 前缀字符串
@@ -1406,7 +1430,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
     public func isHasPrefix(prefix: String) -> Bool {
         return (base as! String).hasPrefix(prefix)
     }
-    
+
     // MARK: 9.15、检查字符串是否有特定后缀：hasSuffix
     /// 检查字符串是否有特定后缀：hasSuffix
     /// - Parameter suffix: 后缀字符串
@@ -1414,7 +1438,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
     public func isHasSuffix(suffix: String) -> Bool {
         return (base as! String).hasSuffix(suffix)
     }
-    
+
     // MARK: 9.16、是否为0-9之间的数字(字符串的组成是：0-9之间的数字)
     /// 是否为0-9之间的数字(字符串的组成是：0-9之间的数字)
     /// - Returns: 返回结果
@@ -1425,7 +1449,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         let rgex = "^[\\d]*$"
         return predicateValue(rgex: rgex)
     }
-    
+
     // MARK: 9.17、是否为数字或者小数点(字符串的组成是：0-9之间的数字或者小数点即可)
     /// 是否为数字或者小数点(字符串的组成是：0-9之间的数字或者小数点即可)
     /// - Returns: 返回结果
@@ -1436,7 +1460,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         let rgex = "^[\\d.]*$"
         return predicateValue(rgex: rgex)
     }
-    
+
     // MARK: 9.18、验证URL格式是否正确
     /// 验证URL格式是否正确
     /// - Returns: 结果
@@ -1448,13 +1472,13 @@ extension TFY where Base: ExpressibleByStringLiteral {
         }
         return false
     }
-    
+
     // MARK: 9.19、是否是一个有效的文件URL, "file://Documents/file.txt".isValidFileUrl -> true
     /// 是否是一个有效的文件URL
     public var isValidFileUrl: Bool {
         return URL(string: base as! String)?.isFileURL ?? false
     }
-    
+
     // MARK: 9.20、富文本匹配(某些关键词高亮)
     /// 富文本匹配(某些关键词高亮)
     /// - Parameters:
@@ -1484,7 +1508,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         }
         return attributedString
     }
-    
+
     //MARK: 9.21、判断是否是视频链接
     /// 判断是否是视频链接
     public var isVideoUrl: Bool {
@@ -1493,7 +1517,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         }
         return false
     }
-    
+
     // MARK: - private 方法
     // MARK: 是否是闰年
     /// 是否是闰年
@@ -1510,17 +1534,17 @@ extension TFY where Base: ExpressibleByStringLiteral {
             return false
         }
     }
-    
+
     private func predicateValue(rgex: String) -> Bool {
         let checker: NSPredicate = NSPredicate(format: "SELF MATCHES %@", rgex)
         return checker.evaluate(with: (base as! String))
     }
-    
+
 }
 
 // MARK: - 十、字符串截取的操作
 extension TFY where Base: ExpressibleByStringLiteral {
-    
+
     // MARK: 10.1、截取字符串从开始到 index
     /// 截取字符串从开始到 index
     /// - Parameter index: 截取到的位置
@@ -1529,7 +1553,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         let end_Index = validIndex(original: index)
         return String((base as! String)[(base as! String).startIndex ..< end_Index])
     }
-    
+
     // MARK: 10.2、截取字符串从index到结束
     /// 截取字符串从index到结束
     /// - Parameter index: 截取结束的位置
@@ -1538,7 +1562,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         let start_index = validIndex(original: index)
         return String((base as! String)[start_index ..< (base as! String).endIndex])
     }
-    
+
     // MARK: 10.3、获取指定位置和长度的字符串
     /// 获取指定位置和大小的字符串
     /// - Parameters:
@@ -1555,7 +1579,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         let range = st ..< en
         return String((base as! String)[range]) // .substring(with:range)
     }
-    
+
     // MARK: 10.4、切割字符串(区间范围 前闭后开)
     /**
      CountableClosedRange：可数的闭区间，如 0...2
@@ -1579,7 +1603,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         }
         return String((base as! String)[startIndex ..< endIndex])
     }
-    
+
     // MARK: 10.5、子字符串第一次出现的位置
     /// 子字符串第一次出现的位置
     /// - Parameter sub: 子字符串
@@ -1587,7 +1611,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
     public func positionFirst(of sub: String) -> Int {
         return position(of: sub)
     }
-    
+
     // MARK: 10.6、子字符串最后一次出现的位置
     /// 子字符串第一次出现的位置
     /// - Parameter sub: 子字符串
@@ -1595,7 +1619,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
     public func positionLast(of sub: String) -> Int {
         return position(of: sub, backwards: true)
     }
-    
+
     /// 返回(第一次/最后一次)出现的指定子字符串在此字符串中的索引，如果内部不存在该字符串则返回 -1
     /// - Parameters:
     ///   - sub: 子字符串
@@ -1610,7 +1634,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         }
         return pos
     }
-    
+
     // MARK: 10.7、获取某个位置的字符串
     /// 获取某个位置的字符串
     /// - Parameter index: 位置
@@ -1618,7 +1642,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
     public func indexString(index: Int) -> String  {
         return slice((index..<index + 1))
     }
-    
+
     // MARK: 10.8、获取某个子串在父串中的范围->Range
     /// 获取某个子串在父串中的范围->Range
     /// - Parameter str: 子串
@@ -1626,7 +1650,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
     public func range(of subString: String) -> Range<String.Index>? {
         return (base as! String).range(of: subString)
     }
-    
+
     // MARK: 10.9、获取某个子串在父串中的范围->NSRange
     /// 获取某个子串在父串中的范围->NSRange
     /// - Parameter str: 子串
@@ -1638,7 +1662,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
         let text = (base as! String) as NSString
         return text.range(of: subString)
     }
-    
+
     // MARK: 10.10、在任意位置插入字符串
     /// 在任意位置插入字符串
     /// - Parameters:
@@ -1657,7 +1681,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
 
 // MARK: - 十一、字符串编码的处理
 extension TFY where Base: ExpressibleByStringLiteral {
-    
+
     // MARK: 11.1、特殊字符编码处理urlEncoded
     /// url编码 默认urlQueryAllowed
     public func urlEncoding(characters: CharacterSet = .urlQueryAllowed) -> String {
@@ -1665,27 +1689,27 @@ extension TFY where Base: ExpressibleByStringLiteral {
                                                                         characters)
         return encodeUrlString ?? ""
     }
-    
+
     // MARK: 11.2、url编码 Alamofire AFNetworking 处理方式 推荐使用
     /// url编码 Alamofire AFNetworking 处理方式 推荐使用
     public var urlEncoded: String {
         // does not include "?" or "/" due to RFC 3986 - Section 3.4
         let generalDelimitersToEncode = ":#[]@"
         let subDelimitersToEncode = "!$&'()*+,;="
-        
+
         var allowedCharacterSet = CharacterSet.urlQueryAllowed
         allowedCharacterSet.remove(charactersIn: "\(generalDelimitersToEncode)\(subDelimitersToEncode)")
         let encodeUrlString = (base as! String).addingPercentEncoding(withAllowedCharacters:
                                                                         allowedCharacterSet)
         return encodeUrlString ?? ""
     }
-    
+
     // MARK: 11.3、url编码 会对所有特殊字符做编码  特殊情况下使用
     /// url编码 会对所有特殊字符做编码  特殊情况下使用
     public var urlAllEncoded: String {
         let generalDelimitersToEncode = ":#[]@" // does not include "?" or "/" due to RFC 3986 - Section 3.4
         let subDelimitersToEncode = "!$&'()*+,;=/?_-.~"
-        
+
         var allowedCharacterSet = CharacterSet.urlQueryAllowed
         allowedCharacterSet.remove(charactersIn: "\(generalDelimitersToEncode)\(subDelimitersToEncode)")
         let encodeUrlString = (base as! String).addingPercentEncoding(withAllowedCharacters:
@@ -1695,7 +1719,7 @@ extension TFY where Base: ExpressibleByStringLiteral {
 }
 
 public extension TFY where Base: ExpressibleByStringLiteral {
-    
+
     // MARK: 12.1、二进制 -> 八进制
     /// 二进制 ->转 八进制
     /// - Returns: 八进制
@@ -1707,7 +1731,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         // 八进制
         return decimal.tfy.decimalToOctal()
     }
-    
+
     // MARK: 12.2、二进制 -> 十进制
     /// 二进制 -> 十进制
     /// - Returns: 十进制
@@ -1721,7 +1745,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
         return "\(sum)"
     }
-    
+
     // MARK: 12.3、二进制 转 十六进制
     /// 二进制  ->  十六进制
     /// - Returns: 十六进制
@@ -1733,7 +1757,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         // 十六进制
         return decimal.tfy.decimalToHexadecimal()
     }
-    
+
     // MARK: 12.4、八进制 -> 二进制
     /// 八进制 -> 二进制
     /// - Returns: 二进制
@@ -1745,7 +1769,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         // 二进制
         return decimal.tfy.decimalToBinary()
     }
-    
+
     // MARK: 12.5、八进制 -> 十进制
     /// 八进制 -> 十进制
     /// - Returns: 十进制
@@ -1759,7 +1783,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
         return "\(sum)"
     }
-    
+
     // MARK: 12.6、八进制 -> 十六进制
     /// 八进制 -> 十六进制
     /// - Returns: 十六进制
@@ -1771,7 +1795,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         // 十六进制
         return decimal.tfy.decimalToHexadecimal()
     }
-    
+
     // MARK: 12.7、十进制 -> 二进制
     /// 十进制 -> 二进制
     /// - Returns: 二进制
@@ -1786,7 +1810,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
         return str
     }
-    
+
     // MARK: 12.8、十进制 -> 八进制
     /// 十进制 -> 八进制
     /// - Returns: 八进制
@@ -1807,7 +1831,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
          */
         return String(format: "%0O", decimal)
     }
-    
+
     // MARK: 12.9、十进制 -> 十六进制
     /// 十进制 -> 十六进制
     /// - Returns: 十六进制
@@ -1817,7 +1841,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         }
         return String(format: "%0X", decimal)
     }
-    
+
     // MARK: 12.10、十六进制 -> 二进制
     /// 十六进制  -> 二进制
     /// - Returns: 二进制
@@ -1829,7 +1853,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         // 二进制
         return decimal.tfy.decimalToBinary()
     }
-    
+
     // MARK: 12.11、十六进制 -> 八进制
     /// 十六进制  -> 八进制
     /// - Returns: 八进制
@@ -1841,7 +1865,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         // 八进制
         return decimal.tfy.decimalToOctal()
     }
-    
+
     // MARK: 12.12、十六进制 -> 十进制
     /// 十六进制  -> 十进制
     /// - Returns: 十进制
@@ -1862,7 +1886,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
 
 // MARK: - 十三、String -> NSMutableAttributedString
 public extension TFY where Base: ExpressibleByStringLiteral {
-    
+
     // MARK: 13.1、String 添加颜色后转 NSMutableAttributedString
     /// String 添加颜色后转 NSMutableAttributedString
     /// - Parameter color: 背景色
@@ -1871,7 +1895,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         let attributedText = NSMutableAttributedString(string: self.base as! String, attributes: [.foregroundColor: color])
         return attributedText
     }
-    
+
     // MARK: 13.2、String 添加 font 后转 NSMutableAttributedString
     /// String 添加 font 后转 NSMutableAttributedString
     /// - Parameter font: 字体的大小
@@ -1880,7 +1904,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         let attributedText = NSMutableAttributedString(string: self.base as! String, attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: font)])
         return attributedText
     }
-    
+
     // MARK: 13.3、String 添加 font 后转 NSMutableAttributedString
     /// String 添加 UIFont 后转 NSMutableAttributedString
     /// - Parameter font: UIFont
@@ -1889,7 +1913,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         let attributedText = NSMutableAttributedString(string: self.base as! String, attributes: [NSAttributedString.Key.font: font])
         return attributedText
     }
-    
+
     // MARK: 13.4、String 添加 text 后转 NSMutableAttributedString
     /// String 添加 text 后转 NSMutableAttributedString
     /// - Returns: NSMutableAttributedString
@@ -1897,7 +1921,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         let attributedText = NSMutableAttributedString(string: self.base as! String)
         return attributedText
     }
-    
+
     // MARK: 13.5、String 添加 删除线 后转 NSMutableAttributedString
     /// String 添加 删除线 后转 NSMutableAttributedString
     /// - Returns: NSMutableAttributedString
@@ -1908,7 +1932,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
 }
 
 public extension TFY where Base: ExpressibleByStringLiteral {
-    
+
     /// MD5 加密类型
     enum MD5EncryptType {
         /// 32 位小写
@@ -1920,7 +1944,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         /// 16 位大写
         case uppercase16
     }
-    
+
     // MARK: 14.1、MD5加密 默认是32位小写加密 (deprecated)
     /// MD5加密 默认是32位小写加密 (deprecated, use sha256Encrypt instead)
     /// - Parameter md5Type: 加密类型
@@ -1942,7 +1966,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
          */
         // swiftlint:disable:next deprecated_crypto
         CC_MD5(cCharArray, CC_LONG(cCharArray!.count - 1), &uint8Array)
-        
+
         switch md5Type {
         // 32位小写
         case .lowercase32:
@@ -1960,7 +1984,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
             return tempStr.tfy.slice(8..<24)
         }
     }
-    
+
     // MARK: 14.2、SHA256加密 (recommended)
     /// SHA256加密 (recommended)
     /// - Parameter shaType: 加密类型
@@ -1974,7 +1998,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         data.withUnsafeBytes { buffer in
             _ = CC_SHA256(buffer.baseAddress, CC_LONG(buffer.count), &hash)
         }
-        
+
         switch shaType {
         // 32位小写
         case .lowercase32:
@@ -1992,7 +2016,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
             return tempStr.tfy.slice(8..<24)
         }
     }
-    
+
     // MARK: 14.3、Base64 编解码
     /// Base64 编解码
     /// - Parameter encode: true:编码 false:解码
@@ -2005,7 +2029,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
             }
             return String(data: decryptionData, encoding: .utf8)
         }
-        
+
         // 2.编码
         guard let codingData = (self.base as! String).data(using: .utf8) else {
             return nil
@@ -2043,7 +2067,7 @@ public enum DDYSCAType {
 }
 
 public extension TFY where Base: ExpressibleByStringLiteral {
-    
+
     // MARK: 15.1、字符串 AES, AES128, DES, DES3, CAST, RC2, RC4, Blowfish 多种加密
     /// 字符串 AES, AES128, DES, DES3, CAST, RC2, RC4, Blowfish 多种加密
     /// - Parameters:
@@ -2052,13 +2076,13 @@ public extension TFY where Base: ExpressibleByStringLiteral {
     ///   - encode: 是编码还是解码
     /// - Returns: 编码或者解码后的字符串
     func scaCrypt(cryptType: DDYSCAType, key: String?, encode: Bool) -> String? {
-        
+
         let strData = encode ? (self.base as! String).data(using: .utf8) : Data(base64Encoded: (self.base as! String))
         // 创建数据编码后的指针
         let dataPointer = UnsafeRawPointer((strData! as NSData).bytes)
         // 获取转码后数据的长度
         let dataLength = size_t(strData!.count)
-        
+
         // 2、后台对应的加密key
         // 将加密或解密的密钥转化为Data数据
         guard let keyData = key?.data(using: .utf8) else {
@@ -2124,7 +2148,7 @@ public enum DDYSHAType {
 }
 
 public extension TFY where Base: ExpressibleByStringLiteral {
-    
+
     // MARK: 16.1、SHA1, SHA224, SHA256, SHA384, SHA512 加密
     /// SHA1, SHA224, SHA256, SHA384, SHA512 加密
     /// - Parameters:
@@ -2140,7 +2164,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
         let digLen = cryptType.infoTuple.length
         let buffer = UnsafeMutablePointer<CUnsignedChar>.allocate(capacity: digLen)
         let hash = NSMutableString()
-        
+
         if let cKey = key?.cString(using: String.Encoding.utf8), key != "" {
             let keyLen = Int(key!.lengthOfBytes(using: String.Encoding.utf8))
             CCHmac(cryptType.infoTuple.algorithm, cKey, keyLen, cStr, strLen, buffer)
@@ -2167,7 +2191,7 @@ public extension TFY where Base: ExpressibleByStringLiteral {
 
 // MARK: - 十七、unicode编码和解码
 public extension TFY where Base == String {
-    
+
     // MARK: 17.1、unicode编码
     /// unicode编码
     /// - Returns: unicode编码后的字符串
@@ -2181,10 +2205,10 @@ public extension TFY where Base == String {
             let codeStr = String(v, radix: 16, uppercase: false)
             tempStr.append("\\u" + codeStr)
         }
-        
+
         return tempStr
     }
-    
+
     // MARK: 17.2、unicode解码
     /// unicode解码
     /// - Returns: unicode解码后的字符串
@@ -2192,20 +2216,25 @@ public extension TFY where Base == String {
         let tempStr1 = base.replacingOccurrences(of: "\\u", with: "\\U")
         let tempStr2 = tempStr1.replacingOccurrences(of: "\"", with: "\\\"")
         let tempStr3 = "\"".appending(tempStr2).appending("\"")
-        let tempData = tempStr3.data(using: String.Encoding.utf8)
-        var returnStr: String = ""
+        guard let tempData = tempStr3.data(using: .utf8) else {
+            return base
+        }
+
         do {
-            returnStr = try PropertyListSerialization.propertyList(from: tempData!, options: [.mutableContainers], format: nil) as! String
+            guard let returnStr = try PropertyListSerialization.propertyList(from: tempData, options: [.mutableContainers], format: nil) as? String else {
+                return base
+            }
+            return returnStr.replacingOccurrences(of: "\\r\\n", with: "\n")
         } catch {
             print(error)
+            return base
         }
-        return returnStr.replacingOccurrences(of: "\\r\\n", with: "\n")
     }
 }
 
 // MARK: - 十八、字符值引用 (numeric character reference, NCR)与普通字符串的转换
 public extension TFY where Base == String {
-    
+
     // MARK: 18.1、将普通字符串转为字符值引用
     /// 将普通字符串转为字符值引用
     /// - Returns: 字符值引用
@@ -2218,7 +2247,7 @@ public extension TFY where Base == String {
         }
         return result
     }
-    
+
     // MARK: 18.2、字符值引用转普通字符串
     /// 字符值引用转普通字符串
     /// - Parameter htmlEncodedString: 字符值引用
@@ -2235,7 +2264,15 @@ public extension TFY where Base == String {
 
 // MARK: - 十九、新增实用功能
 public extension TFY where Base == String {
-    
+
+    private func replacingMatches(pattern: String, withTemplate template: String) -> String {
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
+            return base
+        }
+        let range = NSRange(location: 0, length: base.utf16.count)
+        return regex.stringByReplacingMatches(in: base, options: [], range: range, withTemplate: template)
+    }
+
     // MARK: 19.1、字符串验证
     /// 验证邮箱格式
     var isValidEmail: Bool {
@@ -2243,27 +2280,27 @@ public extension TFY where Base == String {
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         return emailPredicate.evaluate(with: base)
     }
-    
+
     /// 验证手机号格式（中国大陆）
     var isValidPhoneNumber: Bool {
         let phoneRegex = "^1[3-9]\\d{9}$"
         let phonePredicate = NSPredicate(format: "SELF MATCHES %@", phoneRegex)
         return phonePredicate.evaluate(with: base)
     }
-    
+
     /// 验证身份证号格式（中国大陆）
     var isValidIDCard: Bool {
         let idCardRegex = "^[1-9]\\d{5}(18|19|20)\\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\\d{3}[0-9Xx]$"
         let idCardPredicate = NSPredicate(format: "SELF MATCHES %@", idCardRegex)
         return idCardPredicate.evaluate(with: base)
     }
-    
+
     /// 验证URL格式
     var isValidURL: Bool {
         guard let url = URL(string: base) else { return false }
         return UIApplication.shared.canOpenURL(url)
     }
-    
+
     // MARK: 19.2、字符串转换
     /// 转换为拼音
     func toPinyin() -> String {
@@ -2272,14 +2309,14 @@ public extension TFY where Base == String {
         CFStringTransform(mutableString, nil, kCFStringTransformStripDiacritics, false)
         return String(mutableString)
     }
-    
+
     /// 转换为拼音首字母
     func toPinyinInitials() -> String {
         let pinyin = toPinyin()
         let words = pinyin.components(separatedBy: " ")
         return words.compactMap { $0.first }.map { String($0) }.joined()
     }
-    
+
     /// 转换为驼峰命名
     func toCamelCase() -> String {
         let words = base.components(separatedBy: CharacterSet.alphanumerics.inverted)
@@ -2292,16 +2329,13 @@ public extension TFY where Base == String {
         }.joined()
         return camelCase
     }
-    
+
     /// 转换为蛇形命名
     func toSnakeCase() -> String {
         let pattern = "([a-z0-9])([A-Z])"
-        let regex = try! NSRegularExpression(pattern: pattern, options: [])
-        let range = NSRange(location: 0, length: base.count)
-        let snakeCase = regex.stringByReplacingMatches(in: base, options: [], range: range, withTemplate: "$1_$2")
-        return snakeCase.lowercased()
+        return replacingMatches(pattern: pattern, withTemplate: "$1_$2").lowercased()
     }
-    
+
     // MARK: 19.3、字符串处理
     /// 截取指定长度的字符串
     /// - Parameter length: 长度
@@ -2312,87 +2346,79 @@ public extension TFY where Base == String {
         }
         return String(base.prefix(length)) + "..."
     }
-    
+
     /// 移除HTML标签
     func removeHTMLTags() -> String {
         let pattern = "<[^>]*>"
-        let regex = try! NSRegularExpression(pattern: pattern, options: [])
-        let range = NSRange(location: 0, length: base.count)
-        return regex.stringByReplacingMatches(in: base, options: [], range: range, withTemplate: "")
+        return replacingMatches(pattern: pattern, withTemplate: "")
     }
-    
+
     /// 移除特殊字符
     func removeSpecialCharacters() -> String {
         let pattern = "[^a-zA-Z0-9\\u4e00-\\u9fa5]"
-        let regex = try! NSRegularExpression(pattern: pattern, options: [])
-        let range = NSRange(location: 0, length: base.count)
-        return regex.stringByReplacingMatches(in: base, options: [], range: range, withTemplate: "")
+        return replacingMatches(pattern: pattern, withTemplate: "")
     }
-    
+
     /// 提取数字
     func extractNumbers() -> String {
         let pattern = "[^0-9]"
-        let regex = try! NSRegularExpression(pattern: pattern, options: [])
-        let range = NSRange(location: 0, length: base.count)
-        return regex.stringByReplacingMatches(in: base, options: [], range: range, withTemplate: "")
+        return replacingMatches(pattern: pattern, withTemplate: "")
     }
-    
+
     /// 提取字母
     func extractLetters() -> String {
         let pattern = "[^a-zA-Z]"
-        let regex = try! NSRegularExpression(pattern: pattern, options: [])
-        let range = NSRange(location: 0, length: base.count)
-        return regex.stringByReplacingMatches(in: base, options: [], range: range, withTemplate: "")
+        return replacingMatches(pattern: pattern, withTemplate: "")
     }
-    
+
     // MARK: 19.4、字符串统计
     /// 计算字符数（包括中文字符）
     var characterCount: Int {
         return base.count
     }
-    
+
     /// 计算字节数
     var byteCount: Int {
         return base.utf8.count
     }
-    
+
     /// 计算单词数
     var wordCount: Int {
         let words = base.components(separatedBy: .whitespacesAndNewlines)
         return words.filter { !$0.isEmpty }.count
     }
-    
+
     /// 计算行数
     var lineCount: Int {
         let lines = base.components(separatedBy: .newlines)
         return lines.count
     }
-    
+
     // MARK: 19.5、字符串格式化
     /// 格式化文件大小
     func formatFileSize() -> String {
         guard let size = Double(base) else { return "0 B" }
-        
+
         let units = ["B", "KB", "MB", "GB", "TB"]
         var index = 0
         var fileSize = size
-        
+
         while fileSize >= 1024 && index < units.count - 1 {
             fileSize /= 1024
             index += 1
         }
-        
+
         return String(format: "%.2f %@", fileSize, units[index])
     }
-    
+
     /// 格式化时间间隔
     func formatTimeInterval() -> String {
         guard let interval = TimeInterval(base) else { return "0秒" }
-        
+
         let hours = Int(interval) / 3600
         let minutes = Int(interval) % 3600 / 60
         let seconds = Int(interval) % 60
-        
+
         if hours > 0 {
             return String(format: "%d小时%d分钟%d秒", hours, minutes, seconds)
         } else if minutes > 0 {
@@ -2401,13 +2427,13 @@ public extension TFY where Base == String {
             return String(format: "%d秒", seconds)
         }
     }
-    
+
     /// 格式化金额
     func formatCurrency() -> String {
         guard let amount = Double(base) else { return "¥0.00" }
         return String(format: "¥%.2f", amount)
     }
-    
+
     // MARK: 19.6、字符串加密
     /// 简单加密（异或）
     /// - Parameter key: 密钥
@@ -2415,32 +2441,31 @@ public extension TFY where Base == String {
     func simpleEncrypt(key: String) -> String {
         let keyData = key.data(using: .utf8) ?? Data()
         let stringData = base.data(using: .utf8) ?? Data()
-        
+
         var encryptedData = Data()
         for (index, byte) in stringData.enumerated() {
             let keyByte = keyData[index % keyData.count]
             let encryptedByte = byte ^ keyByte
             encryptedData.append(encryptedByte)
         }
-        
+
         return encryptedData.base64EncodedString()
     }
-    
+
     /// 简单解密（异或）
     /// - Parameter key: 密钥
     /// - Returns: 解密后的字符串
     func simpleDecrypt(key: String) -> String? {
         guard let encryptedData = Data(base64Encoded: base) else { return nil }
         let keyData = key.data(using: .utf8) ?? Data()
-        
+
         var decryptedData = Data()
         for (index, byte) in encryptedData.enumerated() {
             let keyByte = keyData[index % keyData.count]
             let decryptedByte = byte ^ keyByte
             decryptedData.append(decryptedByte)
         }
-        
+
         return String(data: decryptedData, encoding: .utf8)
     }
 }
-

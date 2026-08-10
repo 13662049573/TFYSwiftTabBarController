@@ -7,29 +7,27 @@
 
 import UIKit
 
+// MARK: - Custom Navigation Controller
 public class TFYSwiftNavigationController: UINavigationController {
 
     public override func viewDidLoad() {
         super.viewDidLoad()
-        removedimmingView()
+        removeDimmingView()
         TFYSwiftNavigationBar.setup()
         TFYSwiftNavigationBarStyle.backgroundColor = .secondarySystemBackground
     }
     
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        removedimmingView()
+        removeDimmingView()
     }
     
-    private func removedimmingView() {
-        let viewsArr:[UIView] = view.subviews
-        viewsArr.forEach { view in
+    private func removeDimmingView() {
+        for view in view.subviews {
             if view.isKind(of: NSClassFromString("UINavigationTransitionView")!) {
-                let views:[UIView] = view.subviews
-                views.forEach { subView in
+                for subView in view.subviews {
                     if subView.isKind(of: NSClassFromString("UIViewControllerWrapperView")!) {
-                        let perViews:[UIView] = subView.subviews
-                        perViews.forEach { perView in
+                        for perView in subView.subviews {
                             if perView.isKind(of: NSClassFromString("_UIParallaxDimmingView")!) {
                                 perView.backgroundColor = .clear
                                 perView.removeFromSuperview()
@@ -42,11 +40,12 @@ public class TFYSwiftNavigationController: UINavigationController {
     }
 }
 
+// MARK: - UINavigationController Extension
+@available(iOS 15.0, *)
 extension UINavigationController {
     
     /// 关联对象的keys
     private struct AssociatedKeys {
-        
         static var gestureDelegate = UnsafeRawPointer(bitPattern: "gestureDelegate".hashValue)!
         static var fullscreenPopGestureDelegate = UnsafeRawPointer(bitPattern: "fullscreenPopGestureDelegate".hashValue)!
         static var fullscreenPopGestureRecognizer = UnsafeRawPointer(bitPattern: "fullscreenPopGestureRecognizer".hashValue)!
@@ -126,18 +125,7 @@ extension UINavigationController {
         
         if viewControllers.count > 0 {
             viewController.hidesBottomBarWhenPushed = true
-            
-            let backButtonItem: UIBarButtonItem
-            if let customView = viewController.tfy_backButtonCustomView {
-                backButtonItem = UIBarButtonItem(customView: customView)
-                let tap = UITapGestureRecognizer(target: self, action: #selector(backButtonClicked))
-                customView.isUserInteractionEnabled = true
-                customView.addGestureRecognizer(tap)
-            } else {
-                let backImage = viewController.tfy_backImage
-                backButtonItem = UIBarButtonItem(image: backImage, style: .plain, target: self, action: #selector(backButtonClicked))
-            }
-            viewController.navigationItem.leftBarButtonItem = backButtonItem
+            configureBackButton(for: viewController)
         }
         
         if viewController.tfy_fullScreenInteractivePopEnabled {
@@ -153,18 +141,7 @@ extension UINavigationController {
             for (index, viewController) in viewControllers.enumerated() {
                 if index != 0 {
                     viewController.hidesBottomBarWhenPushed = true
-                    
-                    let backButtonItem: UIBarButtonItem
-                    if let customView = viewController.tfy_backButtonCustomView {
-                        backButtonItem = UIBarButtonItem(customView: customView)
-                        let tap = UITapGestureRecognizer(target: self, action: #selector(backButtonClicked))
-                        customView.isUserInteractionEnabled = true
-                        customView.addGestureRecognizer(tap)
-                    } else {
-                        let backImage = viewController.tfy_backImage
-                        backButtonItem = UIBarButtonItem(image: backImage, style: .plain, target: self, action: #selector(backButtonClicked))
-                    }
-                    viewController.navigationItem.leftBarButtonItem = backButtonItem
+                    configureBackButton(for: viewController)
                 }
                 
                 if viewController.tfy_fullScreenInteractivePopEnabled {
@@ -174,7 +151,21 @@ extension UINavigationController {
         }
         
         tfy_setViewControllers(viewControllers, animated: animated)
-        
+    }
+    
+    /// 配置返回按钮
+    private func configureBackButton(for viewController: UIViewController) {
+        let backButtonItem: UIBarButtonItem
+        if let customView = viewController.tfy_backButtonCustomView {
+            backButtonItem = UIBarButtonItem(customView: customView)
+            let tap = UITapGestureRecognizer(target: self, action: #selector(backButtonClicked))
+            customView.isUserInteractionEnabled = true
+            customView.addGestureRecognizer(tap)
+        } else {
+            let backImage = viewController.tfy_backImage
+            backButtonItem = UIBarButtonItem(image: backImage, style: .plain, target: self, action: #selector(backButtonClicked))
+        }
+        viewController.navigationItem.leftBarButtonItem = backButtonItem
     }
     
     /// 添加自定义全屏返回手势
@@ -183,8 +174,8 @@ extension UINavigationController {
             return
         }
         if !gestureRecognizers.contains(tfy_fullscreenPopGestureRecognizer),
-            let targets = interactivePopGestureRecognizer?.value(forKey: "targets") as? NSArray,
-            let internalTarget = (targets.firstObject as? NSObject)?.value(forKey: "target") {
+           let targets = interactivePopGestureRecognizer?.value(forKey: "targets") as? NSArray,
+           let internalTarget = (targets.firstObject as? NSObject)?.value(forKey: "target") {
             let internalAction = NSSelectorFromString("handleNavigationTransition:")
             tfy_fullscreenPopGestureRecognizer.delegate = tfy_fullscreenPopGestureDelegate
             tfy_fullscreenPopGestureRecognizer.addTarget(internalTarget, action: internalAction)
@@ -197,12 +188,10 @@ extension UINavigationController {
     @objc private func backButtonClicked() {
         topViewController?.tfy_backButtonClicked()
     }
-    
 }
 
-
-// MARK: - fileprivate
-
+// MARK: - Gesture Recognizer Delegates
+@available(iOS 15.0, *)
 /// 导航栏默认手势代理对象
 fileprivate class TFYSwiftNavigationGestureRecognizerDelegate: NSObject, UIGestureRecognizerDelegate {
     
@@ -225,7 +214,7 @@ fileprivate class TFYSwiftNavigationGestureRecognizerDelegate: NSObject, UIGestu
     }
 }
 
-
+@available(iOS 15.0, *)
 /// 自定义全屏返回手势代理对象
 fileprivate class TFYSwiftFullscreenPopGestureRecognizerDelegate: NSObject, UIGestureRecognizerDelegate {
     

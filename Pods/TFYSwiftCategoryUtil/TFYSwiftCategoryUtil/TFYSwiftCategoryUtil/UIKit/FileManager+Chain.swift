@@ -267,10 +267,13 @@ public extension TFY where Base: FileManager {
         guard !writePath.isEmpty else {
             return (false, "写入路径不能为空")
         }
-        
-        guard judgeFileOrFolderExists(filePath: directoryAtPath(path: writePath)) else {
-            // 不存在的文件路径
-            return (false, "父目录不存在")
+
+        let parentDirectory = directoryAtPath(path: writePath)
+        if !parentDirectory.isEmpty, !judgeFileOrFolderExists(filePath: parentDirectory) {
+            let createResult = createFolder(folderPath: parentDirectory)
+            if !createResult.isSuccess {
+                return createResult
+            }
         }
         
         // 1、文字，2、图片，3、数组，4、字典写入文件
@@ -401,7 +404,7 @@ public extension TFY where Base: FileManager {
         // 2、判断拷贝后的文件路径的前一个文件夹路径是否存在，不存在就进行创建
         let toFileFolderPath = directoryAtPath(path: toFilePath)
         if !judgeFileOrFolderExists(filePath: toFileFolderPath) {
-            let createResult = type == .file ? createFile(filePath: toFilePath) : createFolder(folderPath: toFileFolderPath)
+            let createResult = createFolder(folderPath: toFileFolderPath)
             if !createResult.isSuccess {
                 return (false, "拷贝后路径前一个文件夹不存在")
             }
@@ -448,7 +451,7 @@ public extension TFY where Base: FileManager {
         // 2、判断移动后的文件路径的前一个文件夹路径是否存在，不存在就进行创建
         let toFileFolderPath = directoryAtPath(path: toFilePath)
         if !judgeFileOrFolderExists(filePath: toFileFolderPath) {
-            let createResult = type == .file ? createFile(filePath: toFilePath) : createFolder(folderPath: toFileFolderPath)
+            let createResult = createFolder(folderPath: toFileFolderPath)
             if !createResult.isSuccess {
                 return (false, "移动后路径前一个文件夹不存在")
             }
@@ -630,22 +633,34 @@ public extension TFY where Base: FileManager {
         guard !path.isEmpty, fileManager.fileExists(atPath: path) else {
             return "0MB"
         }
-        
-        // (文件夹/文件) 的实际大小
-        var fileSize: UInt64 = 0
-        
+
+        return covertUInt64ToString(with: fileOrDirectorySizeValue(path: path))
+    }
+
+    // MARK: 2.22.1、计算 (文件夹/文件) 的实际字节大小
+    /// 计算 (文件夹/文件) 的实际字节大小
+    /// - Parameter path: (文件夹/文件) 的路径
+    /// - Returns: 字节大小
+    static func fileOrDirectorySizeValue(path: String) -> UInt64 {
+        guard !path.isEmpty, judgeFileOrFolderExists(filePath: path) else {
+            return 0
+        }
+
         do {
-            let files = try fileManager.contentsOfDirectory(atPath: path)
-            for file in files {
-                let filePath = path + "/\(file)"
-                fileSize += fileOrDirectorySingleSize(filePath: filePath)
+            let fileAttributes = try fileManager.attributesOfItem(atPath: path)
+            if let fileType = fileAttributes[.type] as? FileAttributeType, fileType != .typeDirectory {
+                return fileAttributes[.size] as? UInt64 ?? 0
+            }
+
+            let children = try fileManager.contentsOfDirectory(atPath: path)
+            return children.reduce(0) { partial, child in
+                let childPath = (path as NSString).appendingPathComponent(child)
+                return partial + fileOrDirectorySizeValue(path: childPath)
             }
         } catch {
-            fileSize += fileOrDirectorySingleSize(filePath: path)
+            TFYUtils.Logger.log("计算文件或目录大小失败: \(error.localizedDescription)")
+            return 0
         }
-        
-        // 转换后的大小 ["bytes", "KB", "MB", "GB", "TB", "PB",  "EB",  "ZB", "YB"]
-        return covertUInt64ToString(with: fileSize)
     }
 
     // MARK: 2.23、获取(文件夹/文件)属性集合
@@ -903,4 +918,3 @@ public extension TFY where Base: FileManager {
         }
     }
 }
-

@@ -146,7 +146,7 @@ extension NSEdgeInsets {
 public protocol TFYChainableProtocol {
     associatedtype ChainType
     associatedtype BaseType
-    
+
     var base: BaseType { get }
     var build: BaseType { get }
 }
@@ -157,7 +157,7 @@ public protocol TFYChainErrorHandling {
     var errors: [TFYChainError] { get set }
     func onError(_ handler: @escaping ([TFYChainError]) -> Void) -> ChainType
 }
-    
+
 /// 性能监控协议
 public protocol TFYChainPerformanceMonitoring {
     associatedtype ChainType
@@ -169,7 +169,7 @@ public protocol TFYChainPerformanceMonitoring {
 public protocol TFYChainAdvancedFeatures {
     associatedtype BaseType
     associatedtype ChainType
-    
+
     func delay(_ delay: TimeInterval, _ block: @escaping (BaseType) -> Void) -> ChainType
     func log(_ message: String) -> ChainType
     func configure(_ block: (BaseType) -> Void) -> ChainType
@@ -193,7 +193,7 @@ public enum TFYChainError: Error, CustomStringConvertible {
     case cacheOverflow(String)
     case invalidConfiguration(String)
     case deprecatedUsage(String, alternative: String)
-    
+
     public var description: String {
         switch self {
         case .propertyNotFound(let property):
@@ -220,7 +220,7 @@ public enum TFYChainError: Error, CustomStringConvertible {
             return "已弃用的用法: \(usage)，建议使用: \(alternative)"
         }
     }
-    
+
     /// 错误级别
     public var severity: ErrorSeverity {
         switch self {
@@ -241,7 +241,7 @@ public enum ErrorSeverity: Int, CaseIterable {
     case warning = 1
     case error = 2
     case critical = 3
-    
+
     public var description: String {
         switch self {
         case .warning: return "⚠️ 警告"
@@ -255,22 +255,22 @@ public enum ErrorSeverity: Int, CaseIterable {
 
 /// 优化的运行时工具类
 public class TFYRuntimeUtils {
-    
+
     /// LRU缓存节点
     private class CacheNode {
         let key: String
-        let value: Set<String>
+        var value: Set<String>
         var timestamp: TimeInterval
         var next: CacheNode?
         var prev: CacheNode?
-        
+
         init(key: String, value: Set<String>) {
             self.key = key
             self.value = value
             self.timestamp = Date().timeIntervalSince1970
         }
     }
-    
+
     /// LRU缓存管理器
     private class LRUCache {
         private var capacity: Int
@@ -278,71 +278,75 @@ public class TFYRuntimeUtils {
         private var head: CacheNode?
         private var tail: CacheNode?
         private var size: Int = 0
-        
+
         init(capacity: Int) {
-            self.capacity = capacity
+            self.capacity = max(0, capacity)
         }
-        
+
         func get(_ key: String) -> Set<String>? {
+            guard capacity > 0 else { return nil }
             guard let node = cache[key] else { return nil }
-            
+
             // 更新访问时间
             node.timestamp = Date().timeIntervalSince1970
             moveToHead(node)
             return node.value
         }
-        
+
         func put(_ key: String, _ value: Set<String>) {
+            guard capacity > 0 else { return }
+
             if let existingNode = cache[key] {
+                existingNode.value = value
                 existingNode.timestamp = Date().timeIntervalSince1970
                 moveToHead(existingNode)
                 return
             }
-            
+
             let newNode = CacheNode(key: key, value: value)
-            
+
             if size >= capacity {
                 removeLRU()
             }
-            
+
             addToHead(newNode)
             cache[key] = newNode
             size += 1
         }
-        
+
         private func addToHead(_ node: CacheNode) {
             node.next = head
             node.prev = nil
-            
+
             if let h = head {
                 h.prev = node
             }
             head = node
-            
+
             if tail == nil {
                 tail = head
             }
         }
-        
+
         private func removeNode(_ node: CacheNode) {
             if let p = node.prev {
                 p.next = node.next
             } else {
                 head = node.next
             }
-            
+
             if let n = node.next {
                 n.prev = node.prev
             } else {
                 tail = node.prev
             }
         }
-        
+
         private func moveToHead(_ node: CacheNode) {
             removeNode(node)
             addToHead(node)
         }
-        
+
         private func removeLRU() {
             if let t = tail {
                 cache.removeValue(forKey: t.key)
@@ -350,114 +354,211 @@ public class TFYRuntimeUtils {
                 size -= 1
             }
         }
-        
+
         func clear() {
             cache.removeAll()
             head = nil
             tail = nil
             size = 0
         }
-        
+
         var count: Int { return size }
+
+        func updateCapacity(_ newCapacity: Int) {
+            capacity = max(0, newCapacity)
+            while size > capacity {
+                removeLRU()
+            }
+            if capacity == 0 {
+                clear()
+            }
+        }
     }
-    
+
     /// 属性缓存，提高性能（线程安全 + LRU）
     private static let propertyLRUCache = LRUCache(capacity: TFYChainPerformanceConfig.maxCacheSize)
     private static let propertyCacheQueue = DispatchQueue(label: "com.tfychain.propertyCache", attributes: .concurrent)
-    
+
     /// 方法缓存，提高性能（线程安全 + LRU）
     private static let methodLRUCache = LRUCache(capacity: TFYChainPerformanceConfig.maxCacheSize)
     private static let methodCacheQueue = DispatchQueue(label: "com.tfychain.methodCache", attributes: .concurrent)
-    
+
+    private static var effectiveCacheCapacity: Int {
+        return max(0, TFYChainPerformanceConfig.maxCacheSize)
+    }
+
+    private static func classCacheKey(for classType: AnyClass) -> String {
+        return NSStringFromClass(classType)
+    }
+
+    private static func cachedProperties(for className: String) -> Set<String>? {
+        guard TFYChainPerformanceConfig.cacheEnabled else { return nil }
+        return propertyCacheQueue.sync(flags: .barrier) {
+            propertyLRUCache.updateCapacity(effectiveCacheCapacity)
+            return propertyLRUCache.get(className)
+        }
+    }
+
+    private static func cacheProperties(_ properties: Set<String>, for className: String) {
+        guard TFYChainPerformanceConfig.cacheEnabled else { return }
+        propertyCacheQueue.sync(flags: .barrier) {
+            propertyLRUCache.updateCapacity(effectiveCacheCapacity)
+            propertyLRUCache.put(className, properties)
+        }
+    }
+
+    private static func cachedMethods(for className: String) -> Set<String>? {
+        guard TFYChainPerformanceConfig.cacheEnabled else { return nil }
+        return methodCacheQueue.sync(flags: .barrier) {
+            methodLRUCache.updateCapacity(effectiveCacheCapacity)
+            return methodLRUCache.get(className)
+        }
+    }
+
+    private static func cacheMethods(_ methods: Set<String>, for className: String) {
+        guard TFYChainPerformanceConfig.cacheEnabled else { return }
+        methodCacheQueue.sync(flags: .barrier) {
+            methodLRUCache.updateCapacity(effectiveCacheCapacity)
+            methodLRUCache.put(className, methods)
+        }
+    }
+
     /// 检查属性是否存在（修复版本 - 线程安全 + LRU缓存）
     /// - Parameters:
     ///   - propertyName: 属性名
     ///   - object: 目标对象
     /// - Returns: 属性是否存在
     public static func hasProperty(_ propertyName: String, in object: NSObject) -> Bool {
-        let className = String(describing: type(of: object))
-        
-        // 线程安全地检查LRU缓存
-        return propertyCacheQueue.sync {
-            if let cachedProperties = propertyLRUCache.get(className) {
-                return cachedProperties.contains(propertyName)
-            }
-            
-            // 获取属性列表并缓存
-            let properties = getProperties(for: type(of: object))
-            let propertySet = Set(properties)
-            
-            // 使用LRU缓存存储
-            propertyLRUCache.put(className, propertySet)
-            return propertySet.contains(propertyName)
+        let className = classCacheKey(for: type(of: object))
+
+        if let cachedProperties = cachedProperties(for: className) {
+            return cachedProperties.contains(propertyName)
         }
+
+        let properties = getProperties(for: type(of: object))
+        let propertySet = Set(properties)
+        cacheProperties(propertySet, for: className)
+        return propertySet.contains(propertyName)
     }
-    
+
+    /// 检查属性是否存在且可写
+    /// - Parameters:
+    ///   - propertyName: 属性名
+    ///   - object: 目标对象
+    /// - Returns: 属性是否可写
+    public static func hasWritableProperty(_ propertyName: String, in object: NSObject) -> Bool {
+        guard let property = findProperty(named: propertyName, in: type(of: object)) else {
+            return false
+        }
+        guard let attributes = property_getAttributes(property) else {
+            return false
+        }
+
+        let attributeParts = String(cString: attributes).split(separator: ",")
+        return !attributeParts.contains("R")
+    }
+
     /// 检查方法是否存在（线程安全版本 + LRU缓存）
     /// - Parameters:
     ///   - methodName: 方法名
     ///   - object: 目标对象
     /// - Returns: 方法是否存在
     public static func hasMethod(_ methodName: String, in object: NSObject) -> Bool {
-        let className = String(describing: type(of: object))
-        
-        // 线程安全地检查LRU缓存
-        return methodCacheQueue.sync {
-            if let cachedMethods = methodLRUCache.get(className) {
-                return cachedMethods.contains(methodName)
-            }
-            
-            // 获取方法列表并缓存
-            let methods = getMethods(for: type(of: object))
-            let methodSet = Set(methods)
-            
-            // 使用LRU缓存存储
-            methodLRUCache.put(className, methodSet)
-            return methodSet.contains(methodName)
+        let className = classCacheKey(for: type(of: object))
+
+        if let cachedMethods = cachedMethods(for: className) {
+            return cachedMethods.contains(methodName)
         }
+
+        let methods = getMethods(for: type(of: object))
+        let methodSet = Set(methods)
+        cacheMethods(methodSet, for: className)
+        return methodSet.contains(methodName)
     }
-    
+
     /// 获取类的所有属性
     /// - Parameter classType: 类类型
     /// - Returns: 属性名数组
-    public static func getProperties(for classType: AnyClass) -> [String] {
-        var count: UInt32 = 0
-        guard let properties = class_copyPropertyList(classType, &count) else {
-            return []
-        }
-        defer { free(properties) }
-        
+    public static func getProperties(for classType: AnyClass, includeSuperclasses: Bool = true) -> [String] {
         var propertyNames: [String] = []
-        for i in 0..<Int(count) {
-            let property = properties[i]
-            let propertyName = String(cString: property_getName(property))
-            propertyNames.append(propertyName)
+        var visitedNames = Set<String>()
+        var currentClass: AnyClass? = classType
+
+        while let inspectedClass = currentClass {
+            var count: UInt32 = 0
+            if let properties = class_copyPropertyList(inspectedClass, &count) {
+                defer { free(properties) }
+
+                for i in 0..<Int(count) {
+                    let property = properties[i]
+                    let propertyName = String(cString: property_getName(property))
+                    if visitedNames.insert(propertyName).inserted {
+                        propertyNames.append(propertyName)
+                    }
+                }
+            }
+
+            guard includeSuperclasses else { break }
+            currentClass = class_getSuperclass(inspectedClass)
         }
-        
+
         return propertyNames
     }
-    
+
+    private static func findProperty(named propertyName: String, in classType: AnyClass, includeSuperclasses: Bool = true) -> objc_property_t? {
+        var currentClass: AnyClass? = classType
+
+        while let inspectedClass = currentClass {
+            if let property = class_getProperty(inspectedClass, propertyName) {
+                return property
+            }
+
+            guard includeSuperclasses else { break }
+            currentClass = class_getSuperclass(inspectedClass)
+        }
+
+        return nil
+    }
+
     /// 获取类的所有方法
     /// - Parameter classType: 类类型
     /// - Returns: 方法名数组
-    public static func getMethods(for classType: AnyClass) -> [String] {
-        var count: UInt32 = 0
-        guard let methods = class_copyMethodList(classType, &count) else {
-            return []
-        }
-        defer { free(methods) }
-        
+    public static func getMethods(for classType: AnyClass, includeSuperclasses: Bool = true) -> [String] {
         var methodNames: [String] = []
-        for i in 0..<Int(count) {
-            let method = methods[i]
-            let selector = method_getName(method)
-            let selectorString = NSStringFromSelector(selector)
-            methodNames.append(selectorString)
+        var visitedNames = Set<String>()
+        var currentClass: AnyClass? = classType
+
+        while let inspectedClass = currentClass {
+            var count: UInt32 = 0
+            if let methods = class_copyMethodList(inspectedClass, &count) {
+                defer { free(methods) }
+
+                for i in 0..<Int(count) {
+                    let method = methods[i]
+                    let selector = method_getName(method)
+                    let selectorString = NSStringFromSelector(selector)
+                    if visitedNames.insert(selectorString).inserted {
+                        methodNames.append(selectorString)
+                    }
+                }
+            }
+
+            guard includeSuperclasses else { break }
+            currentClass = class_getSuperclass(inspectedClass)
         }
-        
+
         return methodNames
     }
-    
+
+    /// 检查对象是否响应指定 Selector
+    /// - Parameters:
+    ///   - selectorName: Selector 名称
+    ///   - object: 目标对象
+    /// - Returns: 是否响应
+    public static func responds(to selectorName: String, in object: NSObject) -> Bool {
+        return object.responds(to: NSSelectorFromString(selectorName))
+    }
+
     /// 安全的 KVC 设置（可靠修复版本 - 先检查后设置）
     /// - Parameters:
     ///   - object: 目标对象
@@ -471,28 +572,30 @@ public class TFYRuntimeUtils {
             object.setValue(value, forKey: key)
             return true
         } else {
+#if DEBUG
             print("TFYRuntimeUtils: 属性 '\(key)' 不支持KVC，跳过设置。对象类型: \(type(of: object))")
+#endif
             return false
         }
     }
-    
+
     /// 检查是否可以安全地设置指定键的值
     /// - Parameters:
     ///   - key: 键名
     ///   - object: 目标对象
     /// - Returns: 是否可以安全设置
     private static func canSetValueForKey(_ key: String, in object: NSObject) -> Bool {
-        // 检查属性是否存在
-        if hasProperty(key, in: object) {
-            return true
-        }
-        
         // 检查是否有对应的setter方法
         let setterName = "set\(key.prefix(1).uppercased())\(key.dropFirst()):"
         if object.responds(to: NSSelectorFromString(setterName)) {
             return true
         }
-        
+
+        // 检查属性是否存在且不是 readonly
+        if hasWritableProperty(key, in: object) {
+            return true
+        }
+
         // 特殊处理layer属性（跨平台）
         #if os(iOS)
         if key.hasPrefix("layer.") && object is UIView {
@@ -503,119 +606,152 @@ public class TFYRuntimeUtils {
             return true
         }
         #endif
-        
+
         // 检查是否在已知的安全属性列表中
         let safeProperties: Set<String> = [
             // 基础视图属性
             "text", "textColor", "backgroundColor", "alpha", "hidden", "frame", "bounds", "center",
             "transform", "clipsToBounds", "contentMode", "userInteractionEnabled", "multipleTouchEnabled",
             "isHidden", "tag", "autoresizingMask", "translatesAutoresizingMaskIntoConstraints",
-            
+
             // 文本相关属性
             "placeholder", "borderStyle", "font", "textAlignment", "numberOfLines", "lineBreakMode",
             "adjustsFontSizeToFitWidth", "minimumFontSize", "attributedText", "textContainer",
-            
+
             // 控件状态属性
             "enabled", "highlighted", "selected", "image", "backgroundImage", "tintColor",
             "isEnabled", "isHighlighted", "isSelected", "isUserInteractionEnabled",
-            
+
             // 进度和值相关属性
             "progress", "progressTintColor", "trackTintColor", "isOn", "onTintColor", "thumbTintColor",
             "minimumValue", "maximumValue", "value", "minimumTrackTintColor", "maximumTrackTintColor",
             "selectedSegmentIndex", "currentPage", "numberOfPages", "hidesForSinglePage",
-            
+
             // 滚动视图属性
             "contentOffset", "contentSize", "contentInset", "showsHorizontalScrollIndicator",
             "showsVerticalScrollIndicator", "alwaysBounceVertical", "alwaysBounceHorizontal",
             "pagingEnabled", "scrollEnabled", "bounces", "zoomScale", "minimumZoomScale", "maximumZoomScale",
-            
+
             // 堆栈视图属性
             "axis", "distribution", "alignment", "spacing", "isLayoutMarginsRelativeArrangement",
             "arrangedSubviews", "layoutMargins", "directionalLayoutMargins",
-            
+
             // 活动指示器属性
             "isAnimating", "hidesWhenStopped", "style", "color",
-            
+
             // 搜索栏属性
             "searchText", "prompt", "barStyle", "searchBarStyle", "showsBookmarkButton",
             "showsCancelButton", "showsSearchResultsButton", "keyboardType", "returnKeyType",
-            
+
             // 日期选择器属性
             "date", "minimumDate", "maximumDate", "datePickerMode", "locale", "calendar", "timeZone",
-            
+
             // 步进器属性
             "stepValue", "wraps", "autorepeat", "continuous",
-            
+
             // 工具栏和导航栏属性
             "barTintColor", "isTranslucent", "prefersLargeTitles", "largeTitleDisplayMode",
             "titleTextAttributes", "largeTitleTextAttributes", "shadowImage", "backgroundImage",
-            
+
             // 手势识别器属性
             "numberOfTapsRequired", "numberOfTouchesRequired", "minimumPressDuration", "allowableMovement",
             "direction", "cancelsTouchesInView", "delaysTouchesBegan", "delaysTouchesEnded",
-            
+
             // 层属性
             "cornerRadius", "borderWidth", "borderColor", "shadowColor", "shadowOffset",
             "shadowOpacity", "shadowRadius", "masksToBounds", "contents", "contentsScale",
-            
+
             // 约束属性
             "constant", "multiplier", "priority", "isActive",
-            
+
             // 视觉效果属性
             "effect", "contentView"
         ]
-        
+
         return safeProperties.contains(key)
     }
-    
 
-    
+    /// 暴露安全设置能力判断，便于业务在调用前做静态分支
+    /// - Parameters:
+    ///   - key: 键名
+    ///   - object: 目标对象
+    /// - Returns: 是否可以安全设置
+    public static func canSetValue(_ key: String, in object: NSObject) -> Bool {
+        return canSetValueForKey(key, in: object)
+    }
+
+    /// 判断是否可以通过 KVC 或 Selector 读取指定键
+    /// - Parameters:
+    ///   - key: 键名
+    ///   - object: 目标对象
+    /// - Returns: 是否可以读取
+    public static func canGetValue(_ key: String, in object: NSObject) -> Bool {
+        return hasProperty(key, in: object) || object.responds(to: NSSelectorFromString(key))
+    }
+
     /// 安全的 KVC 获取
     /// - Parameters:
     ///   - object: 目标对象
     ///   - key: 键名
     /// - Returns: 获取的值
     public static func safeGetValue(forKey key: String, in object: NSObject) -> Any? {
-        guard hasProperty(key, in: object) else {
+        guard canGetValue(key, in: object) else {
+#if DEBUG
             print("TFYRuntimeUtils: 属性 '\(key)' 不存在于对象 \(type(of: object))")
+#endif
             return nil
         }
-        
+
         // 直接调用，KVC 会处理异常情况
         return object.value(forKey: key)
     }
-    
+
     /// 清空缓存（线程安全）
     public static func clearCache() {
-        propertyCacheQueue.sync {
+        propertyCacheQueue.sync(flags: .barrier) {
             propertyLRUCache.clear()
         }
-        methodCacheQueue.sync {
+        methodCacheQueue.sync(flags: .barrier) {
             methodLRUCache.clear()
         }
     }
-    
+
     /// 获取缓存统计信息
     public static func getCacheStats() -> (propertyCount: Int, methodCount: Int) {
-        let propertyCount = propertyCacheQueue.sync { propertyLRUCache.count }
-        let methodCount = methodCacheQueue.sync { methodLRUCache.count }
+        let propertyCount = propertyCacheQueue.sync(flags: .barrier) { propertyLRUCache.count }
+        let methodCount = methodCacheQueue.sync(flags: .barrier) { methodLRUCache.count }
         return (propertyCount, methodCount)
     }
-    
+
+    /// 预热指定类型的属性和方法缓存
+    /// - Parameter classTypes: 需要预热的类
+    public static func warmupCache(for classTypes: [AnyClass]) {
+        guard TFYChainPerformanceConfig.cacheEnabled else { return }
+
+        for classType in classTypes {
+            let className = classCacheKey(for: classType)
+            cacheProperties(Set(getProperties(for: classType)), for: className)
+            cacheMethods(Set(getMethods(for: classType)), for: className)
+        }
+    }
+
     /// 获取详细缓存统计信息
     public static func getDetailedCacheStats() -> [String: Any] {
-        let propertyCount = propertyCacheQueue.sync { propertyLRUCache.count }
-        let methodCount = methodCacheQueue.sync { methodLRUCache.count }
-        let maxSize = TFYChainPerformanceConfig.maxCacheSize
-        
+        let propertyCount = propertyCacheQueue.sync(flags: .barrier) { propertyLRUCache.count }
+        let methodCount = methodCacheQueue.sync(flags: .barrier) { methodLRUCache.count }
+        let maxSize = effectiveCacheCapacity
+        let propertyUtilization = maxSize > 0 ? Double(propertyCount) / Double(maxSize) : 0
+        let methodUtilization = maxSize > 0 ? Double(methodCount) / Double(maxSize) : 0
+
         return [
             "propertyCount": propertyCount,
             "methodCount": methodCount,
             "maxCacheSize": maxSize,
-            "propertyUtilization": Double(propertyCount) / Double(maxSize),
-            "methodUtilization": Double(methodCount) / Double(maxSize),
+            "cacheEnabled": TFYChainPerformanceConfig.cacheEnabled,
+            "propertyUtilization": propertyUtilization,
+            "methodUtilization": methodUtilization,
             "totalCacheEntries": propertyCount + methodCount,
-            "cacheEfficiency": propertyCount > 0 && methodCount > 0 ? "optimal" : "underutilized",
+            "cacheEfficiency": TFYChainPerformanceConfig.cacheEnabled ? (propertyCount > 0 && methodCount > 0 ? "optimal" : "underutilized") : "disabled",
             "platform": {
                 #if os(iOS)
                 return "iOS"
@@ -633,29 +769,29 @@ public class TFYRuntimeUtils {
 
 /// 通用链式容器，支持 NSObject 类型
 public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling, TFYChainPerformanceMonitoring, TFYChainAdvancedFeatures {
-    
+
     // MARK: - 协议实现
-    
+
     public typealias ChainType = TFYChain<T>
     public typealias BaseType = T
-    
+
     /// 原始对象
     public var base: T
-    
+
     /// 错误收集器
     public var errors: [TFYChainError] = []
-    
+
     /// 性能监控器
     public var performanceMetrics: [String: TimeInterval] = [:]
-    
+
     /// 是否启用性能监控
     private var isPerformanceMonitoringEnabled: Bool = false
-    
+
     /// 是否启用调试输出
     private var isDebugEnabled: Bool = false
-    
+
     // MARK: - 初始化
-    
+
     /// 初始化链式容器
     /// - Parameters:
     ///   - base: 原始对象
@@ -666,12 +802,21 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         self.isPerformanceMonitoringEnabled = enablePerformanceMonitoring
         self.isDebugEnabled = enableDebug
     }
-    
+
     /// 获取原始对象
     public var build: T { return base }
-    
+
+    /// 是否包含错误
+    public var hasErrors: Bool { return !errors.isEmpty }
+
+    /// 当前错误数量
+    public var errorCount: Int { return errors.count }
+
+    /// 是否有性能指标
+    public var hasPerformanceMetrics: Bool { return !performanceMetrics.isEmpty }
+
     // MARK: - 配置方法
-    
+
     /// 启用性能监控
     /// - Returns: 链式容器
     public func enablePerformanceMonitoring() -> TFYChain<T> {
@@ -679,7 +824,7 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         newChain.isPerformanceMonitoringEnabled = true
         return newChain
     }
-    
+
     /// 启用调试输出
     /// - Returns: 链式容器
     public func enableDebug() -> TFYChain<T> {
@@ -687,9 +832,25 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         newChain.isDebugEnabled = true
         return newChain
     }
-    
+
+    /// 关闭性能监控
+    /// - Returns: 链式容器
+    public func disablePerformanceMonitoring() -> TFYChain<T> {
+        var newChain = self
+        newChain.isPerformanceMonitoringEnabled = false
+        return newChain
+    }
+
+    /// 关闭调试输出
+    /// - Returns: 链式容器
+    public func disableDebug() -> TFYChain<T> {
+        var newChain = self
+        newChain.isDebugEnabled = false
+        return newChain
+    }
+
     // MARK: - 属性设置
-    
+
     /// 使用字符串设置属性值
     /// - Parameters:
     ///   - propertyName: 属性名
@@ -699,26 +860,26 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
     public func set(_ propertyName: String, _ value: Any) -> TFYChain<T> {
         let startTime = isPerformanceMonitoringEnabled ? CFAbsoluteTimeGetCurrent() : 0
         var newChain = self
-        
+
         let success = performPropertySetting(propertyName: propertyName, value: value, chain: &newChain)
-        
+
         if isPerformanceMonitoringEnabled {
             let elapsed = CFAbsoluteTimeGetCurrent() - startTime
             newChain.performanceMetrics[propertyName] = elapsed
-            
+
             // 性能警告：超过 1ms 的操作
             if elapsed > 0.001 {
                 newChain.errors.append(.performanceWarning(propertyName, elapsed * 1000))
             }
         }
-        
+
         if isDebugEnabled && success {
             print("TFYChain: 设置属性 \(propertyName) 值为: \(value)")
         }
-        
+
         return newChain
     }
-    
+
     /// 条件设置属性值
     /// - Parameters:
     ///   - condition: 条件
@@ -729,7 +890,18 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
     public func setIf(_ condition: Bool, _ propertyName: String, _ value: Any) -> TFYChain<T> {
         return condition ? set(propertyName, value) : self
     }
-    
+
+    /// 可选值存在时设置属性值
+    /// - Parameters:
+    ///   - propertyName: 属性名
+    ///   - value: 可选属性值
+    /// - Returns: 链式容器
+    @discardableResult
+    public func setIfPresent(_ propertyName: String, _ value: Any?) -> TFYChain<T> {
+        guard let value = value else { return self }
+        return set(propertyName, value)
+    }
+
     /// 批量设置属性
     /// - Parameter properties: 属性字典
     /// - Returns: 链式容器
@@ -741,9 +913,9 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         }
         return newChain
     }
-    
+
     // MARK: - KeyPath 支持（避免方法重载冲突）
-    
+
     /// 使用 KeyPath 设置属性值（专用方法名避免重载冲突）
     /// - Parameters:
     ///   - keyPath: 属性 KeyPath
@@ -753,22 +925,22 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
     public func setKeyPath<Value>(_ keyPath: WritableKeyPath<T, Value>, _ value: Value) -> TFYChain<T> {
         let startTime = isPerformanceMonitoringEnabled ? CFAbsoluteTimeGetCurrent() : 0
         var newChain = self
-        
+
         newChain.base[keyPath: keyPath] = value
-        
+
         if isPerformanceMonitoringEnabled {
             let elapsed = CFAbsoluteTimeGetCurrent() - startTime
             let keyPathString = String(describing: keyPath)
             newChain.performanceMetrics[keyPathString] = elapsed
         }
-        
+
         if isDebugEnabled {
             print("TFYChain: 通过KeyPath设置属性 \(keyPath) 值为: \(value)")
         }
-        
+
         return newChain
     }
-    
+
     /// 使用 KeyPath 设置属性值（重载版本，更简洁的方法名）
     /// - Parameters:
     ///   - keyPath: 属性 KeyPath
@@ -778,7 +950,7 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
     public func set<Value>(_ keyPath: WritableKeyPath<T, Value>, to value: Value) -> TFYChain<T> {
         return setKeyPath(keyPath, value)
     }
-    
+
     /// 条件 KeyPath 设置
     /// - Parameters:
     ///   - condition: 条件
@@ -789,9 +961,31 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
     public func setKeyPathIf<Value>(_ condition: Bool, _ keyPath: WritableKeyPath<T, Value>, _ value: Value) -> TFYChain<T> {
         return condition ? setKeyPath(keyPath, value) : self
     }
-    
+
+    /// 条件 KeyPath 设置（带 to: 标签，便于保持调用风格一致）
+    /// - Parameters:
+    ///   - condition: 条件
+    ///   - keyPath: 属性 KeyPath
+    ///   - value: 要设置的值
+    /// - Returns: 链式容器
+    @discardableResult
+    public func setIf<Value>(_ condition: Bool, _ keyPath: WritableKeyPath<T, Value>, to value: Value) -> TFYChain<T> {
+        return condition ? set(keyPath, to: value) : self
+    }
+
+    /// 可选值存在时通过 KeyPath 设置属性
+    /// - Parameters:
+    ///   - keyPath: 属性 KeyPath
+    ///   - value: 可选属性值
+    /// - Returns: 链式容器
+    @discardableResult
+    public func setIfPresent<Value>(_ keyPath: WritableKeyPath<T, Value>, to value: Value?) -> TFYChain<T> {
+        guard let value = value else { return self }
+        return set(keyPath, to: value)
+    }
+
     // MARK: - 方法调用
-    
+
     /// 调用无参数方法
     /// - Parameter methodName: 方法名
     /// - Returns: 链式容器
@@ -803,22 +997,22 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         if TFYRuntimeUtils.hasMethod(methodName, in: base) {
             let selector = NSSelectorFromString(methodName)
             _ = base.perform(selector)
-            
+
             if isDebugEnabled {
                 print("TFYChain: 调用方法 \(methodName)")
             }
         } else {
             newChain.errors.append(.methodNotFound(methodName))
         }
-        
+
         if isPerformanceMonitoringEnabled {
             let elapsed = CFAbsoluteTimeGetCurrent() - startTime
             newChain.performanceMetrics[methodName] = elapsed
         }
-        
+
         return newChain
     }
-    
+
     /// 增强的方法调用（支持常用 UIKit 方法）
     /// - Parameters:
     ///   - methodName: 方法名
@@ -828,23 +1022,23 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
     public func invoke(_ methodName: String, _ args: Any...) -> TFYChain<T> {
         let startTime = isPerformanceMonitoringEnabled ? CFAbsoluteTimeGetCurrent() : 0
             var newChain = self
-        
+
         let success = performMethodInvocation(methodName: methodName, args: args, chain: &newChain)
-        
+
         if isPerformanceMonitoringEnabled {
             let elapsed = CFAbsoluteTimeGetCurrent() - startTime
             newChain.performanceMetrics[methodName] = elapsed
         }
-        
+
         if isDebugEnabled && success {
             print("TFYChain: 调用方法 \(methodName) 参数: \(args)")
         }
-        
+
             return newChain
         }
-        
+
     // MARK: - 错误处理和性能监控协议实现
-    
+
     /// 错误处理回调
     /// - Parameter handler: 错误处理闭包
     /// - Returns: 链式容器
@@ -855,7 +1049,50 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         }
         return self
     }
-    
+
+    /// 无错误时执行成功回调
+    /// - Parameter handler: 成功处理闭包
+    /// - Returns: 链式容器
+    @discardableResult
+    public func onSuccess(_ handler: (T) -> Void) -> TFYChain<T> {
+        if errors.isEmpty {
+            handler(base)
+        }
+        return self
+    }
+
+    /// 清空当前链路错误
+    /// - Returns: 链式容器
+    @discardableResult
+    public func clearErrors() -> TFYChain<T> {
+        var newChain = self
+        newChain.errors.removeAll()
+        return newChain
+    }
+
+    /// 按严重级别移除错误
+    /// - Parameter severity: 要移除的错误级别
+    /// - Returns: 链式容器
+    @discardableResult
+    public func clearErrors(severity: ErrorSeverity) -> TFYChain<T> {
+        var newChain = self
+        newChain.errors.removeAll { $0.severity == severity }
+        return newChain
+    }
+
+    /// 按严重级别获取错误
+    /// - Parameter severity: 错误级别
+    /// - Returns: 匹配的错误数组
+    public func filteredErrors(severity: ErrorSeverity) -> [TFYChainError] {
+        return errors.filter { $0.severity == severity }
+    }
+
+    /// 错误摘要，适合日志和埋点上报
+    public var errorSummary: [String: Int] {
+        let groupedErrors = Dictionary(grouping: errors) { $0.severity.description }
+        return groupedErrors.mapValues { $0.count }
+    }
+
     /// 智能错误恢复
     /// - Parameter recoveryHandler: 错误恢复处理闭包
     /// - Returns: 链式容器
@@ -866,7 +1103,7 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         }
         return self
     }
-    
+
     /// 条件错误处理 - 只处理特定类型的错误
     /// - Parameters:
     ///   - errorType: 错误类型过滤器
@@ -880,13 +1117,13 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
             }
             return false
         }
-        
+
         if !filteredErrors.isEmpty {
             handler(filteredErrors)
         }
         return self
     }
-    
+
     /// 降级处理 - 当发生错误时执行备用方案
     /// - Parameter fallbackHandler: 降级处理闭包
     /// - Returns: 链式容器
@@ -900,7 +1137,7 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         }
         return self
     }
-    
+
     /// 重试机制
     /// - Parameters:
     ///   - maxAttempts: 最大重试次数
@@ -911,11 +1148,11 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
     public func retry(_ maxAttempts: Int = 3, delay: TimeInterval = 0.1, operation: @escaping (T) -> Bool) -> TFYChain<T> {
         var chainResult = self
         var attempt = 0
-        
+
         func attemptOperation() -> Bool {
             attempt += 1
             let success = operation(base)
-            
+
             if !success && attempt < maxAttempts {
                 if delay > 0 {
                     DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
@@ -931,11 +1168,11 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
             }
             return true
         }
-        
+
         _ = attemptOperation()
         return chainResult
     }
-    
+
     /// 性能监控回调
     /// - Parameter handler: 性能监控闭包
     /// - Returns: 链式容器
@@ -946,9 +1183,43 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         }
         return self
     }
-    
+
+    /// 清空性能指标
+    /// - Returns: 链式容器
+    @discardableResult
+    public func resetPerformanceMetrics() -> TFYChain<T> {
+        var newChain = self
+        newChain.performanceMetrics.removeAll()
+        return newChain
+    }
+
+    /// 获取毫秒单位的性能指标
+    public var performanceMetricsInMilliseconds: [String: Double] {
+        return performanceMetrics.mapValues { $0 * 1000 }
+    }
+
     // MARK: - 高级功能协议实现
-    
+
+    /// 批量应用多个链式操作
+    /// - Parameter operations: 链式操作列表
+    /// - Returns: 链式容器
+    @discardableResult
+    public func apply(_ operations: ((TFYChain<T>) -> TFYChain<T>)...) -> TFYChain<T> {
+        return operations.reduce(self) { partialResult, operation in
+            operation(partialResult)
+        }
+    }
+
+    /// 批量应用多个链式操作（数组版本）
+    /// - Parameter operations: 链式操作数组
+    /// - Returns: 链式容器
+    @discardableResult
+    public func applyAll(_ operations: [(TFYChain<T>) -> TFYChain<T>]) -> TFYChain<T> {
+        return operations.reduce(self) { partialResult, operation in
+            operation(partialResult)
+        }
+    }
+
     /// 延迟执行
     /// - Parameters:
     ///   - delay: 延迟时间
@@ -957,16 +1228,19 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
     @discardableResult
     public func delay(_ delay: TimeInterval, _ block: @escaping (T) -> Void) -> TFYChain<T> {
         // 对于NSObject，需要使用弱引用避免强引用循环
+        let shouldLogDebug = isDebugEnabled
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak base] in
             guard let strongBase = base else {
-                print("TFYChain: 延迟执行时对象已被释放")
+                if shouldLogDebug {
+                    print("TFYChain: 延迟执行时对象已被释放")
+                }
                 return
             }
             block(strongBase)
         }
         return self
     }
-    
+
     /// 链式日志
     /// - Parameter message: 日志消息
     /// - Returns: 链式容器
@@ -975,7 +1249,7 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         print("TFYChain[\(String(describing: type(of: base)))]: \(message)")
         return self
     }
-    
+
     /// 配置闭包
     /// - Parameter block: 配置闭包
     /// - Returns: 链式容器
@@ -984,7 +1258,7 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         block(base)
         return self
     }
-    
+
     /// 异步执行
     /// - Parameters:
     ///   - queue: 执行队列
@@ -993,16 +1267,19 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
     @discardableResult
     public func async(_ queue: DispatchQueue = .main, _ block: @escaping (T) -> Void) -> TFYChain<T> {
         // 对于NSObject，需要使用弱引用避免强引用循环
+        let shouldLogDebug = isDebugEnabled
         queue.async { [weak base] in
             guard let strongBase = base else {
-                print("TFYChain: 异步执行时对象已被释放")
+                if shouldLogDebug {
+                    print("TFYChain: 异步执行时对象已被释放")
+                }
                 return
             }
             block(strongBase)
         }
         return self
     }
-    
+
     /// 重复执行
     /// - Parameters:
     ///   - count: 重复次数
@@ -1015,7 +1292,7 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         }
         return self
     }
-    
+
     /// 条件执行
     /// - Parameters:
     ///   - condition: 条件
@@ -1028,9 +1305,9 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         }
         return self
     }
-    
+
     // MARK: - 动画链式支持
-    
+
     /// 跨平台动画执行
     @discardableResult
     public func animate(duration: TimeInterval, options: PlatformAnimationOptions = {
@@ -1057,7 +1334,7 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         #endif
         return self
     }
-    
+
     /// 跨平台弹簧动画执行
     @discardableResult
     public func animateSpring(duration: TimeInterval, damping: CGFloat = 0.7, velocity: CGFloat = 0, options: PlatformAnimationOptions = {
@@ -1085,7 +1362,7 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         #endif
         return self
     }
-    
+
     /// 关键帧动画执行
     @discardableResult
     public func animateKeyframes(duration: TimeInterval, options: PlatformKeyframeAnimationOptions = {
@@ -1111,9 +1388,9 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         #endif
         return self
     }
-    
+
     // MARK: - 约束链式支持
-    
+
     /// 添加约束到父视图
     /// - Parameter constraintBuilder: 约束构建闭包
     /// - Returns: 链式容器
@@ -1124,18 +1401,18 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
             newChain.errors.append(.runtimeError("约束只能应用于PlatformView及其子类"))
             return newChain
         }
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
         let constraints = constraintBuilder(base)
         PlatformLayoutConstraint.activate(constraints)
-        
+
         if isDebugEnabled {
             print("TFYChain: 添加了 \(constraints.count) 个约束")
         }
-        
+
         return self
     }
-    
+
     /// 简化的约束添加 - 居中约束
     /// - Parameter superview: 父视图
     /// - Returns: 链式容器
@@ -1146,16 +1423,16 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
             newChain.errors.append(.runtimeError("约束只能应用于PlatformView及其子类"))
             return newChain
         }
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
         PlatformLayoutConstraint.activate([
             view.centerXAnchor.constraint(equalTo: superview.centerXAnchor),
             view.centerYAnchor.constraint(equalTo: superview.centerYAnchor)
         ])
-        
+
         return self
     }
-    
+
     /// 简化的约束添加 - 填充父视图
     /// - Parameters:
     ///   - superview: 父视图
@@ -1168,7 +1445,7 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
             newChain.errors.append(.runtimeError("约束只能应用于PlatformView及其子类"))
             return newChain
         }
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
         PlatformLayoutConstraint.activate([
             view.topAnchor.constraint(equalTo: superview.topAnchor, constant: insets.top),
@@ -1176,10 +1453,10 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
             view.trailingAnchor.constraint(equalTo: superview.trailingAnchor, constant: -insets.right),
             view.bottomAnchor.constraint(equalTo: superview.bottomAnchor, constant: -insets.bottom)
         ])
-        
+
         return self
     }
-    
+
     /// 设置固定尺寸约束
     /// - Parameters:
     ///   - width: 宽度（nil表示不设置）
@@ -1192,31 +1469,31 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
             newChain.errors.append(.runtimeError("约束只能应用于PlatformView及其子类"))
             return newChain
         }
-        
+
         view.translatesAutoresizingMaskIntoConstraints = false
         var constraints: [PlatformLayoutConstraint] = []
-        
+
         if let width = width {
             constraints.append(view.widthAnchor.constraint(equalToConstant: width))
         }
-        
+
         if let height = height {
             constraints.append(view.heightAnchor.constraint(equalToConstant: height))
         }
-        
+
         PlatformLayoutConstraint.activate(constraints)
         return self
     }
-    
+
     // MARK: - 调试和分析
-    
+
     /// 打印类信息
     /// - Returns: 链式容器
     @discardableResult
     public func printClassInfo() -> TFYChain<T> {
         let className = String(describing: type(of: base))
         print("=== \(className) 类信息 ===")
-        
+
         let properties = TFYRuntimeUtils.getProperties(for: type(of: base))
         print("属性列表 (\(properties.count)个):")
         for property in properties.prefix(10) { // 只显示前10个，避免输出过多
@@ -1225,7 +1502,7 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         if properties.count > 10 {
             print("  ... 还有 \(properties.count - 10) 个属性")
         }
-        
+
         let methods = TFYRuntimeUtils.getMethods(for: type(of: base))
         print("方法列表 (\(methods.count)个):")
         for method in methods.prefix(10) { // 只显示前10个，避免输出过多
@@ -1234,10 +1511,10 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         if methods.count > 10 {
             print("  ... 还有 \(methods.count - 10) 个方法")
         }
-        
+
         return self
     }
-    
+
     /// 验证链式容器状态
     /// - Returns: 链式容器
     @discardableResult
@@ -1257,36 +1534,36 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         } else {
             print("✅ TFYChain 验证通过，无错误")
         }
-        
+
         // 性能分析报告
         if isPerformanceMonitoringEnabled && !performanceMetrics.isEmpty {
             generatePerformanceReport()
         }
-        
+
         return self
     }
-    
+
     /// 生成性能分析报告
     private func generatePerformanceReport() {
         let totalTime = performanceMetrics.values.reduce(0, +)
         let operationCount = performanceMetrics.count
         let averageTime = totalTime / Double(operationCount)
-        
+
         print("\n📊 性能分析报告:")
         print("  总耗时: \(String(format: "%.3f", totalTime * 1000))ms")
         print("  操作数: \(operationCount)")
         print("  平均耗时: \(String(format: "%.3f", averageTime * 1000))ms")
-        
+
         // 最慢的操作
         if let slowestOperation = performanceMetrics.max(by: { $0.value < $1.value }) {
             print("  最慢操作: \(slowestOperation.key) (\(String(format: "%.3f", slowestOperation.value * 1000))ms)")
         }
-        
+
         // 最快的操作
         if let fastestOperation = performanceMetrics.min(by: { $0.value < $1.value }) {
             print("  最快操作: \(fastestOperation.key) (\(String(format: "%.3f", fastestOperation.value * 1000))ms)")
         }
-        
+
         // 性能警告
         let slowOperations = performanceMetrics.filter { $0.value > TFYChainPerformanceConfig.performanceWarningThreshold / 1000 }
         if !slowOperations.isEmpty {
@@ -1295,10 +1572,10 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
                 print("    - \(operation): \(String(format: "%.3f", time * 1000))ms")
             }
         }
-        
+
         // 性能建议
         generatePerformanceSuggestions()
-        
+
         // 缓存统计
         let cacheStats = TFYRuntimeUtils.getDetailedCacheStats()
         print("  📋 缓存详细状态:")
@@ -1307,37 +1584,37 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
         print("    - 缓存利用率: \(String(format: "%.1f%%", (cacheStats["propertyUtilization"] as? Double ?? 0) * 100))")
         print("    - 缓存效率: \(cacheStats["cacheEfficiency"] ?? "unknown")")
     }
-    
+
     /// 生成性能建议
     private func generatePerformanceSuggestions() {
         let totalTime = performanceMetrics.values.reduce(0, +)
         let operationCount = performanceMetrics.count
         let averageTime = totalTime / Double(operationCount)
-        
+
         print("  💡 性能建议:")
-        
+
         // 基于平均时间的建议
         if averageTime > 0.005 {  // 5ms
             print("    - 考虑使用批量操作减少单个操作耗时")
         }
-        
+
         // 基于操作数量的建议
         if operationCount > 100 {
             print("    - 操作数量较多，考虑使用异步执行或分批处理")
         }
-        
+
         // 基于慢操作的建议
         let slowOperations = performanceMetrics.filter { $0.value > 0.001 }
         if slowOperations.count > operationCount / 2 {
             print("    - 建议优化频繁调用的属性设置方法")
         }
-        
+
         // 基于错误的建议
         if !errors.isEmpty {
             print("    - 发现 \(errors.count) 个错误，建议使用错误恢复机制")
         }
     }
-    
+
     /// 导出性能数据为JSON格式
     /// - Returns: JSON字符串
     public func exportPerformanceData() -> String? {
@@ -1350,7 +1627,7 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
             "errors": errors.map { $0.description },
             "cacheStats": TFYRuntimeUtils.getDetailedCacheStats()
         ]
-        
+
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: performanceData, options: .prettyPrinted)
             return String(data: jsonData, encoding: .utf8)
@@ -1359,17 +1636,17 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
             return nil
         }
     }
-    
+
     /// 比较两个链式操作的性能
     /// - Parameter other: 另一个链式容器
     /// - Returns: 比较结果
     public func comparePerformance(with other: TFYChain<T>) -> [String: Any] {
         let myTotalTime = performanceMetrics.values.reduce(0, +)
         let otherTotalTime = other.performanceMetrics.values.reduce(0, +)
-        
+
         let myAverage = myTotalTime / Double(max(performanceMetrics.count, 1))
         let otherAverage = otherTotalTime / Double(max(other.performanceMetrics.count, 1))
-        
+
         return [
             "thisChain": [
                 "totalTime": myTotalTime * 1000,
@@ -1393,16 +1670,16 @@ public struct TFYChain<T: NSObject>: TFYChainableProtocol, TFYChainErrorHandling
 // MARK: - 私有方法实现
 
 extension TFYChain {
-    
+
     /// 执行属性设置（修复版本 - 特殊处理UIKit组件）
     private func performPropertySetting(propertyName: String, value: Any, chain: inout TFYChain<T>) -> Bool {
         // 处理嵌套属性（如 titleLabel.text）
         if propertyName.contains(".") {
             return handleNestedProperty(propertyName: propertyName, value: value, chain: &chain)
         }
-        
+
         // 特殊处理UIKit组件属性（避免KVC崩溃）
-        
+
         // 平台按钮特殊属性（跨平台）
         if let button = base as? PlatformButton {
             switch propertyName {
@@ -1413,7 +1690,9 @@ extension TFYChain {
                     #elseif os(macOS)
                     button.title = title
                     #endif
-                    print("✅ PlatformButton title设置成功: \(title)")
+                    if chain.isDebugEnabled {
+                        print("✅ PlatformButton title设置成功: \(title)")
+                    }
                     return true
                 }
                 // 类型不匹配，继续尝试KVC
@@ -1424,7 +1703,9 @@ extension TFYChain {
                     #elseif os(macOS)
                     button.contentTintColor = color
                     #endif
-                    print("✅ PlatformButton titleColor设置成功")
+                    if chain.isDebugEnabled {
+                        print("✅ PlatformButton titleColor设置成功")
+                    }
                     return true
                 }
                 // 类型不匹配，继续尝试KVC
@@ -1435,7 +1716,9 @@ extension TFYChain {
                     #elseif os(macOS)
                     button.image = image
                     #endif
-                    print("✅ PlatformButton image设置成功")
+                    if chain.isDebugEnabled {
+                        print("✅ PlatformButton image设置成功")
+                    }
                     return true
                 }
                 // 类型不匹配，继续尝试KVC
@@ -1443,7 +1726,9 @@ extension TFYChain {
                 #if os(iOS)
                 if let image = value as? PlatformImage {
                     button.setBackgroundImage(image, for: .normal)
-                    print("✅ PlatformButton backgroundImage设置成功")
+                    if chain.isDebugEnabled {
+                        print("✅ PlatformButton backgroundImage设置成功")
+                    }
                     return true
                 }
                 #endif
@@ -1452,7 +1737,7 @@ extension TFYChain {
                 break
             }
         }
-        
+
         // 平台图片视图特殊属性（跨平台）
         if let imageView = base as? PlatformImageView {
             switch propertyName {
@@ -1465,7 +1750,7 @@ extension TFYChain {
                 break
             }
         }
-        
+
         // 平台标签文本属性
         if propertyName == "text", let text = value as? String {
             if let label = base as? PlatformLabel {
@@ -1474,11 +1759,13 @@ extension TFYChain {
                 #elseif os(macOS)
                 label.stringValue = text
                 #endif
-                print("✅ PlatformLabel text设置成功: \(text)")
+                if chain.isDebugEnabled {
+                    print("✅ PlatformLabel text设置成功: \(text)")
+                }
                 return true
             }
         }
-        
+
         // 平台文本输入框文本属性
         if propertyName == "text", let text = value as? String {
             if let textField = base as? PlatformTextField {
@@ -1487,11 +1774,13 @@ extension TFYChain {
                 #elseif os(macOS)
                 textField.stringValue = text
                 #endif
-                print("✅ PlatformTextField text设置成功: \(text)")
+                if chain.isDebugEnabled {
+                    print("✅ PlatformTextField text设置成功: \(text)")
+                }
                 return true
             }
         }
-        
+
         // 平台文本视图文本属性
         if propertyName == "text", let text = value as? String {
             if let textView = base as? PlatformTextView {
@@ -1500,11 +1789,13 @@ extension TFYChain {
                 #elseif os(macOS)
                 textView.string = text
                 #endif
-                print("✅ PlatformTextView text设置成功: \(text)")
+                if chain.isDebugEnabled {
+                    print("✅ PlatformTextView text设置成功: \(text)")
+                }
                 return true
             }
         }
-        
+
         // 平台文本输入框 placeholder属性
         if propertyName == "placeholder", let placeholder = value as? String {
             if let textField = base as? PlatformTextField {
@@ -1513,11 +1804,13 @@ extension TFYChain {
                 #elseif os(macOS)
                 textField.placeholderString = placeholder
                 #endif
-                print("✅ PlatformTextField placeholder设置成功: \(placeholder)")
+                if chain.isDebugEnabled {
+                    print("✅ PlatformTextField placeholder设置成功: \(placeholder)")
+                }
                 return true
             }
         }
-        
+
         // 平台堆栈视图特殊属性（跨平台）
         if let stackView = base as? PlatformStackView {
             switch propertyName {
@@ -1565,21 +1858,21 @@ extension TFYChain {
                 break
             }
         }
-        
+
         // 特殊处理某些属性类型
         let finalValue = preprocessValue(value: value, propertyName: propertyName)
-        
+
         // 直接尝试设置属性，不预先检查存在性
         let success = TFYRuntimeUtils.safeSetValue(finalValue, forKey: propertyName, in: base)
-        
+
         // 只有在真正失败时才添加错误
         if !success {
             chain.errors.append(.propertyNotFound(propertyName))
         }
-        
+
         return success
     }
-    
+
     /// 处理嵌套属性（修复版本 - 移除严格检查）
     private func handleNestedProperty(propertyName: String, value: Any, chain: inout TFYChain<T>) -> Bool {
         let components = propertyName.components(separatedBy: ".")
@@ -1587,20 +1880,20 @@ extension TFYChain {
             chain.errors.append(.invalidNestedProperty(propertyName))
             return false
         }
-        
+
         let parentProperty = components[0]
         let childProperty = components[1]
-        
+
         // 尝试获取父对象
         guard let parentObject = base.value(forKey: parentProperty) as? NSObject else {
             chain.errors.append(.runtimeError("无法获取父属性 \(parentProperty) 或父对象为nil"))
             return false
         }
-        
+
         // 直接尝试设置子属性
         return TFYRuntimeUtils.safeSetValue(value, forKey: childProperty, in: parentObject)
     }
-    
+
     /// 预处理值（类型转换等）- 跨平台版本
     private func preprocessValue(value: Any, propertyName: String) -> Any {
         switch propertyName {
@@ -1642,7 +1935,7 @@ extension TFYChain {
         }
         return value
     }
-    
+
     /// 执行方法调用
     private func performMethodInvocation(methodName: String, args: [Any], chain: inout TFYChain<T>) -> Bool {
         // 特殊处理常用 UIKit 方法
@@ -1677,9 +1970,9 @@ extension TFYChain {
             }
         }
     }
-    
+
     // MARK: - UIKit 方法处理
-    
+
     private func handleAddTarget(args: [Any], chain: inout TFYChain<T>) -> Bool {
         guard let control = base as? PlatformControl,
               args.count >= 2,
@@ -1687,7 +1980,7 @@ extension TFYChain {
             chain.errors.append(.runtimeError("addTarget 参数错误或对象不是 PlatformControl"))
             return false
         }
-        
+
         #if os(iOS)
         // iOS 需要控件事件参数
         guard args.count >= 3,
@@ -1701,10 +1994,10 @@ extension TFYChain {
         control.target = args[0] as AnyObject?
         control.action = action
         #endif
-        
+
         return true
     }
-    
+
     private func handleSetTitle(args: [Any], chain: inout TFYChain<T>) -> Bool {
         guard args.count >= 1,
                let title = args[0] as? String,
@@ -1712,7 +2005,7 @@ extension TFYChain {
             chain.errors.append(.runtimeError("setTitle 参数错误或对象不是 PlatformButton"))
             return false
         }
-        
+
         #if os(iOS)
         let state = args.count >= 2 ? (args[1] as? PlatformControlState ?? .normal) : .normal
         button.setTitle(title, for: state)
@@ -1721,7 +2014,7 @@ extension TFYChain {
         #endif
         return true
     }
-    
+
     private func handleSetTitleColor(args: [Any], chain: inout TFYChain<T>) -> Bool {
         guard args.count >= 1,
                let color = args[0] as? PlatformColor,
@@ -1729,7 +2022,7 @@ extension TFYChain {
             chain.errors.append(.runtimeError("setTitleColor 参数错误或对象不是 PlatformButton"))
             return false
         }
-        
+
         #if os(iOS)
         let state = args.count >= 2 ? (args[1] as? PlatformControlState ?? .normal) : .normal
         button.setTitleColor(color, for: state)
@@ -1738,7 +2031,7 @@ extension TFYChain {
         #endif
         return true
     }
-    
+
     private func handleSetImage(args: [Any], chain: inout TFYChain<T>) -> Bool {
         guard args.count >= 1,
                let image = args[0] as? PlatformImage,
@@ -1746,7 +2039,7 @@ extension TFYChain {
             chain.errors.append(.runtimeError("setImage 参数错误或对象不是 PlatformButton"))
             return false
         }
-        
+
         #if os(iOS)
         let state = args.count >= 2 ? (args[1] as? PlatformControlState ?? .normal) : .normal
         button.setImage(image, for: state)
@@ -1755,7 +2048,7 @@ extension TFYChain {
         #endif
         return true
     }
-    
+
     private func handleSetBackgroundImage(args: [Any], chain: inout TFYChain<T>) -> Bool {
         #if os(iOS)
         guard args.count >= 1,
@@ -1764,7 +2057,7 @@ extension TFYChain {
             chain.errors.append(.runtimeError("setBackgroundImage 参数错误或对象不是 PlatformButton"))
             return false
         }
-        
+
         let state = args.count >= 2 ? (args[1] as? PlatformControlState ?? .normal) : .normal
         button.setBackgroundImage(image, for: state)
         return true
@@ -1773,14 +2066,14 @@ extension TFYChain {
         return false
         #endif
     }
-    
+
     private func handleSetText(args: [Any], chain: inout TFYChain<T>) -> Bool {
         guard args.count >= 1,
               let text = args[0] as? String else {
             chain.errors.append(.runtimeError("setText 参数错误"))
             return false
         }
-        
+
         // 平台标签文本设置
         if let label = base as? PlatformLabel {
             #if os(iOS)
@@ -1790,7 +2083,7 @@ extension TFYChain {
             #endif
             return true
         }
-        
+
         // 平台文本输入框文本设置
         if let textField = base as? PlatformTextField {
             #if os(iOS)
@@ -1800,7 +2093,7 @@ extension TFYChain {
             #endif
             return true
         }
-        
+
         // 平台文本视图文本设置
         if let textView = base as? PlatformTextView {
             #if os(iOS)
@@ -1810,18 +2103,18 @@ extension TFYChain {
             #endif
             return true
         }
-        
+
         chain.errors.append(.runtimeError("setText 对象类型不支持"))
         return false
     }
-    
+
     private func handleSetTextColor(args: [Any], chain: inout TFYChain<T>) -> Bool {
         guard args.count >= 1,
               let color = args[0] as? PlatformColor else {
             chain.errors.append(.runtimeError("setTextColor 参数错误"))
             return false
         }
-        
+
         // 平台标签文本颜色设置
         if let label = base as? PlatformLabel {
             #if os(iOS)
@@ -1831,48 +2124,48 @@ extension TFYChain {
             #endif
             return true
         }
-        
+
         // 平台文本输入框文本颜色设置
         if let textField = base as? PlatformTextField {
             textField.textColor = color
             return true
         }
-        
+
         // 平台文本视图文本颜色设置
         if let textView = base as? PlatformTextView {
             textView.textColor = color
             return true
         }
-        
+
         chain.errors.append(.runtimeError("setTextColor 对象类型不支持"))
         return false
     }
-    
+
     private func handleSetFont(args: [Any], chain: inout TFYChain<T>) -> Bool {
         guard args.count >= 1,
               let font = args[0] as? PlatformFont else {
             chain.errors.append(.runtimeError("setFont 参数错误"))
             return false
         }
-        
+
         // 平台标签字体设置
         if let label = base as? PlatformLabel {
             label.font = font
             return true
         }
-        
+
         // 平台文本输入框字体设置
         if let textField = base as? PlatformTextField {
             textField.font = font
             return true
         }
-        
+
         // 平台文本视图字体设置
         if let textView = base as? PlatformTextView {
             textView.font = font
             return true
         }
-        
+
         // 平台按钮字体设置
         if let button = base as? PlatformButton {
             #if os(iOS)
@@ -1887,11 +2180,11 @@ extension TFYChain {
             #endif
             return true
         }
-        
+
         chain.errors.append(.runtimeError("setFont 对象类型不支持"))
         return false
     }
-    
+
     private func handleSetImageViewImage(args: [Any], chain: inout TFYChain<T>) -> Bool {
         guard args.count >= 1,
               let image = args[0] as? PlatformImage,
@@ -1899,17 +2192,17 @@ extension TFYChain {
             chain.errors.append(.runtimeError("setImageViewImage 参数错误或对象不是 PlatformImageView"))
             return false
         }
-        
+
         imageView.image = image
         return true
     }
-    
+
     private func handleSetContentMode(args: [Any], chain: inout TFYChain<T>) -> Bool {
         guard args.count >= 1 else {
             chain.errors.append(.runtimeError("setContentMode 参数错误"))
             return false
         }
-        
+
         #if os(iOS)
         // iOS: 处理 UIView 的 contentMode
         guard let contentMode = args[0] as? PlatformContentMode,
@@ -1917,17 +2210,17 @@ extension TFYChain {
             chain.errors.append(.runtimeError("setContentMode 参数错误或对象不是 PlatformView"))
             return false
         }
-        
+
         view.contentMode = contentMode
         return true
-        
+
         #elseif os(macOS)
         // macOS: 处理 NSImageView 的 imageScaling
         guard let imageView = base as? PlatformImageView else {
             chain.errors.append(.runtimeError("setContentMode 参数错误或对象不是 PlatformImageView"))
             return false
         }
-        
+
         if let scaling = args[0] as? PlatformContentMode {
             imageView.imageScaling = scaling
         } else if let rawValue = args[0] as? UInt, let scaling = PlatformContentMode(rawValue: rawValue) {
@@ -1940,34 +2233,34 @@ extension TFYChain {
         #endif
     }
     }
-    
+
 // MARK: - Struct 链式容器
 
 /// 为 struct 类型设计的链式容器
 public struct TFYStructChain<T>: TFYChainableProtocol, TFYChainErrorHandling, TFYChainPerformanceMonitoring, TFYChainAdvancedFeatures {
-    
+
     // MARK: - 协议实现
-    
+
     public typealias ChainType = TFYStructChain<T>
     public typealias BaseType = T
-    
+
     /// 原始对象
     public var base: T
-    
+
     /// 错误收集器
     public var errors: [TFYChainError] = []
-    
+
     /// 性能监控器
     public var performanceMetrics: [String: TimeInterval] = [:]
-    
+
     /// 是否启用性能监控
     private var isPerformanceMonitoringEnabled: Bool = false
-    
+
     /// 是否启用调试输出
     private var isDebugEnabled: Bool = false
-    
+
     // MARK: - 初始化
-    
+
     /// 初始化链式容器
     /// - Parameters:
     ///   - base: 原始对象
@@ -1978,12 +2271,55 @@ public struct TFYStructChain<T>: TFYChainableProtocol, TFYChainErrorHandling, TF
         self.isPerformanceMonitoringEnabled = enablePerformanceMonitoring
         self.isDebugEnabled = enableDebug
     }
-    
+
     /// 获取原始对象
     public var build: T { return base }
-    
+
+    /// 是否包含错误
+    public var hasErrors: Bool { return !errors.isEmpty }
+
+    /// 当前错误数量
+    public var errorCount: Int { return errors.count }
+
+    /// 是否有性能指标
+    public var hasPerformanceMetrics: Bool { return !performanceMetrics.isEmpty }
+
+    // MARK: - 配置方法
+
+    /// 启用性能监控
+    /// - Returns: 链式容器
+    public func enablePerformanceMonitoring() -> TFYStructChain<T> {
+        var newChain = self
+        newChain.isPerformanceMonitoringEnabled = true
+        return newChain
+    }
+
+    /// 启用调试输出
+    /// - Returns: 链式容器
+    public func enableDebug() -> TFYStructChain<T> {
+        var newChain = self
+        newChain.isDebugEnabled = true
+        return newChain
+    }
+
+    /// 关闭性能监控
+    /// - Returns: 链式容器
+    public func disablePerformanceMonitoring() -> TFYStructChain<T> {
+        var newChain = self
+        newChain.isPerformanceMonitoringEnabled = false
+        return newChain
+    }
+
+    /// 关闭调试输出
+    /// - Returns: 链式容器
+    public func disableDebug() -> TFYStructChain<T> {
+        var newChain = self
+        newChain.isDebugEnabled = false
+        return newChain
+    }
+
     // MARK: - KeyPath 支持
-    
+
     /// 使用 KeyPath 设置属性值
     /// - Parameters:
     ///   - keyPath: 属性 KeyPath
@@ -1993,22 +2329,32 @@ public struct TFYStructChain<T>: TFYChainableProtocol, TFYChainErrorHandling, TF
     public func set<Value>(_ keyPath: WritableKeyPath<T, Value>, _ value: Value) -> TFYStructChain<T> {
         let startTime = isPerformanceMonitoringEnabled ? CFAbsoluteTimeGetCurrent() : 0
             var newChain = self
-        
+
         newChain.base[keyPath: keyPath] = value
-        
+
         if isPerformanceMonitoringEnabled {
             let elapsed = CFAbsoluteTimeGetCurrent() - startTime
             let keyPathString = String(describing: keyPath)
             newChain.performanceMetrics[keyPathString] = elapsed
         }
-        
+
         if isDebugEnabled {
         print("TFYStructChain: 通过KeyPath设置属性 \(keyPath) 值为: \(value)")
         }
-        
+
             return newChain
     }
-    
+
+    /// 使用 KeyPath 设置属性值（带 to: 标签，保持引用类型链式 API 一致）
+    /// - Parameters:
+    ///   - keyPath: 属性 KeyPath
+    ///   - value: 要设置的值
+    /// - Returns: 链式容器
+    @discardableResult
+    public func set<Value>(_ keyPath: WritableKeyPath<T, Value>, to value: Value) -> TFYStructChain<T> {
+        return set(keyPath, value)
+    }
+
     /// 条件 KeyPath 设置
     /// - Parameters:
     ///   - condition: 条件
@@ -2019,7 +2365,29 @@ public struct TFYStructChain<T>: TFYChainableProtocol, TFYChainErrorHandling, TF
     public func setIf<Value>(_ condition: Bool, _ keyPath: WritableKeyPath<T, Value>, _ value: Value) -> TFYStructChain<T> {
         return condition ? set(keyPath, value) : self
     }
-    
+
+    /// 条件 KeyPath 设置（带 to: 标签）
+    /// - Parameters:
+    ///   - condition: 条件
+    ///   - keyPath: 属性 KeyPath
+    ///   - value: 要设置的值
+    /// - Returns: 链式容器
+    @discardableResult
+    public func setIf<Value>(_ condition: Bool, _ keyPath: WritableKeyPath<T, Value>, to value: Value) -> TFYStructChain<T> {
+        return condition ? set(keyPath, to: value) : self
+    }
+
+    /// 可选值存在时设置属性
+    /// - Parameters:
+    ///   - keyPath: 属性 KeyPath
+    ///   - value: 可选属性值
+    /// - Returns: 链式容器
+    @discardableResult
+    public func setIfPresent<Value>(_ keyPath: WritableKeyPath<T, Value>, to value: Value?) -> TFYStructChain<T> {
+        guard let value = value else { return self }
+        return set(keyPath, to: value)
+    }
+
     /// 批量设置属性（使用链式调用）
     /// - Parameter configurator: 配置闭包
     /// - Returns: 链式容器
@@ -2029,9 +2397,9 @@ public struct TFYStructChain<T>: TFYChainableProtocol, TFYChainErrorHandling, TF
         configurator(&newChain.base)
         return newChain
     }
-    
+
     // MARK: - 错误处理和性能监控协议实现
-    
+
     /// 错误处理回调
     /// - Parameter handler: 错误处理闭包
     /// - Returns: 链式容器
@@ -2042,7 +2410,50 @@ public struct TFYStructChain<T>: TFYChainableProtocol, TFYChainErrorHandling, TF
         }
         return self
     }
-    
+
+    /// 无错误时执行成功回调
+    /// - Parameter handler: 成功处理闭包
+    /// - Returns: 链式容器
+    @discardableResult
+    public func onSuccess(_ handler: (T) -> Void) -> TFYStructChain<T> {
+        if errors.isEmpty {
+            handler(base)
+        }
+        return self
+    }
+
+    /// 清空当前链路错误
+    /// - Returns: 链式容器
+    @discardableResult
+    public func clearErrors() -> TFYStructChain<T> {
+        var newChain = self
+        newChain.errors.removeAll()
+        return newChain
+    }
+
+    /// 按严重级别移除错误
+    /// - Parameter severity: 要移除的错误级别
+    /// - Returns: 链式容器
+    @discardableResult
+    public func clearErrors(severity: ErrorSeverity) -> TFYStructChain<T> {
+        var newChain = self
+        newChain.errors.removeAll { $0.severity == severity }
+        return newChain
+    }
+
+    /// 按严重级别获取错误
+    /// - Parameter severity: 错误级别
+    /// - Returns: 匹配的错误数组
+    public func filteredErrors(severity: ErrorSeverity) -> [TFYChainError] {
+        return errors.filter { $0.severity == severity }
+    }
+
+    /// 错误摘要，适合日志和埋点上报
+    public var errorSummary: [String: Int] {
+        let groupedErrors = Dictionary(grouping: errors) { $0.severity.description }
+        return groupedErrors.mapValues { $0.count }
+    }
+
     /// 性能监控回调
     /// - Parameter handler: 性能监控闭包
     /// - Returns: 链式容器
@@ -2053,9 +2464,43 @@ public struct TFYStructChain<T>: TFYChainableProtocol, TFYChainErrorHandling, TF
         }
         return self
     }
-    
+
+    /// 清空性能指标
+    /// - Returns: 链式容器
+    @discardableResult
+    public func resetPerformanceMetrics() -> TFYStructChain<T> {
+        var newChain = self
+        newChain.performanceMetrics.removeAll()
+        return newChain
+    }
+
+    /// 获取毫秒单位的性能指标
+    public var performanceMetricsInMilliseconds: [String: Double] {
+        return performanceMetrics.mapValues { $0 * 1000 }
+    }
+
     // MARK: - 高级功能协议实现
-    
+
+    /// 批量应用多个链式操作
+    /// - Parameter operations: 链式操作列表
+    /// - Returns: 链式容器
+    @discardableResult
+    public func apply(_ operations: ((TFYStructChain<T>) -> TFYStructChain<T>)...) -> TFYStructChain<T> {
+        return operations.reduce(self) { partialResult, operation in
+            operation(partialResult)
+        }
+    }
+
+    /// 批量应用多个链式操作（数组版本）
+    /// - Parameter operations: 链式操作数组
+    /// - Returns: 链式容器
+    @discardableResult
+    public func applyAll(_ operations: [(TFYStructChain<T>) -> TFYStructChain<T>]) -> TFYStructChain<T> {
+        return operations.reduce(self) { partialResult, operation in
+            operation(partialResult)
+        }
+    }
+
     /// 延迟执行
     /// - Parameters:
     ///   - delay: 延迟时间
@@ -2070,7 +2515,7 @@ public struct TFYStructChain<T>: TFYChainableProtocol, TFYChainErrorHandling, TF
         }
         return self
     }
-    
+
     /// 链式日志
     /// - Parameter message: 日志消息
     /// - Returns: 链式容器
@@ -2079,7 +2524,7 @@ public struct TFYStructChain<T>: TFYChainableProtocol, TFYChainErrorHandling, TF
         print("TFYStructChain[\(String(describing: type(of: base)))]: \(message)")
         return self
     }
-    
+
     /// 配置闭包
     /// - Parameter block: 配置闭包
     /// - Returns: 链式容器
@@ -2088,7 +2533,7 @@ public struct TFYStructChain<T>: TFYChainableProtocol, TFYChainErrorHandling, TF
         block(base)
         return self
     }
-    
+
     /// 异步执行
     /// - Parameters:
     ///   - queue: 执行队列
@@ -2103,7 +2548,7 @@ public struct TFYStructChain<T>: TFYChainableProtocol, TFYChainErrorHandling, TF
         }
         return self
     }
-    
+
     /// 重复执行
     /// - Parameters:
     ///   - count: 重复次数
@@ -2116,7 +2561,7 @@ public struct TFYStructChain<T>: TFYChainableProtocol, TFYChainErrorHandling, TF
         }
         return self
     }
-    
+
     /// 条件执行
     /// - Parameters:
     ///   - condition: 条件
@@ -2137,13 +2582,13 @@ public struct TFYStructChain<T>: TFYChainableProtocol, TFYChainErrorHandling, TF
 public extension NSObject {
     /// 通用链式容器
     func tfy() -> TFYChain<NSObject> {return TFYChain(self)}
-    
+
     /// 启用调试的链式容器
     func tfyDebug() -> TFYChain<NSObject> {return TFYChain(self, enableDebug: true)}
-    
+
     /// 启用性能监控的链式容器
     func tfyPerformance() -> TFYChain<NSObject> {return TFYChain(self, enablePerformanceMonitoring: true)}
-    
+
     /// 启用所有功能的链式容器
     func tfyFull() -> TFYChain<NSObject> {return TFYChain(self, enablePerformanceMonitoring: true, enableDebug: true)}
 }
@@ -2151,16 +2596,16 @@ public extension NSObject {
 
 /// 链式调用便利方法
 public class TFYChainHelper {
-    
+
     // MARK: - 基础便利方法
-    
+
     /// 创建链式容器的便利方法
     /// - Parameter object: 目标对象
     /// - Returns: 链式容器
     public static func chain<T: NSObject>(_ object: T) -> TFYChain<T> {
         return TFYChain(object)
     }
-    
+
     /// 批量链式操作
     /// - Parameters:
     ///   - objects: 对象数组
@@ -2170,7 +2615,27 @@ public class TFYChainHelper {
             _ = operation(TFYChain(object))
         }
     }
-    
+
+    /// 批量链式操作并返回原对象数组，便于继续传递给布局或数据源
+    /// - Parameters:
+    ///   - objects: 对象数组
+    ///   - operation: 操作闭包
+    /// - Returns: 配置后的原对象数组
+    @discardableResult
+    public static func configuredObjects<T: NSObject>(_ objects: [T], operation: (TFYChain<T>) -> TFYChain<T>) -> [T] {
+        for object in objects {
+            _ = operation(TFYChain(object))
+        }
+        return objects
+    }
+
+    /// 批量生成链式容器
+    /// - Parameter objects: 对象数组
+    /// - Returns: 链式容器数组
+    public static func chains<T: NSObject>(for objects: [T]) -> [TFYChain<T>] {
+        return objects.map { TFYChain($0) }
+    }
+
     /// 批量条件设置
     /// - Parameters:
     ///   - objects: 对象数组
@@ -2180,9 +2645,21 @@ public class TFYChainHelper {
         guard condition else { return }
         batchChain(objects, operation: operation)
     }
-    
+
+    /// 条件批量链式操作并返回原对象数组
+    /// - Parameters:
+    ///   - objects: 对象数组
+    ///   - condition: 条件
+    ///   - operation: 操作闭包
+    /// - Returns: 配置后的原对象数组
+    @discardableResult
+    public static func configuredObjectsIf<T: NSObject>(_ objects: [T], condition: Bool, operation: (TFYChain<T>) -> TFYChain<T>) -> [T] {
+        guard condition else { return objects }
+        return configuredObjects(objects, operation: operation)
+    }
+
     // MARK: - 跨平台组件创建方法
-    
+
     /// 创建并配置标签（跨平台）
     /// - Parameter configurator: 配置闭包
     /// - Returns: 配置好的标签
@@ -2195,11 +2672,11 @@ public class TFYChainHelper {
         label.isSelectable = false
         label.drawsBackground = true
         #endif
-        
+
         _ = configurator(label.labelChain)
         return label
     }
-    
+
     /// 创建并配置按钮（跨平台）
     /// - Parameter configurator: 配置闭包
     /// - Returns: 配置好的按钮
@@ -2210,11 +2687,11 @@ public class TFYChainHelper {
         let button = NSButton()
         button.bezelStyle = .rounded
         #endif
-        
+
         _ = configurator(button.buttonChain)
         return button
     }
-    
+
     /// 创建并配置图片视图（跨平台）
     /// - Parameter configurator: 配置闭包
     /// - Returns: 配置好的图片视图
@@ -2224,11 +2701,11 @@ public class TFYChainHelper {
         #elseif os(macOS)
         let imageView = NSImageView()
         #endif
-        
+
         _ = configurator(imageView.imageChain)
         return imageView
     }
-    
+
     /// 创建并配置文本输入框（跨平台）
     /// - Parameter configurator: 配置闭包
     /// - Returns: 配置好的文本输入框
@@ -2238,11 +2715,25 @@ public class TFYChainHelper {
         #elseif os(macOS)
         let textField = NSTextField()
         #endif
-        
+
         _ = configurator(textField.textFieldChain)
         return textField
     }
-    
+
+    /// 创建并配置文本视图（跨平台）
+    /// - Parameter configurator: 配置闭包
+    /// - Returns: 配置好的文本视图
+    public static func createTextView(_ configurator: (TFYChain<PlatformTextView>) -> TFYChain<PlatformTextView>) -> PlatformTextView {
+        #if os(iOS)
+        let textView = UITextView()
+        #elseif os(macOS)
+        let textView = NSTextView()
+        #endif
+
+        _ = configurator(textView.textViewChain)
+        return textView
+    }
+
     /// 创建并配置滚动视图（跨平台）
     /// - Parameter configurator: 配置闭包
     /// - Returns: 配置好的滚动视图
@@ -2252,11 +2743,11 @@ public class TFYChainHelper {
         #elseif os(macOS)
         let scrollView = NSScrollView()
         #endif
-        
+
         _ = configurator(scrollView.scrollChain)
         return scrollView
     }
-    
+
     /// 创建并配置堆栈视图（跨平台）
     /// - Parameter configurator: 配置闭包
     /// - Returns: 配置好的堆栈视图
@@ -2266,13 +2757,13 @@ public class TFYChainHelper {
         #elseif os(macOS)
         let stackView = NSStackView()
         #endif
-        
+
         _ = configurator(stackView.stackChain)
         return stackView
     }
-    
+
     // MARK: - 批量操作方法
-    
+
     /// 批量设置相同属性
     /// - Parameters:
     ///   - objects: 对象数组
@@ -2283,7 +2774,7 @@ public class TFYChainHelper {
             _ = TFYChain(object).set(keyPath, to: value)
         }
     }
-    
+
     /// 批量设置相同属性（字符串方式）
     /// - Parameters:
     ///   - objects: 对象数组
@@ -2294,17 +2785,17 @@ public class TFYChainHelper {
             _ = TFYRuntimeUtils.safeSetValue(value, forKey: propertyName, in: object)
         }
     }
-    
+
     // MARK: - 结构体链式支持
-    
+
     /// 结构体链式构建器
     public struct StructChainBuilder<T> {
         private var value: T
-        
+
         public init(_ value: T) {
             self.value = value
         }
-        
+
         /// 设置属性值
         /// - Parameters:
         ///   - keyPath: 属性路径
@@ -2316,7 +2807,17 @@ public class TFYChainHelper {
             newBuilder.value[keyPath: keyPath] = newValue
             return newBuilder
         }
-        
+
+        /// 设置属性值（带 to: 标签）
+        /// - Parameters:
+        ///   - keyPath: 属性路径
+        ///   - newValue: 新值
+        /// - Returns: 链式构建器
+        @discardableResult
+        public func set<V>(_ keyPath: WritableKeyPath<T, V>, to newValue: V) -> StructChainBuilder<T> {
+            return set(keyPath, newValue)
+        }
+
         /// 条件设置属性值
         /// - Parameters:
         ///   - condition: 条件
@@ -2331,22 +2832,54 @@ public class TFYChainHelper {
             }
             return newBuilder
         }
-        
+
+        /// 条件设置属性值（带 to: 标签）
+        /// - Parameters:
+        ///   - condition: 条件
+        ///   - keyPath: 属性路径
+        ///   - newValue: 新值
+        /// - Returns: 链式构建器
+        @discardableResult
+        public func setIf<V>(_ condition: Bool, _ keyPath: WritableKeyPath<T, V>, to newValue: V) -> StructChainBuilder<T> {
+            return setIf(condition, keyPath, newValue)
+        }
+
+        /// 可选值存在时设置属性值
+        /// - Parameters:
+        ///   - keyPath: 属性路径
+        ///   - newValue: 可选新值
+        /// - Returns: 链式构建器
+        @discardableResult
+        public func setIfPresent<V>(_ keyPath: WritableKeyPath<T, V>, to newValue: V?) -> StructChainBuilder<T> {
+            guard let newValue = newValue else { return self }
+            return set(keyPath, newValue)
+        }
+
+        /// 使用闭包批量配置值
+        /// - Parameter configurator: 配置闭包
+        /// - Returns: 链式构建器
+        @discardableResult
+        public func configure(_ configurator: (inout T) -> Void) -> StructChainBuilder<T> {
+            var newBuilder = self
+            configurator(&newBuilder.value)
+            return newBuilder
+        }
+
         /// 构建最终结果
         public var build: T {
             return value
         }
     }
-    
+
     /// 创建结构体链式构建器
     /// - Parameter value: 初始值
     /// - Returns: 链式构建器
     public static func structChain<T>(_ value: T) -> StructChainBuilder<T> {
         return StructChainBuilder(value)
     }
-    
+
     // MARK: - 跨平台便利方法
-    
+
     /// 创建视图（跨平台）
     /// - Parameter configurator: 配置闭包
     /// - Returns: 配置好的视图
@@ -2356,11 +2889,11 @@ public class TFYChainHelper {
         #elseif os(macOS)
         let view = NSView()
         #endif
-        
+
         _ = configurator(view.chain)
         return view
     }
-    
+
     /// 创建滑块（跨平台）
     /// - Parameter configurator: 配置闭包
     /// - Returns: 配置好的滑块
@@ -2370,11 +2903,11 @@ public class TFYChainHelper {
         #elseif os(macOS)
         let slider = NSSlider()
         #endif
-        
+
         _ = configurator(slider.sliderChain)
         return slider
     }
-    
+
     /// 创建进度指示器（跨平台）
     /// - Parameter configurator: 配置闭包
     /// - Returns: 配置好的进度指示器
@@ -2385,11 +2918,11 @@ public class TFYChainHelper {
         let progressView = NSProgressIndicator()
         progressView.style = .bar
         #endif
-        
+
         _ = configurator(progressView.progressChain)
         return progressView
     }
-    
+
     /// 创建分段控制器（跨平台）
     /// - Parameter configurator: 配置闭包
     /// - Returns: 配置好的分段控制器
@@ -2399,13 +2932,41 @@ public class TFYChainHelper {
         #elseif os(macOS)
         let segmentedControl = NSSegmentedControl()
         #endif
-        
+
         _ = configurator(segmentedControl.segmentChain)
         return segmentedControl
     }
-    
+
+    /// 创建点击手势识别器（跨平台）
+    /// - Parameter configurator: 配置闭包
+    /// - Returns: 配置好的点击手势识别器
+    public static func createTapGesture(_ configurator: (TFYChain<PlatformTapGestureRecognizer>) -> TFYChain<PlatformTapGestureRecognizer>) -> PlatformTapGestureRecognizer {
+        #if os(iOS)
+        let gesture = UITapGestureRecognizer()
+        #elseif os(macOS)
+        let gesture = NSClickGestureRecognizer()
+        #endif
+
+        _ = configurator(gesture.tapGestureChain)
+        return gesture
+    }
+
+    /// 创建拖拽手势识别器（跨平台）
+    /// - Parameter configurator: 配置闭包
+    /// - Returns: 配置好的拖拽手势识别器
+    public static func createPanGesture(_ configurator: (TFYChain<PlatformPanGestureRecognizer>) -> TFYChain<PlatformPanGestureRecognizer>) -> PlatformPanGestureRecognizer {
+        #if os(iOS)
+        let gesture = UIPanGestureRecognizer()
+        #elseif os(macOS)
+        let gesture = NSPanGestureRecognizer()
+        #endif
+
+        _ = configurator(gesture.panGestureChain)
+        return gesture
+    }
+
     // MARK: - 平台特定创建方法
-    
+
     #if os(iOS)
     /// 创建开关（iOS特有）
     /// - Parameter configurator: 配置闭包
@@ -2415,7 +2976,7 @@ public class TFYChainHelper {
         _ = configurator(switchControl.switchChain)
         return switchControl
     }
-    
+
     /// 创建活动指示器（iOS特有）
     /// - Parameter configurator: 配置闭包
     /// - Returns: 配置好的活动指示器
@@ -2425,7 +2986,7 @@ public class TFYChainHelper {
         return activityIndicator
     }
     #endif
-    
+
     #if os(macOS)
     /// 创建弹出按钮（macOS特有）
     /// - Parameter configurator: 配置闭包
@@ -2435,7 +2996,7 @@ public class TFYChainHelper {
         _ = configurator(popUpButton.popUpButtonChain)
         return popUpButton
     }
-    
+
     /// 创建颜色选择器（macOS特有）
     /// - Parameter configurator: 配置闭包
     /// - Returns: 配置好的颜色选择器
@@ -2444,7 +3005,7 @@ public class TFYChainHelper {
         _ = configurator(colorWell.colorWellChain)
         return colorWell
     }
-    
+
     /// 创建等级指示器（macOS特有）
     /// - Parameter configurator: 配置闭包
     /// - Returns: 配置好的等级指示器
@@ -2461,13 +3022,13 @@ public class TFYChainHelper {
 public struct TFYChainPerformanceConfig {
     /// 是否启用缓存
     public static var cacheEnabled: Bool = true
-    
+
     /// 缓存最大大小
     public static var maxCacheSize: Int = 1000
-    
+
     /// 性能警告阈值（毫秒）
     public static var performanceWarningThreshold: TimeInterval = 1.0
-    
+
     /// 清理缓存
     public static func clearAllCaches() {
         TFYRuntimeUtils.clearCache()

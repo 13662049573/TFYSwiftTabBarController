@@ -75,7 +75,7 @@ public extension CALayer {
     var width: CGFloat {
         set{
             var frame = self.frame
-            frame.size.width = newValue
+            frame.size.width = max(0, newValue)
             self.frame = frame
         }
         get{
@@ -86,7 +86,7 @@ public extension CALayer {
     var height: CGFloat {
         set{
             var frame = self.frame
-            frame.size.height = newValue
+            frame.size.height = max(0, newValue)
             self.frame = frame
         }
         get{
@@ -165,7 +165,7 @@ public extension CALayer {
     func setLayerShadow(color: UIColor, offset: CGSize, radius: CGFloat) {
         self.shadowColor = color.cgColor
         self.shadowOffset = offset
-        self.shadowRadius = radius
+        self.shadowRadius = max(0, radius)
         self.shadowOpacity = 1
         self.shouldRasterize = true
         self.rasterizationScale = UIScreen.main.scale
@@ -174,10 +174,14 @@ public extension CALayer {
     /// 截图当前图层
     /// - Returns: 截图UIImage，失败返回nil
     func snapshotImage() -> UIImage? {
+        guard self.bounds.width > 0, self.bounds.height > 0 else {
+            TFYUtils.Logger.log("⚠️ CALayer: bounds为空，无法截图")
+            return nil
+        }
         UIGraphicsBeginImageContextWithOptions(self.bounds.size, self.isOpaque, 0)
         defer { UIGraphicsEndImageContext() }
         guard let context = UIGraphicsGetCurrentContext() else {
-            print("⚠️ CALayer: 获取图形上下文失败")
+            TFYUtils.Logger.log("⚠️ CALayer: 获取图形上下文失败")
             return nil
         }
         self.render(in: context)
@@ -225,6 +229,7 @@ extension CALayer {
         let layer = CALayer()
         layer.contents = image.cgImage
         layer.frame = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
+        layer.contentsScale = image.scale
         return layer
     }
 }

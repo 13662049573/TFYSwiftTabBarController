@@ -23,12 +23,108 @@ class TFYSwiftTabBarControllerUITests: XCTestCase {
     }
 
     func testExample() throws {
-        // UI tests must launch the application that they test.
         let app = XCUIApplication()
         app.launch()
 
-        // Use recording to get started writing UI tests.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        XCTAssertTrue(app.navigationBars["TFYSwiftTabbarKit"].waitForExistence(timeout: 3))
+    }
+
+    func testBasicDemoCanOpenAndClose() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.staticTexts["基础四 Tab"].tap()
+        XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["demo.close"].waitForExistence(timeout: 3))
+        app.buttons["demo.close"].tap()
+        XCTAssertTrue(app.navigationBars["TFYSwiftTabbarKit"].waitForExistence(timeout: 3))
+    }
+
+    func testEveryDemoCanOpenWithoutCrashing() throws {
+        let app = XCUIApplication()
+        app.launch()
+        let titles = [
+            "基础四 Tab", "System 风格", "Liquid Glass", "代理与动态配置", "Item 布局偏移", "外观定制",
+            "Plus 仅动作", "Plus + Child VC", "徽章全能力",
+            "Lottie Tab · 灰色图片型", "Lottie Tab · 绿色", "Lottie Tab · 彩色", "Lottie 资源实验室",
+            "Flat 独立组件", "Flat styleType", "Push 隐藏 TabBar", "高级组合"
+        ]
+
+        for title in titles {
+            let row = app.staticTexts[title]
+            while !row.isHittable { app.tables.firstMatch.swipeUp() }
+            row.tap()
+            XCTAssertTrue(app.buttons["demo.close"].waitForExistence(timeout: 3), "无法打开或关闭：\(title)")
+            app.buttons["demo.close"].tap()
+            XCTAssertTrue(app.navigationBars["TFYSwiftTabbarKit"].waitForExistence(timeout: 3))
+        }
+    }
+
+    func testLottieResourceLabControls() throws {
+        let app = XCUIApplication()
+        app.launch()
+        let row = app.staticTexts["Lottie 资源实验室"]
+        while !row.isHittable { app.tables.firstMatch.swipeUp() }
+        row.tap()
+
+        XCTAssertTrue(app.buttons["lottie.resource"].waitForExistence(timeout: 3))
+        app.buttons["lottie.resource"].tap()
+        let lastResource = app.buttons["tab_me_animate"]
+        XCTAssertTrue(lastResource.waitForExistence(timeout: 3))
+        lastResource.tap()
+        app.buttons["lottie.pause"].tap()
+        app.sliders["lottie.progress"].adjust(toNormalizedSliderPosition: 0.5)
+        app.buttons["lottie.play"].tap()
+        app.buttons["lottie.stop"].tap()
+    }
+
+    func testEveryLottieTabUsesRealAnimationsAndCanSwitchTabs() throws {
+        let app = XCUIApplication()
+        app.launch()
+        let demos: [(String, [String])] = [
+            ("Lottie Tab · 灰色图片型", ["首页", "消息", "我的"]),
+            ("Lottie Tab · 绿色", ["首页", "发现", "资讯", "我的"]),
+            ("Lottie Tab · 彩色", ["首页", "搜索", "消息", "我的"])
+        ]
+
+        for (demoTitle, tabTitles) in demos {
+            let row = app.staticTexts[demoTitle]
+            while !row.isHittable { app.tables.firstMatch.swipeUp() }
+            row.tap()
+
+            let animation = app.descendants(matching: .any)
+                .matching(identifier: "tfy.tabbar.lottie")
+                .firstMatch
+            XCTAssertTrue(animation.waitForExistence(timeout: 3), "未加载真实 Lottie Tab：\(demoTitle)")
+            let tabBar = app.tabBars.firstMatch
+            for title in tabTitles {
+                let button = tabBar.buttons[title]
+                XCTAssertTrue(button.waitForExistence(timeout: 2), "缺少 Tab：\(title)")
+                button.tap()
+            }
+
+            app.buttons["demo.close"].tap()
+            XCTAssertTrue(app.navigationBars["TFYSwiftTabbarKit"].waitForExistence(timeout: 3))
+        }
+    }
+
+    func testBothPlusModesAreVisibleAndClickable() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.staticTexts["Plus 仅动作"].tap()
+        let actionPlus = app.buttons["demo.plus.action"]
+        XCTAssertTrue(actionPlus.waitForExistence(timeout: 3))
+        actionPlus.tap()
+        XCTAssertTrue(app.alerts["Plus"].waitForExistence(timeout: 2))
+        app.alerts["Plus"].buttons["好的"].tap()
+        app.buttons["demo.close"].tap()
+
+        app.staticTexts["Plus + Child VC"].tap()
+        let childPlus = app.buttons["demo.plus.child"]
+        XCTAssertTrue(childPlus.waitForExistence(timeout: 3))
+        childPlus.tap()
+        XCTAssertTrue(app.navigationBars["发布"].waitForExistence(timeout: 2))
     }
 
     func testLaunchPerformance() throws {

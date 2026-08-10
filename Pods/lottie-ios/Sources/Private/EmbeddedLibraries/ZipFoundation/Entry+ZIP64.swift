@@ -2,7 +2,7 @@
 //  Entry+ZIP64.swift
 //  ZIPFoundation
 //
-//  Copyright © 2017-2021 Thomas Zoechling, https://www.peakstep.com and the ZIP Foundation project authors.
+//  Copyright © 2017-2025 Thomas Zoechling, https://www.peakstep.com and the ZIP Foundation project authors.
 //  Released under the MIT License.
 //
 //  See https://github.com/weichsel/ZIPFoundation/blob/master/LICENSE for license information.
@@ -18,14 +18,17 @@ protocol ExtensibleDataField {
 }
 
 extension Entry {
+
   enum EntryError: Error {
-    case invalidDataError
+    case missingPermissionsAttributeError
+    case missingModificationDateAttributeError
   }
 
   struct ZIP64ExtendedInformation: ExtensibleDataField {
+    static let headerSize: UInt16 = 4
+
     let headerID: UInt16 = ExtraFieldHeaderID.zip64ExtendedInformation.rawValue
     let dataSize: UInt16
-    static let headerSize: UInt16 = 4
     let uncompressedSize: UInt64
     let compressedSize: UInt64
     let relativeOffsetOfLocalHeader: UInt64
@@ -41,7 +44,7 @@ typealias Field = Entry.ZIP64ExtendedInformation.Field
 
 extension Entry.LocalFileHeader {
   var validFields: [Field] {
-    var fields: [Field] = []
+    var fields = [Field]()
     if uncompressedSize == .max { fields.append(.uncompressedSize) }
     if compressedSize == .max { fields.append(.compressedSize) }
     return fields
@@ -50,7 +53,7 @@ extension Entry.LocalFileHeader {
 
 extension Entry.CentralDirectoryStructure {
   var validFields: [Field] {
-    var fields: [Field] = []
+    var fields = [Field]()
     if uncompressedSize == .max { fields.append(.uncompressedSize) }
     if compressedSize == .max { fields.append(.compressedSize) }
     if relativeOffsetOfLocalHeader == .max { fields.append(.relativeOffsetOfLocalHeader) }
@@ -70,29 +73,23 @@ extension Entry.ZIP64ExtendedInformation {
   init?(data: Data, fields: [Field]) {
     let headerLength = 4
     guard fields.reduce(0, { $0 + $1.size }) + headerLength == data.count else { return nil }
+
     var readOffset = headerLength
-    func value<T>(of field: Field) throws -> T where T: BinaryInteger {
-      if fields.contains(field) {
-        defer {
-          readOffset += MemoryLayout<T>.size
-        }
-        guard readOffset + field.size <= data.count else {
-          throw Entry.EntryError.invalidDataError
-        }
+    func value<T: BinaryInteger>(of field: Field) -> T {
+      if fields.contains(field), readOffset + field.size <= data.count {
+        defer { readOffset += MemoryLayout<T>.size }
+
         return data.scanValue(start: readOffset)
       } else {
         return 0
       }
     }
-    do {
-      dataSize = data.scanValue(start: 2)
-      uncompressedSize = try value(of: .uncompressedSize)
-      compressedSize = try value(of: .compressedSize)
-      relativeOffsetOfLocalHeader = try value(of: .relativeOffsetOfLocalHeader)
-      diskNumberStart = try value(of: .diskNumberStart)
-    } catch {
-      return nil
-    }
+
+    dataSize = data.scanValue(start: 2)
+    uncompressedSize = value(of: .uncompressedSize)
+    compressedSize = value(of: .compressedSize)
+    relativeOffsetOfLocalHeader = value(of: .relativeOffsetOfLocalHeader)
+    diskNumberStart = value(of: .diskNumberStart)
   }
 
   init?(zip64ExtendedInformation: Entry.ZIP64ExtendedInformation?, offset: UInt64) {

@@ -167,7 +167,8 @@ public extension TFY where Base: NSAttributedString {
         // 创建带有图片的富文本
         let string = NSAttributedString(attachment: attch)
         // 将图片添加到富文本
-        attributedString.insert(string, at: imgIndex)
+        let safeIndex = min(max(0, imgIndex), attributedString.length)
+        attributedString.insert(string, at: safeIndex)
         return attributedString
     }
     
@@ -189,10 +190,8 @@ public extension TFY where Base: NSAttributedString {
     /// - Returns: 返回设置后的富文本
     func setSpecificRangeTextMoreAttributes(attributes: Dictionary<NSAttributedString.Key, Any>, range: NSRange) -> NSAttributedString {
         let mutableAttributedString = NSMutableAttributedString(attributedString: self.base)
-        
-        // 检查 range 是否越界
-        let validRange = NSRange(location: range.location, length: min(range.length, self.base.length - range.location))
-        guard validRange.location >= 0 && validRange.length > 0 && validRange.location + validRange.length <= self.base.length else {
+
+        guard let validRange = resolvedRange(range), !attributes.isEmpty else {
             return self.base
         }
         
@@ -212,6 +211,7 @@ public extension TFY where Base: NSAttributedString {
     /// - Returns: 返回设置后的富文本
     func setSpecificTextMoreAttributes(_ text: String, attributes: Dictionary<NSAttributedString.Key, Any>) -> NSAttributedString {
         let mutableAttributedString = NSMutableAttributedString(attributedString: self.base)
+        guard !attributes.isEmpty else { return mutableAttributedString }
         let rangeArray = getStringRangeArray(with: [text])
         if !rangeArray.isEmpty {
             for name in attributes.keys {
@@ -246,29 +246,39 @@ public extension TFY where Base: NSAttributedString {
 
 // MARK: - Private Func
 public extension TFY where Base: NSAttributedString {
+    /// 将外部传入 range 裁剪到当前富文本长度内，无法安全应用时返回 nil
+    func safeRange(_ range: NSRange) -> NSRange? {
+        return resolvedRange(range)
+    }
+
     /// 获取对应字符串的range数组
     /// - Parameter textArray: 字符串数组
     /// - Returns: range数组
     private func getStringRangeArray(with textArray: Array<String>) -> Array<NSRange> {
         var rangeArray = Array<NSRange>()
-        // 遍历
         for str in textArray {
-            if base.string.contains(str) {
-                let subStrArr = base.string.components(separatedBy: str)
-                var subStrIndex = 0
-                for i in 0 ..< (subStrArr.count - 1) {
-                    let subDivisionStr = subStrArr[i]
-                    if i == 0 {
-                        subStrIndex += (subDivisionStr.lengthOfBytes(using: .unicode) / 2)
-                    } else {
-                        subStrIndex += (subDivisionStr.lengthOfBytes(using: .unicode) / 2 + str.lengthOfBytes(using: .unicode) / 2)
-                    }
-                    let newRange = NSRange(location: subStrIndex, length: str.count)
-                    rangeArray.append(newRange)
-                }
+            guard !str.isEmpty else { continue }
+            var searchRange = base.string.startIndex..<base.string.endIndex
+            while let foundRange = base.string.range(of: str, options: [], range: searchRange) {
+                rangeArray.append(NSRange(foundRange, in: base.string))
+                searchRange = foundRange.upperBound..<base.string.endIndex
             }
         }
         return rangeArray
+    }
+
+    private func resolvedRange(_ range: NSRange) -> NSRange? {
+        guard range.location != NSNotFound,
+              range.location >= 0,
+              range.length >= 0,
+              base.length > 0 else {
+            return nil
+        }
+
+        let safeLocation = min(range.location, base.length)
+        let safeLength = min(range.length, base.length - safeLocation)
+        guard safeLength > 0 else { return nil }
+        return NSRange(location: safeLocation, length: safeLength)
     }
 
     // MARK: 加载网络图片
@@ -277,16 +287,11 @@ public extension TFY where Base: NSAttributedString {
     /// - Returns: 图片
     private func loadImage(imageName: String) -> UIImage? {
         if imageName.hasPrefix("http://") || imageName.hasPrefix("https://") {
-            let imageURL = URL(string: imageName)
-            var imageData: Data? = nil
-            do {
-                imageData = try Data(contentsOf: imageURL!)
-                return UIImage(data: imageData!)!
-            } catch {
-                return nil
-            }
+            guard let imageURL = URL(string: imageName),
+                  let imageData = try? Data(contentsOf: imageURL) else { return nil }
+            return UIImage(data: imageData)
         }
-        return UIImage(named: imageName)!
+        return UIImage(named: imageName)
     }
 }
 
@@ -435,6 +440,7 @@ public extension TFY where Base: NSMutableParagraphStyle{
         let attString = NSMutableAttributedString(string: text, attributes: paraDic)
         for e in textTaps {
             let nsRange = (attString.string as NSString).range(of: e, options: mask)
+            guard nsRange.location != NSNotFound else { continue }
             attString.addAttributes(linkDic, range: nsRange)
         }
         return attString
@@ -456,6 +462,7 @@ public extension TFY where Base: NSMutableParagraphStyle{
             
             let attStr = NSAttributedString(string: e.key, attributes: linkAttDic)
             let range = (mattString.string as NSString).range(of: e.key)
+            guard range.location != NSNotFound else { return }
             mattString.replaceCharacters(in: range, with: attStr)
         }
         return mattString
@@ -463,15 +470,16 @@ public extension TFY where Base: NSMutableParagraphStyle{
     
     /// nsRange范围子字符串差异华显示
     static func attString(_ text: String, nsRange: NSRange, font: UIFont = UIFont.systemFont(ofSize: 15.adap), tapColor: UIColor = .black) -> NSAttributedString {
-        assert((nsRange.location + nsRange.length) <= text.count)
-
         let attDic: [NSAttributedString.Key: Any] = [
             .font: font,
             .foregroundColor: tapColor,
         ]
 
         let attrString = NSMutableAttributedString(string: text)
-        attrString.addAttributes(attDic, range: nsRange)
+        let safeRange = nsRange.tfy.clamped(to: (text as NSString).length)
+        if safeRange.length > 0 {
+            attrString.addAttributes(attDic, range: safeRange)
+        }
         return attrString
     }
     
@@ -509,8 +517,12 @@ public extension NSAttributedString{
     }
     
     func attributes(at index: Int) -> (NSRange, [NSAttributedString.Key: Any]) {
+        guard length > 0 else {
+            return (NSRange(location: 0, length: 0), [:])
+        }
+        let safeIndex = min(max(0, index), length - 1)
         var nsRange = NSMakeRange(0, 0)
-        let dic = attributes(at: index, effectiveRange: &nsRange)
+        let dic = attributes(at: safeIndex, effectiveRange: &nsRange)
         return (nsRange, dic)
     }
 }
@@ -621,4 +633,3 @@ public extension String {
     }
     
 }
-

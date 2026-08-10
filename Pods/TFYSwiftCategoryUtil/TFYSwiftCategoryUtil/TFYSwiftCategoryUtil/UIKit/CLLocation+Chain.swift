@@ -17,7 +17,7 @@ public extension TFY where Base: CLLocation {
     ///   - longitude: 纬度，必须在-180~180之间
     ///   - completionHandler: 回调函数
     static func reverseGeocode(latitude: CLLocationDegrees, longitude: CLLocationDegrees, completionHandler: @escaping CLGeocodeCompletionHandler) {
-        guard (-90...90).contains(latitude), (-180...180).contains(longitude) else {
+        guard isValidCoordinate(latitude: latitude, longitude: longitude) else {
             TFYUtils.Logger.log("⚠️ CLLocation: 经纬度参数不合法")
             completionHandler([], NSError(domain: "CLLocation+Chain", code: -1, userInfo: [NSLocalizedDescriptionKey: "经纬度参数不合法"]))
             return
@@ -33,13 +33,14 @@ public extension TFY where Base: CLLocation {
     ///   - address: 地址信息，不能为空
     ///   - completionHandler: 回调函数
     static func locationEncode(address: String, completionHandler: @escaping CLGeocodeCompletionHandler) {
-        guard !address.isEmpty else {
+        let trimmedAddress = address.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedAddress.isEmpty else {
             TFYUtils.Logger.log("⚠️ CLLocation: 地址不能为空")
             completionHandler([], NSError(domain: "CLLocation+Chain", code: -2, userInfo: [NSLocalizedDescriptionKey: "地址不能为空"]))
             return
         }
         let geocoder = CLGeocoder()
-        geocoder.geocodeAddressString(address, completionHandler: completionHandler)
+        geocoder.geocodeAddressString(trimmedAddress, completionHandler: completionHandler)
     }
     
     // MARK: 1.3、计算两点之间的距离
@@ -61,6 +62,7 @@ public extension TFY where Base: CLLocation {
     /// - Returns: 方位角（度）
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func bearing(from: CLLocation, to: CLLocation) -> CLLocationDirection {
+        guard isValid(from), isValid(to) else { return 0 }
         let lat1 = from.coordinate.latitude.radians
         let lat2 = to.coordinate.latitude.radians
         let deltaLon = (to.coordinate.longitude - from.coordinate.longitude).radians
@@ -69,7 +71,7 @@ public extension TFY where Base: CLLocation {
         let x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(deltaLon)
         let bearing = atan2(y, x)
         
-        return bearing.degrees
+        return (bearing.degrees + 360).truncatingRemainder(dividingBy: 360)
     }
     
     // MARK: 1.5、检查位置是否有效
@@ -78,7 +80,7 @@ public extension TFY where Base: CLLocation {
     /// - Returns: 如果位置有效返回true
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func isValid(_ location: CLLocation) -> Bool {
-        return location.coordinate.latitude != 0 || location.coordinate.longitude != 0
+        return isValidCoordinate(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
     }
     
     // MARK: 1.6、获取位置描述
@@ -87,7 +89,19 @@ public extension TFY where Base: CLLocation {
     /// - Returns: 位置描述字符串
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func description(for location: CLLocation) -> String {
-        return "纬度: \(location.coordinate.latitude), 经度: \(location.coordinate.longitude), 精度: \(location.horizontalAccuracy)m"
+        let accuracy = max(0, location.horizontalAccuracy)
+        return "纬度: \(location.coordinate.latitude), 经度: \(location.coordinate.longitude), 精度: \(accuracy)m"
+    }
+
+    // MARK: 1.7、检查经纬度是否有效
+    /// 检查经纬度是否有效
+    /// - Parameters:
+    ///   - latitude: 纬度
+    ///   - longitude: 经度
+    /// - Returns: 是否有效
+    static func isValidCoordinate(latitude: CLLocationDegrees, longitude: CLLocationDegrees) -> Bool {
+        guard latitude.isFinite, longitude.isFinite else { return false }
+        return (-90...90).contains(latitude) && (-180...180).contains(longitude)
     }
 }
 

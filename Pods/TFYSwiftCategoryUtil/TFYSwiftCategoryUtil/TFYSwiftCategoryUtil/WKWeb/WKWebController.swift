@@ -11,17 +11,17 @@ import WebKit
 open class WKWebController: UIViewController {
     open var backNeedRefresh:Bool = false
     open var handlers:[WKWebHandler] = []
-    
+
     public func scriptHandler<T:Codable>(_ name:String, action: @escaping (_ body:T) -> Void) {
         handlers.append(WKWebHandler(name, action: action))
     }
-    
+
     open weak var delegate:WKDelegate?
     open weak var webView:WKWebView?
-    
+
     private lazy var _manager = WKWebManager(self)
     private weak var _progressView:UIProgressView?
-    
+
     public var tintColor: UIColor? {
         didSet {
             if isViewLoaded {
@@ -30,16 +30,16 @@ open class WKWebController: UIViewController {
             }
         }
     }
-    
+
     open func appOpen(url:URL) {
         _manager.appOpen(url: url)
     }
-    
+
     open override func loadView() {
         super.loadView()
-        
+
         view.tintColor = tintColor
-        
+
         let width = view.frame.width
         let progressView = UIProgressView(progressViewStyle: .default)
         progressView.progressTintColor = tintColor
@@ -47,23 +47,23 @@ open class WKWebController: UIViewController {
         progressView.frame = CGRect(x: 0, y: 0, width: width, height: 2)
         progressView.isHidden = true
         progressView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         view.addSubview(progressView) {
             $0 += progressView.anchor.leading  == $0.anchor.leading
             $0 += progressView.anchor.trailing == $0.anchor.trailing
             $0 += progressView.anchor.top      == $0.anchor.top
             $0 += progressView.anchor.height   == 2
         }
-        
+
         let preferences = WKWebpagePreferences()
         preferences.allowsContentJavaScript = true
-        
+
         let config = WKWebViewConfiguration()
         let userContent = delegate?.userContentController ?? WKUserContentController()
-    
+
         config.preferences.javaScriptCanOpenWindowsAutomatically = false
         config.defaultWebpagePreferences = preferences
-        
+
         let manager = _manager
         let errorHandler = WKWebHandler("error") {
             [weak manager] (text:String) -> Void in
@@ -87,7 +87,7 @@ open class WKWebController: UIViewController {
             }
         };
         """) { [weak manager] in manager?.onJavaScriptGoApp($0) }
-        
+
         let cookieHandler = WKWebHandler("syncCookie", javaScript:"""
         function iOS_make_syncCookie() {
             if (arguments.length == 0) {
@@ -105,22 +105,22 @@ open class WKWebController: UIViewController {
             }
         };
         """) { [weak manager] in
-            let dict = $0 as! [String:String]
+            guard let dict = $0 as? [String: String] else { return }
             if  let cookie = dict["cookie"],
                 let href = dict["url"],
                 let url = URL(string: href) {
                 manager?.onSyncCookie(cookie, for: url)
             }
         }
-        
+
         handlers = [errorHandler, shareHandler, goAppHandler, cookieHandler]
-     
+
         if let customHandlers = delegate?.javaScriptHandlers {
             handlers.append(contentsOf: customHandlers)
         }
-        
+
         var handlerJavaScript:String = "var Android = new function() {\n"
-        
+
         for handler in handlers {
             userContent.add(handler, name: handler.name)
             handler.controller = self
@@ -128,19 +128,21 @@ open class WKWebController: UIViewController {
         }
         handlerJavaScript += "};\n"
         handlerJavaScript += handlers.map { $0.javaScript }.joined(separator: "\n")
+#if DEBUG
         print("--------------------handlerJavaScript----------------------")
         print(handlerJavaScript)
         print("--------------------handlerJavaScript----------------------")
+#endif
 
         let handlerUserScript = WKUserScript(source: handlerJavaScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
         userContent.addUserScript(handlerUserScript)
-        
+
         if let scripts = delegate?.userScripts {
             scripts.forEach { userContent.addUserScript($0) }
         }
-        
+
         config.userContentController = userContent;
-        
+
         let webView = delegate?.webView?(by: view.bounds, with: config) ?? WKWebView(frame: view.bounds, configuration: config)
         webView.uiDelegate = manager
         webView.navigationDelegate = manager
@@ -151,21 +153,21 @@ open class WKWebController: UIViewController {
         if #available(iOS 11.0, *) {
             webView.scrollView.contentInsetAdjustmentBehavior = .never
         }
-        
+
 
         view.insertSubview(webView, belowSubview: progressView)
-        
+
         _progressObserver = webView.observe(\.estimatedProgress) {
             [weak self] (webView, _) in
             self?.onProgressChanged(webView.estimatedProgress)
         }
-        
+
         view += webView.anchor.top         == view.anchor.top
         view += webView.anchor.leading     == view.anchor.leading
         view += webView.anchor.trailing    == view.anchor.trailing
         view += webView.anchor.bottom      == view.anchor.bottom
     }
-    
+
     deinit {
         webView?.stopLoading()
         webView?.removeFromSuperview()
@@ -178,7 +180,7 @@ open class WKWebController: UIViewController {
     private var _progressTimer:DispatchSourceTimer?
     private var _progressOffset:Double = 0
     private var _isURLSyncCookie:Bool = false
-    
+
     open var url:URL? {
         didSet {
             if url != oldValue {
@@ -186,11 +188,11 @@ open class WKWebController: UIViewController {
             }
         }
     }
-    
+
     private func onProgressChanged(_ progress:Double) {
-        
+
         _progressTimer?.cancel()
-        
+
         if progress >= 1 {
             _progressView?.isHidden = true
             _progressView?.setProgress(0, animated: false)
@@ -219,22 +221,21 @@ open class WKWebController: UIViewController {
     func syncCookie(by url:URL) {
         _manager.save(cookies: HTTPCookieStorage.shared.cookies(for: url) ?? [])
     }
-    
+
     open override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         if !_isURLSyncCookie, let startURL = url {
             syncCookie(by: startURL)
             _isURLSyncCookie = true
         }
-        
+
         if let startURL = url {
             webView?.load(startURL)
         }
     }
 
 }
-
 
 
 

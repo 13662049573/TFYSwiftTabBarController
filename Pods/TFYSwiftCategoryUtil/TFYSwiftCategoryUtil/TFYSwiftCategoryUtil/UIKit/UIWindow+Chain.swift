@@ -10,12 +10,18 @@ import UIKit
 
 public extension UIWindow {
     static var keyWindow: UIWindow? {
-        var keyWindow:UIWindow?
-        keyWindow = UIApplication.shared.connectedScenes
-            .map({$0 as? UIWindowScene})
-            .compactMap({$0})
-            .first?.windows.first
-        return keyWindow
+        if #available(iOS 13.0, *) {
+            return UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .filter { $0.activationState == .foregroundActive }
+                .flatMap { $0.windows }
+                .first(where: \.isKeyWindow)
+                ?? UIApplication.shared.connectedScenes
+                    .compactMap { $0 as? UIWindowScene }
+                    .flatMap { $0.windows }
+                    .first(where: { !$0.isHidden && $0.alpha > 0 })
+        }
+        return UIApplication.shared.delegate?.window ?? nil
     }
 
     static var statusBarFrame: CGRect {
@@ -50,7 +56,7 @@ public extension UIScreen {
 public extension UIDevice {
     static var isIphoneX: Bool {
         if UIDevice.current.userInterfaceIdiom != .phone {
-            return true
+            return false
         }
         if #available(iOS 11.0, *) {
             let bottom = UIWindow.safeAreaInsets.bottom
@@ -85,8 +91,9 @@ public extension UIWindow {
                 .first { $0.activationState == .foregroundActive }?
                 .windows
                 .first(where: \.isKeyWindow)
+                ?? UIWindow.keyWindow
         } else {
-            return UIApplication.shared.keyWindow
+            return UIApplication.shared.delegate?.window ?? nil
         }
     }
     
@@ -199,7 +206,7 @@ public extension UIWindow {
     /// - Parameter radius: 圆角半径
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func setCornerRadius(_ radius: CGFloat) {
-        layer.cornerRadius = radius
+        layer.cornerRadius = max(0, radius)
         layer.masksToBounds = true
     }
     
@@ -213,8 +220,8 @@ public extension UIWindow {
     func setShadow(color: UIColor, offset: CGSize, radius: CGFloat, opacity: Float) {
         layer.shadowColor = color.cgColor
         layer.shadowOffset = offset
-        layer.shadowRadius = radius
-        layer.shadowOpacity = opacity
+        layer.shadowRadius = max(0, radius)
+        layer.shadowOpacity = min(1, max(0, opacity))
     }
     
     /// 获取窗口的变换
@@ -239,7 +246,8 @@ public extension UIWindow {
     ///   - completion: 完成回调
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func animateTransform(_ transform: CGAffineTransform, duration: TimeInterval = 0.3, completion: (() -> Void)? = nil) {
-        UIView.animate(withDuration: duration, animations: {
+        let safeDuration = duration.isFinite ? max(0, duration) : 0
+        UIView.animate(withDuration: safeDuration, animations: {
             self.layer.setAffineTransform(transform)
         }, completion: { _ in
             completion?()
@@ -269,6 +277,7 @@ public extension UIWindow {
     /// - Returns: 截图图片
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func takeScreenshot() -> UIImage? {
+        guard bounds.width > 0, bounds.height > 0 else { return nil }
         UIGraphicsBeginImageContextWithOptions(bounds.size, false, UIScreen.main.scale)
         defer { UIGraphicsEndImageContext() }
         
@@ -278,4 +287,3 @@ public extension UIWindow {
         return UIGraphicsGetImageFromCurrentImageContext()
     }
 }
-

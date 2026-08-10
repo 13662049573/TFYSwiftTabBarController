@@ -2,7 +2,7 @@
 //  Entry+Serialization.swift
 //  ZIPFoundation
 //
-//  Copyright © 2017-2021 Thomas Zoechling, https://www.peakstep.com and the ZIP Foundation project authors.
+//  Copyright © 2017-2025 Thomas Zoechling, https://www.peakstep.com and the ZIP Foundation project authors.
 //  Released under the MIT License.
 //
 //  See https://github.com/weichsel/ZIPFoundation/blob/master/LICENSE for license information.
@@ -39,7 +39,8 @@ extension Entry.LocalFileHeader {
     if
       let zip64ExtendedInformation = Entry.ZIP64ExtendedInformation.scanForZIP64Field(
         in: extraFieldData,
-        fields: validFields)
+        fields: validFields
+      )
     {
       extraFields = [zip64ExtendedInformation]
     }
@@ -116,7 +117,8 @@ extension Entry.CentralDirectoryStructure {
     if
       let zip64ExtendedInformation = Entry.ZIP64ExtendedInformation.scanForZIP64Field(
         in: extraFieldData,
-        fields: validFields)
+        fields: validFields
+      )
     {
       extraFields = [zip64ExtendedInformation]
     }

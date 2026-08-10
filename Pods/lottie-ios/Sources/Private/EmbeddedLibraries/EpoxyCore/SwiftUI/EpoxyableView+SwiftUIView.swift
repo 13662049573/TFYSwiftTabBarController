@@ -1,7 +1,6 @@
 // Created by eric_horacek on 9/13/21.
 // Copyright © 2021 Airbnb Inc. All rights reserved.
 
-#if canImport(SwiftUI)
 import SwiftUI
 
 // MARK: - StyledView
@@ -26,9 +25,8 @@ extension StyledView where Self: ContentConfigurableView & BehaviorsConfigurable
   static func swiftUIView(
     content: Content,
     style: Style,
-    behaviors: Behaviors? = nil)
-    -> SwiftUIView<Self, (content: Content, style: Style)>
-  {
+    behaviors: Behaviors? = nil
+  ) -> SwiftUIView<Self, (content: Content, style: Style)> {
     SwiftUIView(storage: (content: content, style: style)) {
       let view = Self(style: style)
       view.setContent(content, animated: false)
@@ -74,9 +72,8 @@ extension StyledView
   /// ```
   static func swiftUIView(
     content: Content,
-    behaviors: Behaviors? = nil)
-    -> SwiftUIView<Self, Content>
-  {
+    behaviors: Behaviors? = nil
+  ) -> SwiftUIView<Self, Content> {
     SwiftUIView(storage: content) {
       let view = Self()
       view.setContent(content, animated: false)
@@ -118,9 +115,8 @@ extension StyledView
   /// The sizing defaults to `.automatic`.
   static func swiftUIView(
     style: Style,
-    behaviors: Behaviors? = nil)
-    -> SwiftUIView<Self, Style>
-  {
+    behaviors: Behaviors? = nil
+  ) -> SwiftUIView<Self, Style> {
     SwiftUIView(storage: style) {
       Self(style: style)
     }
@@ -167,4 +163,3 @@ extension StyledView
     }
   }
 }
-#endif

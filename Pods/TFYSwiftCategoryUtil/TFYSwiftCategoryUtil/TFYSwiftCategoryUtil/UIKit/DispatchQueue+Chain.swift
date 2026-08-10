@@ -10,7 +10,8 @@ import Foundation
 // MARK: - 一、基本的扩展
 public extension TFY where Base == DispatchQueue {
     
-    private static var _onceTracker = [String]()
+    private static var _onceTracker = Set<String>()
+    private static let onceLock = NSLock()
     
     // MARK: 1.1、函数只被执行一次
     /// 函数只被执行一次
@@ -19,15 +20,49 @@ public extension TFY where Base == DispatchQueue {
     ///   - block: 执行的闭包
     /// - Returns: 一次性函数
     static func once(token: String, block: () -> ()) {
-        if _onceTracker.contains(token) {
+        guard !token.isEmpty else {
+            block()
             return
         }
-        objc_sync_enter(self)
-        defer {
-            objc_sync_exit(self)
+        var shouldExecute = false
+        onceLock.lock()
+        defer { onceLock.unlock() }
+        if !_onceTracker.contains(token) {
+            _onceTracker.insert(token)
+            shouldExecute = true
         }
-        _onceTracker.append(token)
-        block()
+        if shouldExecute {
+            block()
+        }
+    }
+
+    // MARK: 1.2、重置函数只执行一次的标识
+    /// 重置指定 token 的执行状态
+    /// - Parameter token: 函数标识
+    static func resetOnce(token: String) {
+        guard !token.isEmpty else { return }
+        onceLock.lock()
+        defer { onceLock.unlock() }
+        _onceTracker.remove(token)
+    }
+
+    // MARK: 1.3、重置全部函数只执行一次的标识
+    /// 清空所有 once token
+    static func resetAllOnceTokens() {
+        onceLock.lock()
+        defer { onceLock.unlock() }
+        _onceTracker.removeAll()
+    }
+
+    // MARK: 1.4、检查 token 是否已执行
+    /// 检查指定 token 是否已经执行过
+    /// - Parameter token: 函数标识
+    /// - Returns: 是否已执行
+    static func hasExecuted(token: String) -> Bool {
+        guard !token.isEmpty else { return false }
+        onceLock.lock()
+        defer { onceLock.unlock() }
+        return _onceTracker.contains(token)
     }
 }
 
@@ -94,7 +129,8 @@ extension TFY where Base == DispatchQueue {
                                          _ TFYTask: @escaping TFYSwiftBlock,
                                      _ mainTFYTask: TFYSwiftBlock? = nil) -> DispatchWorkItem {
         let item = DispatchWorkItem(block: TFYTask)
-        DispatchQueue.global().asyncAfter(deadline: DispatchTime.now() + seconds, execute: item)
+        let normalizedDelay = max(0, seconds)
+        DispatchQueue.global().asyncAfter(deadline: DispatchTime.now() + normalizedDelay, execute: item)
         if let main = mainTFYTask {
             item.notify(queue: DispatchQueue.main, execute: main)
         }
@@ -177,7 +213,11 @@ public extension DispatchQueue {
     /// - Parameter block: 执行块
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func sync(_ block: () -> Void) {
-        DispatchQueue.main.sync(execute: block)
+        if Thread.isMainThread {
+            block()
+        } else {
+            DispatchQueue.main.sync(execute: block)
+        }
     }
     
     // MARK: 3.9、异步执行并返回结果

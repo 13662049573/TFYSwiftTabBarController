@@ -74,6 +74,7 @@ import CoreImage
 import CoreGraphics
 import SystemConfiguration
 import Photos
+import CommonCrypto
 
 // MARK: - 文件路径常量
 public struct FilePath {
@@ -140,6 +141,11 @@ public enum TFYUtils {
             public static var asyncWrite: Bool = true
         }
         private static let logQueue = DispatchQueue(label: "com.tfy.logger.queue")
+        private static let fileNameDateFormatter: Foundation.DateFormatter = {
+            let formatter = Foundation.DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd"
+            return formatter
+        }()
         /// 分级日志记录（支持异步写入）
         public static func log(
             _ items: Any...,
@@ -185,14 +191,14 @@ public enum TFYUtils {
                 do {
                     try fileManager.createDirectory(atPath: logDir, withIntermediateDirectories: true)
                 } catch {
+#if DEBUG
                     print("Failed to create log directory: \(error)")
+#endif
                     return
                 }
             }
             // 按日期分文件
-            let formatter = Foundation.DateFormatter()
-            formatter.dateFormat = "yyyy-MM-dd"
-            let filename = "app_\(formatter.string(from: Date())).log"
+            let filename = "app_\(fileNameDateFormatter.string(from: Date())).log"
             let filePath = (logDir as NSString).appendingPathComponent(filename)
             // 写入文件
             if let data = (content + "\n").data(using: .utf8) {
@@ -206,7 +212,9 @@ public enum TFYUtils {
                     do {
                         try data.write(to: URL(fileURLWithPath: filePath))
                     } catch {
+#if DEBUG
                         print("Failed to write log file: \(error)")
+#endif
                     }
                 }
             }
@@ -813,8 +821,6 @@ public extension TFYUtils {
             return status == errSecSuccess
         }
         
-        // MARK: - 便捷方法
-        
         /// 保存字符串
         public static func saveString(_ string: String, service: String, account: String) throws {
             guard let data = string.data(using: .utf8) else {
@@ -893,6 +899,396 @@ public extension TFYUtils {
             }
             
             return items
+        }
+        
+        // MARK: - 基础数据类型支持
+        
+        /// 保存整数
+        public static func saveInt(_ value: Int, service: String, account: String) throws {
+            let data = withUnsafeBytes(of: value.bigEndian) { Data($0) }
+            try save(data, service: service, account: account)
+        }
+        
+        /// 读取整数
+        public static func readInt(service: String, account: String) throws -> Int {
+            let data = try read(service: service, account: account)
+            guard data.count == MemoryLayout<Int>.size else {
+                throw KeychainError.invalidData
+            }
+            return data.withUnsafeBytes { $0.load(as: Int.self).bigEndian }
+        }
+        
+        /// 保存双精度浮点数
+        public static func saveDouble(_ value: Double, service: String, account: String) throws {
+            var bigEndianValue = value.bitPattern.bigEndian
+            let data = withUnsafeBytes(of: &bigEndianValue) { Data($0) }
+            try save(data, service: service, account: account)
+        }
+        
+        /// 读取双精度浮点数
+        public static func readDouble(service: String, account: String) throws -> Double {
+            let data = try read(service: service, account: account)
+            guard data.count == MemoryLayout<Double>.size else {
+                throw KeychainError.invalidData
+            }
+            let bigEndianPattern = data.withUnsafeBytes { $0.load(as: UInt64.self) }
+            return Double(bitPattern: UInt64(bigEndian: bigEndianPattern))
+        }
+        
+        /// 保存布尔值
+        public static func saveBool(_ value: Bool, service: String, account: String) throws {
+            let data = withUnsafeBytes(of: value) { Data($0) }
+            try save(data, service: service, account: account)
+        }
+        
+        /// 读取布尔值
+        public static func readBool(service: String, account: String) throws -> Bool {
+            let data = try read(service: service, account: account)
+            guard data.count == MemoryLayout<Bool>.size else {
+                throw KeychainError.invalidData
+            }
+            return data.withUnsafeBytes { $0.load(as: Bool.self) }
+        }
+        
+        /// 保存日期
+        public static func saveDate(_ date: Date, service: String, account: String) throws {
+            let timeInterval = date.timeIntervalSince1970
+            try saveDouble(timeInterval, service: service, account: account)
+        }
+        
+        /// 读取日期
+        public static func readDate(service: String, account: String) throws -> Date {
+            let timeInterval = try readDouble(service: service, account: account)
+            return Date(timeIntervalSince1970: timeInterval)
+        }
+        
+        // MARK: - 数组类型支持
+        
+        /// 保存字符串数组
+        public static func saveStringArray(_ array: [String], service: String, account: String) throws {
+            let data = try JSONSerialization.data(withJSONObject: array)
+            try save(data, service: service, account: account)
+        }
+        
+        /// 读取字符串数组
+        public static func readStringArray(service: String, account: String) throws -> [String] {
+            let data = try read(service: service, account: account)
+            guard let array = try JSONSerialization.jsonObject(with: data) as? [String] else {
+                throw KeychainError.invalidData
+            }
+            return array
+        }
+        
+        /// 保存整数数组
+        public static func saveIntArray(_ array: [Int], service: String, account: String) throws {
+            let data = try JSONSerialization.data(withJSONObject: array)
+            try save(data, service: service, account: account)
+        }
+        
+        /// 读取整数数组
+        public static func readIntArray(service: String, account: String) throws -> [Int] {
+            let data = try read(service: service, account: account)
+            guard let array = try JSONSerialization.jsonObject(with: data) as? [Int] else {
+                throw KeychainError.invalidData
+            }
+            return array
+        }
+        
+        /// 保存字典数组
+        public static func saveDictionaryArray(_ array: [[String: Any]], service: String, account: String) throws {
+            let data = try JSONSerialization.data(withJSONObject: array)
+            try save(data, service: service, account: account)
+        }
+        
+        /// 读取字典数组
+        public static func readDictionaryArray(service: String, account: String) throws -> [[String: Any]] {
+            let data = try read(service: service, account: account)
+            guard let array = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+                throw KeychainError.invalidData
+            }
+            return array
+        }
+        
+        /// 保存Codable对象数组
+        public static func saveObjectArray<T: Codable>(_ array: [T], service: String, account: String) throws {
+            let data = try JSONEncoder().encode(array)
+            try save(data, service: service, account: account)
+        }
+        
+        /// 读取Codable对象数组
+        public static func readObjectArray<T: Codable>(_ type: T.Type, service: String, account: String) throws -> [T] {
+            let data = try read(service: service, account: account)
+            return try JSONDecoder().decode([T].self, from: data)
+        }
+        
+        // MARK: - 特殊类型支持
+        
+        /// 保存URL
+        public static func saveURL(_ url: URL, service: String, account: String) throws {
+            try saveString(url.absoluteString, service: service, account: account)
+        }
+        
+        /// 读取URL
+        public static func readURL(service: String, account: String) throws -> URL {
+            let urlString = try readString(service: service, account: account)
+            guard let url = URL(string: urlString) else {
+                throw KeychainError.invalidData
+            }
+            return url
+        }
+        
+        /// 保存UUID
+        public static func saveUUID(_ uuid: UUID, service: String, account: String) throws {
+            try saveString(uuid.uuidString, service: service, account: account)
+        }
+        
+        /// 读取UUID
+        public static func readUUID(service: String, account: String) throws -> UUID {
+            let uuidString = try readString(service: service, account: account)
+            guard let uuid = UUID(uuidString: uuidString) else {
+                throw KeychainError.invalidData
+            }
+            return uuid
+        }
+        
+        /// 保存图片数据
+        public static func saveImageData(_ imageData: Data, service: String, account: String) throws {
+            try save(imageData, service: service, account: account)
+        }
+        
+        /// 读取图片数据
+        public static func readImageData(service: String, account: String) throws -> Data {
+            return try read(service: service, account: account)
+        }
+        
+        /// 保存UIImage
+        public static func saveImage(_ image: UIImage, service: String, account: String) throws {
+            guard let imageData = image.pngData() else {
+                throw KeychainError.invalidData
+            }
+            try saveImageData(imageData, service: service, account: account)
+        }
+        
+        /// 读取UIImage
+        public static func readImage(service: String, account: String) throws -> UIImage {
+            let imageData = try readImageData(service: service, account: account)
+            guard let image = UIImage(data: imageData) else {
+                throw KeychainError.invalidData
+            }
+            return image
+        }
+        
+        // MARK: - 加密存储支持
+        
+        /// 保存加密字符串
+        public static func saveEncryptedString(_ string: String, service: String, account: String, password: String) throws {
+            guard let data = string.data(using: .utf8) else {
+                throw KeychainError.invalidData
+            }
+            let encryptedData = try encryptData(data, password: password)
+            try save(encryptedData, service: service, account: account)
+        }
+        
+        /// 读取加密字符串
+        public static func readEncryptedString(service: String, account: String, password: String) throws -> String {
+            let encryptedData = try read(service: service, account: account)
+            let decryptedData = try decryptData(encryptedData, password: password)
+            guard let string = String(data: decryptedData, encoding: .utf8) else {
+                throw KeychainError.invalidData
+            }
+            return string
+        }
+        
+        /// 保存加密数据
+        public static func saveEncryptedData(_ data: Data, service: String, account: String, password: String) throws {
+            let encryptedData = try encryptData(data, password: password)
+            try save(encryptedData, service: service, account: account)
+        }
+        
+        /// 读取加密数据
+        public static func readEncryptedData(service: String, account: String, password: String) throws -> Data {
+            let encryptedData = try read(service: service, account: account)
+            return try decryptData(encryptedData, password: password)
+        }
+        
+        // MARK: - 批量操作支持
+        
+        /// 批量保存
+        public static func batchSave(_ items: [(key: String, value: Data)], service: String) throws {
+            for item in items {
+                try save(item.value, service: service, account: item.key)
+            }
+        }
+        
+        /// 批量读取
+        public static func batchRead(_ keys: [String], service: String) throws -> [String: Data] {
+            var results: [String: Data] = [:]
+            for key in keys {
+                do {
+                    let data = try read(service: service, account: key)
+                    results[key] = data
+                } catch KeychainError.itemNotFound {
+                    // 跳过不存在的项目
+                    continue
+                } catch {
+                    throw error
+                }
+            }
+            return results
+        }
+        
+        /// 批量删除
+        public static func batchDelete(_ keys: [String], service: String) throws {
+            for key in keys {
+                do {
+                    try delete(service: service, account: key)
+                } catch KeychainError.itemNotFound {
+                    // 跳过不存在的项目
+                    continue
+                } catch {
+                    throw error
+                }
+            }
+        }
+        
+        // MARK: - 私有加密方法
+        
+        private static func encryptData(_ data: Data, password: String) throws -> Data {
+            guard let passwordData = password.data(using: .utf8) else {
+                throw KeychainError.invalidData
+            }
+            
+            let keyLength = kCCKeySizeAES256
+            let ivLength = kCCBlockSizeAES128
+            
+            // 生成随机IV
+            var iv = Data(count: ivLength)
+            let ivResult = iv.withUnsafeMutableBytes { ivBytes in
+                SecRandomCopyBytes(kSecRandomDefault, ivLength, ivBytes.bindMemory(to: UInt8.self).baseAddress!)
+            }
+            guard ivResult == errSecSuccess else {
+                throw KeychainError.unhandledError(status: ivResult)
+            }
+            
+            // 生成密钥
+            var key = Data(count: keyLength)
+            let keyResult = key.withUnsafeMutableBytes { keyBytes in
+                passwordData.withUnsafeBytes { passwordBytes in
+                    CCKeyDerivationPBKDF(CCPBKDFAlgorithm(kCCPBKDF2),
+                                       passwordBytes.bindMemory(to: Int8.self).baseAddress!,
+                                       passwordData.count,
+                                       nil, 0,
+                                       CCPseudoRandomAlgorithm(kCCPRFHmacAlgSHA256),
+                                       10000,
+                                       keyBytes.bindMemory(to: UInt8.self).baseAddress!,
+                                       keyLength)
+                }
+            }
+            guard keyResult == kCCSuccess else {
+                throw KeychainError.unhandledError(status: keyResult)
+            }
+            
+            // 加密数据
+            let dataLength = data.count
+            let bufferSize = dataLength + kCCBlockSizeAES128
+            var buffer = Data(count: bufferSize)
+            var bytesProcessed: size_t = 0
+            
+            let cryptResult = buffer.withUnsafeMutableBytes { bufferBytes in
+                data.withUnsafeBytes { dataBytes in
+                    iv.withUnsafeBytes { ivBytes in
+                        key.withUnsafeBytes { keyBytes in
+                            CCCrypt(CCOperation(kCCEncrypt),
+                                   CCAlgorithm(kCCAlgorithmAES),
+                                   CCOptions(kCCOptionPKCS7Padding),
+                                   keyBytes.bindMemory(to: UInt8.self).baseAddress!,
+                                   keyLength,
+                                   ivBytes.bindMemory(to: UInt8.self).baseAddress!,
+                                   dataBytes.bindMemory(to: UInt8.self).baseAddress!,
+                                   dataLength,
+                                   bufferBytes.bindMemory(to: UInt8.self).baseAddress!,
+                                   bufferSize,
+                                   &bytesProcessed)
+                        }
+                    }
+                }
+            }
+            
+            guard cryptResult == kCCSuccess else {
+                throw KeychainError.unhandledError(status: cryptResult)
+            }
+            
+            // 组合IV和加密数据
+            var encryptedData = iv
+            encryptedData.append(buffer.prefix(bytesProcessed))
+            return encryptedData
+        }
+        
+        private static func decryptData(_ encryptedData: Data, password: String) throws -> Data {
+            guard let passwordData = password.data(using: .utf8) else {
+                throw KeychainError.invalidData
+            }
+            
+            let keyLength = kCCKeySizeAES256
+            let ivLength = kCCBlockSizeAES128
+            
+            guard encryptedData.count > ivLength else {
+                throw KeychainError.invalidData
+            }
+            
+            // 提取IV
+            let iv = encryptedData.prefix(ivLength)
+            let cipherData = encryptedData.dropFirst(ivLength)
+            
+            // 生成密钥
+            var key = Data(count: keyLength)
+            let keyResult = key.withUnsafeMutableBytes { keyBytes in
+                passwordData.withUnsafeBytes { passwordBytes in
+                    CCKeyDerivationPBKDF(CCPBKDFAlgorithm(kCCPBKDF2),
+                                       passwordBytes.bindMemory(to: Int8.self).baseAddress!,
+                                       passwordData.count,
+                                       nil, 0,
+                                       CCPseudoRandomAlgorithm(kCCPRFHmacAlgSHA256),
+                                       10000,
+                                       keyBytes.bindMemory(to: UInt8.self).baseAddress!,
+                                       keyLength)
+                }
+            }
+            guard keyResult == kCCSuccess else {
+                throw KeychainError.unhandledError(status: keyResult)
+            }
+            
+            // 解密数据
+            let dataLength = cipherData.count
+            let bufferSize = dataLength + kCCBlockSizeAES128
+            var buffer = Data(count: bufferSize)
+            var bytesProcessed: size_t = 0
+            
+            let cryptResult = buffer.withUnsafeMutableBytes { bufferBytes in
+                cipherData.withUnsafeBytes { cipherBytes in
+                    iv.withUnsafeBytes { ivBytes in
+                        key.withUnsafeBytes { keyBytes in
+                            CCCrypt(CCOperation(kCCDecrypt),
+                                   CCAlgorithm(kCCAlgorithmAES),
+                                   CCOptions(kCCOptionPKCS7Padding),
+                                   keyBytes.bindMemory(to: UInt8.self).baseAddress!,
+                                   keyLength,
+                                   ivBytes.bindMemory(to: UInt8.self).baseAddress!,
+                                   cipherBytes.bindMemory(to: UInt8.self).baseAddress!,
+                                   dataLength,
+                                   bufferBytes.bindMemory(to: UInt8.self).baseAddress!,
+                                   bufferSize,
+                                   &bytesProcessed)
+                        }
+                    }
+                }
+            }
+            
+            guard cryptResult == kCCSuccess else {
+                throw KeychainError.unhandledError(status: cryptResult)
+            }
+            
+            return buffer.prefix(bytesProcessed)
         }
     }
 }
@@ -2704,11 +3100,13 @@ public extension TFYUtils {
             locale: Locale? = nil,
             timeZone: TimeZone? = nil
         ) -> String {
-            let formatter = getFormatter(format: format)
-            if let locale = locale {
-                formatter.locale = locale
-            }
-            if let timeZone = timeZone {
+            let formatter: Foundation.DateFormatter
+            if locale == nil && timeZone == nil {
+                formatter = getFormatter(format: format)
+            } else {
+                formatter = Foundation.DateFormatter()
+                formatter.dateFormat = format
+                formatter.locale = locale ?? Locale(identifier: "zh_CN")
                 formatter.timeZone = timeZone
             }
             return formatter.string(from: date)
@@ -2721,11 +3119,13 @@ public extension TFYUtils {
             locale: Locale? = nil,
             timeZone: TimeZone? = nil
         ) -> Date? {
-            let formatter = getFormatter(format: format)
-            if let locale = locale {
-                formatter.locale = locale
-            }
-            if let timeZone = timeZone {
+            let formatter: Foundation.DateFormatter
+            if locale == nil && timeZone == nil {
+                formatter = getFormatter(format: format)
+            } else {
+                formatter = Foundation.DateFormatter()
+                formatter.dateFormat = format
+                formatter.locale = locale ?? Locale(identifier: "zh_CN")
                 formatter.timeZone = timeZone
             }
             return formatter.date(from: string)
@@ -2866,10 +3266,7 @@ public extension TFYUtils {
         
         /// 获取星期几名称
         public static func weekdayName(for date: Date, short: Bool = false) -> String {
-            let formatter = Foundation.DateFormatter()
-            formatter.locale = Locale(identifier: "zh_CN")
-            formatter.dateFormat = short ? "E" : "EEEE"
-            return formatter.string(from: date)
+            return getFormatter(format: short ? "E" : "EEEE").string(from: date)
         }
         
         /// 判断是否为工作日
@@ -2886,10 +3283,7 @@ public extension TFYUtils {
         
         /// 获取月份名称
         public static func monthName(for date: Date, short: Bool = false) -> String {
-            let formatter = Foundation.DateFormatter()
-            formatter.locale = Locale(identifier: "zh_CN")
-            formatter.dateFormat = short ? "M" : "MMMM"
-            return formatter.string(from: date)
+            return getFormatter(format: short ? "M" : "MMMM").string(from: date)
         }
         
         /// 获取季度

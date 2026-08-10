@@ -55,7 +55,7 @@ final class GroupNodeProperties: NodePropertyMap, KeypathSearchable {
 
   var keypathName = "Transform"
 
-  var childKeypaths: [KeypathSearchable] = []
+  var childKeypaths = [KeypathSearchable]()
 
   let keypathProperties: [String: AnyNodeProperty]
   let properties: [AnyNodeProperty]
@@ -80,7 +80,8 @@ final class GroupNodeProperties: NodePropertyMap, KeypathSearchable {
       rotationY: rotationY.value.cgFloatValue,
       rotationZ: rotationZ.value.cgFloatValue,
       skew: skew.value.cgFloatValue,
-      skewAxis: skewAxis.value.cgFloatValue)
+      skewAxis: skewAxis.value.cgFloatValue
+    )
   }
 }
 
@@ -90,14 +91,15 @@ final class GroupNode: AnimatorNode {
 
   // MARK: Lifecycle
 
-  // MARK: Initializer
   init(name: String, parentNode: AnimatorNode?, tree: NodeTree) {
     self.parentNode = parentNode
     keypathName = name
     rootNode = tree.rootNode
     properties = GroupNodeProperties(transform: tree.transform)
     groupOutput = GroupOutputNode(parent: parentNode?.outputNode, rootNode: rootNode?.outputNode)
-    var childKeypaths: [KeypathSearchable] = tree.childrenNodes
+    // Use direct downcasting from `AnimatorNode` to `KeypathSearchable`
+    // to avoid calling `_arrayForceCast` for performance reasons
+    var childKeypaths: [KeypathSearchable] = tree.childrenNodes.map { $0 as KeypathSearchable }
     childKeypaths.append(properties)
     self.childKeypaths = childKeypaths
 
@@ -108,7 +110,6 @@ final class GroupNode: AnimatorNode {
 
   // MARK: Internal
 
-  // MARK: Properties
   let groupOutput: GroupOutputNode
 
   let properties: GroupNodeProperties
@@ -116,8 +117,6 @@ final class GroupNode: AnimatorNode {
   let rootNode: AnimatorNode?
 
   var container = ShapeContainerLayer()
-
-  // MARK: Keypath Searchable
 
   let keypathName: String
 
@@ -131,8 +130,6 @@ final class GroupNode: AnimatorNode {
   var keypathLayer: CALayer? {
     container
   }
-
-  // MARK: Animator Node Protocol
 
   var propertyMap: NodePropertyMap & KeypathSearchable {
     properties

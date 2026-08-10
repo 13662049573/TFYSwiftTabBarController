@@ -128,7 +128,12 @@ public extension CATextLayer {
     /// - Returns: 返回自身
     @discardableResult
     func font(_ font: UIFont) -> Self {
+        guard font.pointSize > 0 else {
+            TFYUtils.Logger.log("⚠️ CATextLayer: 字体大小必须大于0")
+            return self
+        }
         self.font = CTFontCreateWithName(font.fontName as CFString, font.pointSize, nil)
+        self.fontSize = font.pointSize
         self.contentsScale = UIScreen.main.scale
         return self
     }
@@ -161,10 +166,11 @@ public extension CATextLayer {
     @discardableResult
     func lineSpacing(_ lineSpacing: CGFloat) -> Self {
         let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.lineSpacing = lineSpacing
+        paragraphStyle.lineSpacing = max(0, lineSpacing)
         
         if let attributedString = self.string as? NSAttributedString {
             let mutableString = NSMutableAttributedString(attributedString: attributedString)
+            guard mutableString.length > 0 else { return self }
             mutableString.addAttribute(.paragraphStyle, value: paragraphStyle, range: NSRange(location: 0, length: mutableString.length))
             self.string = mutableString
         } else if let string = self.string as? String {
@@ -187,7 +193,7 @@ public extension CATextLayer {
     func textShadow(color: UIColor, offset: CGSize, radius: CGFloat) -> Self {
         self.shadowColor = color.cgColor
         self.shadowOffset = offset
-        self.shadowRadius = radius
+        self.shadowRadius = max(0, radius)
         self.shadowOpacity = 1.0
         return self
     }
@@ -213,7 +219,7 @@ public extension CATextLayer {
     @discardableResult
     func border(color: UIColor, width: CGFloat) -> Self {
         self.borderColor = color.cgColor
-        self.borderWidth = width
+        self.borderWidth = max(0, width)
         return self
     }
     
@@ -224,7 +230,7 @@ public extension CATextLayer {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func cornerRadius(_ radius: CGFloat) -> Self {
-        self.cornerRadius = radius
+        self.cornerRadius = max(0, radius)
         self.masksToBounds = true
         return self
     }
@@ -236,7 +242,7 @@ public extension CATextLayer {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func opacity(_ opacity: Float) -> Self {
-        self.opacity = opacity
+        self.opacity = min(1, max(0, opacity))
         return self
     }
     
@@ -258,7 +264,7 @@ public extension CATextLayer {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func frame(_ frame: CGRect) -> Self {
-        self.frame = frame
+        self.frame = frame.standardized
         return self
     }
     
@@ -269,7 +275,10 @@ public extension CATextLayer {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func anchorPoint(_ anchorPoint: CGPoint) -> Self {
-        self.anchorPoint = anchorPoint
+        self.anchorPoint = CGPoint(
+            x: min(1, max(0, anchorPoint.x)),
+            y: min(1, max(0, anchorPoint.y))
+        )
         return self
     }
     

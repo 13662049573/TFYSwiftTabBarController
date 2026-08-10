@@ -1,7 +1,6 @@
 // Created by eric_horacek on 9/8/22.
 // Copyright © 2022 Airbnb Inc. All rights reserved.
 
-#if canImport(SwiftUI)
 import SwiftUI
 
 // MARK: - SwiftUIView
@@ -34,7 +33,7 @@ struct SwiftUIView<Content: ViewType, Storage>: MeasuringViewRepresentable,
 
   // MARK: Internal
 
-  var configurations: [Configuration] = []
+  var configurations = [Configuration]()
 
   var sizing = SwiftUIMeasurementContainerStrategy.automatic
 
@@ -67,7 +66,8 @@ extension SwiftUIView {
     let configurationContext = ConfigurationContext(
       oldStorage: oldStorage,
       viewRepresentableContext: context,
-      container: uiView)
+      container: uiView
+    )
 
     for configuration in configurations {
       configuration(configurationContext)
@@ -85,7 +85,8 @@ extension SwiftUIView {
     let configurationContext = ConfigurationContext(
       oldStorage: oldStorage,
       viewRepresentableContext: context,
-      container: uiView)
+      container: uiView
+    )
 
     for configuration in configurations {
       configuration(configurationContext)
@@ -143,4 +144,3 @@ extension SwiftUIView {
     fileprivate(set) var storage: Storage
   }
 }
-#endif

@@ -234,7 +234,7 @@ public extension Data {
     /// - Returns: 切片后的数据，失败返回nil
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func safeSubdata(from start: Int, to end: Int) -> Data? {
-        guard start >= 0, end <= self.count, start < end else { return nil }
+        guard start >= 0, end <= self.count, start <= end else { return nil }
         return self.subdata(in: start..<end)
     }
 }

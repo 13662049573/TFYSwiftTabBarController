@@ -10,9 +10,9 @@
 final class NodeTree {
   var rootNode: AnimatorNode? = nil
   var transform: ShapeTransform? = nil
-  var renderContainers: [ShapeContainerLayer] = []
-  var paths: [PathOutputNode] = []
-  var childrenNodes: [AnimatorNode] = []
+  var renderContainers = [ShapeContainerLayer]()
+  var paths = [PathOutputNode]()
+  var childrenNodes = [AnimatorNode]()
 }
 
 extension [ShapeItem] {
@@ -72,7 +72,8 @@ extension [ShapeItem] {
         let node = RoundedCornersNode(
           parentNode: nodeTree.rootNode,
           roundedCorners: roundedCorners,
-          upstreamPaths: nodeTree.paths)
+          upstreamPaths: nodeTree.paths
+        )
         nodeTree.rootNode = node
         nodeTree.childrenNodes.append(node)
       } else if let xform = item as? ShapeTransform {
@@ -93,15 +94,53 @@ extension [ShapeItem] {
           """)
       }
 
-      if let pathNode = nodeTree.rootNode as? PathNode {
+      if let pathNode = nodeTree.rootNode?.getPathNode() {
         //// Add path container to the node tree
         nodeTree.paths.append(pathNode.pathOutput)
       }
 
-      if let renderNode = nodeTree.rootNode as? RenderNode {
+      if let renderNode = nodeTree.rootNode?.getRenderNode() {
         nodeTree.renderContainers.append(ShapeRenderLayer(renderer: renderNode.renderer))
       }
     }
     return nodeTree
+  }
+}
+
+extension AnimatorNode {
+  /// Helper function to avoid casting to `PathNode`
+  /// More performant replacement for `nodeTree.rootNode as? PathNode`
+  fileprivate func getPathNode() -> PathNode? {
+    switch self {
+    case let node as EllipseNode:
+      node
+    case let node as PolygonNode:
+      node
+    case let node as ShapeNode:
+      node
+    case let node as StarNode:
+      node
+    case let node as RectangleNode:
+      node
+    default:
+      nil
+    }
+  }
+
+  /// Helper function to avoid casting to `RenderNode`
+  /// More performant replacement for `nodeTree.rootNode as? RenderNode`
+  fileprivate func getRenderNode() -> RenderNode? {
+    switch self {
+    case let node as GradientFillNode:
+      node
+    case let node as StrokeNode:
+      node
+    case let node as FillNode:
+      node
+    case let node as GradientStrokeNode:
+      node
+    default:
+      nil
+    }
   }
 }

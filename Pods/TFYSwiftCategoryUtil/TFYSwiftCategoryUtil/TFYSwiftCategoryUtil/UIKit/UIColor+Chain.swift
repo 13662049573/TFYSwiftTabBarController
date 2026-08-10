@@ -101,16 +101,10 @@ public extension TFY where Base: UIColor {
 
 extension UIColor {
     public enum GradientChangeDirection: Int, CaseIterable {
-        case level = 1           /// 水平渐变
-        case vertical = 2        /// 竖直渐变
-        case upwardDiagonal = 3  /// 向下对角线渐变
-        case downDiagonal = 4    /// 向上对角线渐变
-        
-        // 保持向后兼容
-        static let GradientChangeDirectionLevel = level
-        static let GradientChangeDirectionVertical = vertical
-        static let GradientChangeDirectionUpwardDiagonalLine = upwardDiagonal
-        static let GradientChangeDirectionDownDiagonalLine = downDiagonal
+        case level = 1 /// 水平渐变 (左 → 右)
+        case vertical = 2 /// 竖直渐变 (上 → 下)
+        case upwardDiagonal = 3 /// 对角线渐变 (左下 → 右上)
+        case downDiagonal = 4 /// 对角线渐变 (左上 → 右下)
     }
 }
 
@@ -323,41 +317,41 @@ public extension UIColor {
     ///   - direction: 渐变方向
     ///   - colors: 颜色数组
     /// - Returns: 渐变颜色
-    static func colorGradientChangeWithSize(size: CGSize, direction: UIColor.GradientChangeDirection, colors: [CGColor]) -> UIColor {
-        guard size.width > 0, size.height > 0, !colors.isEmpty else {
-            return .clear
-        }
-        
+    /// 支持可选的颜色位置参数的渐变颜色生成
+    static func colorGradientChangeWithSize(
+        size: CGSize,
+        direction: UIColor.GradientChangeDirection,
+        colors: [CGColor],
+        locations: [NSNumber]? = nil
+    ) -> UIColor {
+        guard size.width > 0, size.height > 0, colors.count >= 2 else { return .clear }
+
         let gradientLayer = CAGradientLayer()
         gradientLayer.frame = CGRect(x: 0, y: 0, width: size.width, height: size.height)
-        
-        var startPoint = CGPoint.zero
-        if direction == .downDiagonal {
-            startPoint = CGPoint(x: 0.0, y: 1.0)
-        }
-        gradientLayer.startPoint = startPoint
-        
-        var endPoint = CGPoint.zero
+
         switch direction {
         case .level:
-            endPoint = CGPoint(x: 1.0, y: 0.0)
+            gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.5)
+            gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.5)
         case .vertical:
-            endPoint = CGPoint(x: 0.0, y: 1.0)
+            gradientLayer.startPoint = CGPoint(x: 0.5, y: 0.0)
+            gradientLayer.endPoint = CGPoint(x: 0.5, y: 1.0)
         case .upwardDiagonal:
-            endPoint = CGPoint(x: 1.0, y: 1.0)
+            gradientLayer.startPoint = CGPoint(x: 0.0, y: 1.0)
+            gradientLayer.endPoint = CGPoint(x: 1.0, y: 0.0)
         case .downDiagonal:
-            endPoint = CGPoint(x: 1.0, y: 0.0)
+            gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.0)
+            gradientLayer.endPoint = CGPoint(x: 1.0, y: 1.0)
         }
-        gradientLayer.endPoint = endPoint
+
         gradientLayer.colors = colors
-        
-        UIGraphicsBeginImageContextWithOptions(size, false, 0)
-        defer { UIGraphicsEndImageContext() }
-        
-        guard let context = UIGraphicsGetCurrentContext() else { return .clear }
-        gradientLayer.render(in: context)
-        
-        guard let image = UIGraphicsGetImageFromCurrentImageContext() else { return .clear }
+        if let locations = locations, locations.count == colors.count { gradientLayer.locations = locations }
+
+        // 使用UIGraphicsImageRenderer（iOS 10+）生成图片
+        let renderer = UIGraphicsImageRenderer(size: size)
+        let image = renderer.image { ctx in
+            gradientLayer.render(in: ctx.cgContext)
+        }
         return UIColor(patternImage: image)
     }
     

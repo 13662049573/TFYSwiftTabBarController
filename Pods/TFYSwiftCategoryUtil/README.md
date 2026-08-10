@@ -1,11 +1,11 @@
 # TFYSwiftCategoryUtil
 
-[![Platforms](https://img.shields.io/badge/Platforms-iOS-orange.svg)](https://github.com/13662049573/TFYSwiftCategoryUtil)
-[![Version](https://img.shields.io/cocoapods/v/TFYSwiftCategoryUtil.svg)](https://cocoapods.org/pods/TFYSwiftCategoryUtil)
-[![License](https://img.shields.io/cocoapods/l/TFYSwiftCategoryUtil.svg)](https://github.com/13662049573/TFYSwiftCategoryUtil/blob/master/LICENSE)
-[![Swift](https://img.shields.io/badge/Swift-5.0+-orange.svg)](https://swift.org)
-[![Xcode](https://img.shields.io/badge/Xcode-14.0+-blue.svg)](https://developer.apple.com/xcode)
-[![iOS](https://img.shields.io/badge/iOS-15.0+-green.svg)](https://ios.com)
+[Platforms](https://github.com/13662049573/TFYSwiftCategoryUtil)
+[Version](https://cocoapods.org/pods/TFYSwiftCategoryUtil)
+[License](https://github.com/13662049573/TFYSwiftCategoryUtil/blob/master/LICENSE)
+[Swift](https://swift.org)
+[Xcode](https://developer.apple.com/xcode)
+[iOS](https://ios.com)
 
 TFYSwiftCategoryUtil 是一个功能丰富的 Swift 工具库，提供了大量实用的扩展和工具类，帮助开发者更高效地进行 iOS 开发。采用链式编程风格，让代码更简洁优雅。支持 iPhone 和 iPad 适配，最低支持 iOS 15.0+。
 
@@ -22,7 +22,11 @@ TFYSwiftCategoryUtil 是一个功能丰富的 Swift 工具库，提供了大量�
 - 📍 位置服务工具
 - 🔄 响应式编程支持
 
+
+
 ## 📦 安装
+
+
 
 ### CocoaPods
 
@@ -30,22 +34,32 @@ TFYSwiftCategoryUtil 是一个功能丰富的 Swift 工具库，提供了大量�
 pod 'TFYSwiftCategoryUtil'
 ```
 
+
+
 ### Swift Package Manager
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/13662049573/TFYSwiftCategoryUtil.git", .upToNextMajor(from: "2.1.9.5"))
+    .package(url: "https://github.com/13662049573/TFYSwiftCategoryUtil.git", .upToNextMajor(from: "2.4.5"))
 ]
 ```
 
+
+
 ## 🌟 主要模块
 
+
+
 ### 基础模块 (Base)
+
 - **Chain** - 链式编程核心结构，支持动态成员查找和链式调用
 - **HasFont** - 字体相关协议，支持 UILabel、UIButton、UITextField、UITextView 等控件统一设置字体
 - **HasText** - 文本处理协议，支持文本、颜色、对齐、行距等统一设置
 
+
+
 ### UI 扩展 (UIKit)
+
 - **UIView+Chain** - 视图基础扩展
   - frame 设置和布局
   - 圆角、阴影、边框
@@ -103,7 +117,10 @@ dependencies: [
   - 生命周期
   - 内存管理
 
+
+
 ### Foundation 扩展 (Foundation)
+
 - **String+Chain** - 字符串扩展
   - 正则验证
   - 格式化
@@ -131,7 +148,10 @@ dependencies: [
   - 权限处理
   - 缓存管理
 
+
+
 ### 手势识别 (Gesture)
+
 - **UITapGestureRecognizer+ITools** - 点击手势
   - 单点、多点
   - 长按识别
@@ -153,7 +173,10 @@ dependencies: [
   - 时间配置
   - 移动容忍
 
+
+
 ### 工具类 (Utils)
+
 - **TFYSwiftAdaptiveKit** - 屏幕适配工具
   - iPhone/iPad 自动适配
   - 分屏模式支持
@@ -203,7 +226,10 @@ dependencies: [
   - 任务调度
   - 错误处理
 
+
+
 ### WKWebView 增强 (WKWeb)
+
 - **WKWebManager** - Web 管理器
   - 页面管理
   - 导航控制
@@ -225,7 +251,10 @@ dependencies: [
   - 类型转换
   - 错误处理
 
+
+
 ### 核心工具 (CoreUiit)
+
 - **Publisher/Subscriber** - 发布订阅模式
   - 事件分发
   - 数据绑定
@@ -255,7 +284,11 @@ dependencies: [
   - 链式调用
   - 类型转换
 
+
+
 ## 📝 使用示例
+
+
 
 ### 链式编程
 
@@ -299,6 +332,8 @@ let gradientView = UIView()
     .build
 ```
 
+
+
 ### 屏幕适配
 
 ```swift
@@ -321,6 +356,8 @@ if TFYSwiftAdaptiveKit.Device.isIPad {
     }
 }
 ```
+
+
 
 ### 弹窗系统
 
@@ -345,6 +382,8 @@ let popupView = TFYSwiftPopupView.show(
     animator: TFYSwiftFadeInOutAnimator()
 )
 ```
+
+
 
 ### 工具类使用
 
@@ -385,6 +424,8 @@ TFYUtils.Logger.log("应用启动", level: .info)
 TFYUtils.Logger.log("错误信息", level: .error)
 ```
 
+
+
 ### 手势识别
 
 ```swift
@@ -401,6 +442,8 @@ view.addGesturePan { gesture in
     view.transform = CGAffineTransform(translationX: translation.x, y: translation.y)
 }
 ```
+
+
 
 ### WKWebView 使用
 
@@ -421,12 +464,16 @@ webManager.evaluateJavaScript("window.showMessage('Hello')") { result, error in
 }
 ```
 
+
+
 ## 🔧 系统要求
 
 - **iOS 15.0+**
 - **Swift 5.0+**
 - **Xcode 14.0+**
 - **支持 iPhone 和 iPad**
+
+
 
 ## 📱 设备支持
 
@@ -438,6 +485,8 @@ webManager.evaluateJavaScript("window.showMessage('Hello')") { result, error in
 - ✅ 动态字体
 - ✅ 深色模式
 
+
+
 ## 🚀 性能特性
 
 - 内存优化
@@ -445,6 +494,8 @@ webManager.evaluateJavaScript("window.showMessage('Hello')") { result, error in
 - 缓存机制
 - 异步处理
 - 线程安全
+
+
 
 ## 📄 许可证
 
@@ -457,10 +508,9 @@ webManager.evaluateJavaScript("window.showMessage('Hello')") { result, error in
 ## 📞 联系方式
 
 - 作者：田风有
-- 邮箱：420144542@qq.com
+- 邮箱：[420144542@qq.com](mailto:420144542@qq.com)
 - GitHub：[https://github.com/13662049573/TFYSwiftCategoryUtil](https://github.com/13662049573/TFYSwiftCategoryUtil)
 
 ---
 
 ⭐ 如果这个项目对你有帮助，请给它一个星标！
-

@@ -11,14 +11,14 @@ final class EpoxyLogger {
     assert: @escaping Assert = { condition, message, file, line in
       // If we default to `Swift.assert` directly with `assert: Assert = Swift.assert`,
       // the call will unexpectedly not respect the -O flag and will crash in release
-      // https://github.com/swiftlang/swift/issues/60249
+      // https://github.com/apple/swift/issues/60249
       Swift.assert(condition(), message(), file: file, line: line)
     },
     assertionFailure: @escaping AssertionFailure = { message, file, line in
       // If we default to `Swift.assertionFailure` directly with
       // `assertionFailure: AssertionFailure = Swift.assertionFailure`,
       // the call will unexpectedly not respect the -O flag and will crash in release
-      // https://github.com/swiftlang/swift/issues/60249
+      // https://github.com/apple/swift/issues/60249
       Swift.assertionFailure(message(), file: file, line: line)
     },
     warn: @escaping Warn = { message, _, _ in
@@ -26,8 +26,8 @@ final class EpoxyLogger {
       // swiftlint:disable:next no_direct_standard_out_logs
       print(message())
       #endif
-    })
-  {
+    }
+  ) {
     _assert = assert
     _assertionFailure = assertionFailure
     _warn = warn
@@ -36,26 +36,29 @@ final class EpoxyLogger {
   // MARK: Internal
 
   /// Logs that an assertion occurred.
+  // swiftformat:disable trailingCommas
   typealias Assert = (
     _ condition: @autoclosure () -> Bool,
     _ message: @autoclosure () -> String,
     _ fileID: StaticString,
-    _ line: UInt)
-    -> Void
+    _ line: UInt
+  ) -> Void
 
   /// Logs that an assertion failure occurred.
   typealias AssertionFailure = (
     _ message: @autoclosure () -> String,
     _ fileID: StaticString,
-    _ line: UInt)
-    -> Void
+    _ line: UInt
+  ) -> Void
 
   /// Logs a warning message.
   typealias Warn = (
     _ message: @autoclosure () -> String,
     _ fileID: StaticString,
-    _ line: UInt)
-    -> Void
+    _ line: UInt
+  ) -> Void
+
+  // swiftformat:enable trailingCommas
 
   /// The shared instance used to log Epoxy assertions and warnings.
   ///
@@ -67,8 +70,8 @@ final class EpoxyLogger {
     _ condition: @autoclosure () -> Bool,
     _ message: @autoclosure () -> String = String(),
     fileID: StaticString = #fileID,
-    line: UInt = #line)
-  {
+    line: UInt = #line
+  ) {
     _assert(condition(), message(), fileID, line)
   }
 
@@ -76,8 +79,8 @@ final class EpoxyLogger {
   func assertionFailure(
     _ message: @autoclosure () -> String = String(),
     fileID: StaticString = #fileID,
-    line: UInt = #line)
-  {
+    line: UInt = #line
+  ) {
     _assertionFailure(message(), fileID, line)
   }
 
@@ -85,8 +88,8 @@ final class EpoxyLogger {
   func warn(
     _ message: @autoclosure () -> String = String(),
     fileID: StaticString = #fileID,
-    line: UInt = #line)
-  {
+    line: UInt = #line
+  ) {
     _warn(message(), fileID, line)
   }
 

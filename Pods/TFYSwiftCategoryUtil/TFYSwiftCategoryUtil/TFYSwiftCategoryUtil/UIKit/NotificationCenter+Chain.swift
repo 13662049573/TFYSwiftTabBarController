@@ -85,6 +85,28 @@ public extension TFY where Base: NotificationCenter {
 
 // MARK: - 二、NotificationCenter的便利方法
 public extension NotificationCenter {
+    // MARK: 2.1、Block 方式添加观察者
+    /// 使用 block 方式添加观察者
+    /// - Parameters:
+    ///   - name: 通知名称
+    ///   - object: 指定对象
+    ///   - queue: 回调队列
+    ///   - using: 回调闭包
+    /// - Returns: 观察者 token
+    @discardableResult
+    func observe(name: NSNotification.Name?,
+                 object: Any? = nil,
+                 queue: OperationQueue? = nil,
+                 using block: @escaping (Notification) -> Void) -> NSObjectProtocol {
+        addObserver(forName: name, object: object, queue: queue, using: block)
+    }
+
+    // MARK: 2.2、移除 block 观察者
+    /// 移除 block 方式注册的观察者
+    /// - Parameter token: 观察者 token
+    func removeObserverToken(_ token: NSObjectProtocol) {
+        removeObserver(token)
+    }
     
     // MARK: 2.5、在主线程发送通知
     /// 在主线程发送通知
@@ -125,7 +147,8 @@ public extension NotificationCenter {
     ///   - userInfo: 用户信息
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func postDelayed(name: NSNotification.Name, delay: TimeInterval, object: Any? = nil, userInfo: [AnyHashable: Any]? = nil) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+        let normalizedDelay = max(0, delay)
+        DispatchQueue.main.asyncAfter(deadline: .now() + normalizedDelay) {
             self.post(name: name, object: object, userInfo: userInfo)
         }
     }

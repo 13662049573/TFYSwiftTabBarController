@@ -67,7 +67,7 @@ public enum TFYCacheError: Error {
     case invalidData
     case cacheFull
     
-    var localizedDescription: String {
+    public var localizedDescription: String {
         switch self {
         case .invalidKey:
             return "无效的缓存键"
@@ -203,12 +203,16 @@ public class TFYSwiftCacheKit: NSObject {
     
     /// 统计信息更新队列（确保线程安全）
     private let statsQueue = DispatchQueue(label: "com.tfy.cache.stats", qos: .utility)
+
+    /// 对外暴露缓存目录，便于测试和宿主应用排查
+    public var cacheDirectoryURL: URL {
+        URL(fileURLWithPath: diskCachePath, isDirectory: true)
+    }
     
     // MARK: - 初始化
     private override init() {
-        guard let cacheDir = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true).first else {
-            fatalError("TFYSwiftCacheKit: 无法获取缓存目录")
-        }
+        let cacheDir = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true).first
+            ?? NSTemporaryDirectory()
         diskCachePath = (cacheDir as NSString).appendingPathComponent("TFYCache")
         
         super.init()
@@ -330,6 +334,10 @@ public class TFYSwiftCacheKit: NSObject {
     ///   - key: 缓存键
     ///   - completion: 完成回调（主线程）
     public func setDiskCache(_ data: Data, forKey key: String, completion: @escaping (Result<Void, TFYCacheError>) -> Void) {
+        guard validateCacheKey(key) else {
+            DispatchQueue.main.async { completion(.failure(.invalidKey)) }
+            return
+        }
         cacheQueue.async {
             self.cleanDiskIfNeeded()
             do {
@@ -347,6 +355,10 @@ public class TFYSwiftCacheKit: NSObject {
     ///   - key: 缓存键
     ///   - completion: 完成回调（主线程）
     public func getDiskCache(forKey key: String, completion: @escaping (Result<Data, TFYCacheError>) -> Void) {
+        guard validateCacheKey(key) else {
+            DispatchQueue.main.async { completion(.failure(.invalidKey)) }
+            return
+        }
         cacheQueue.async {
             self.cleanExpiredCacheIfNeeded()
             let filePath = self.diskCachePath(forKey: key)
@@ -370,6 +382,10 @@ public class TFYSwiftCacheKit: NSObject {
     ///   - key: 缓存键
     ///   - completion: 完成回调
     public func removeDiskCache(forKey key: String, completion: @escaping (Result<Void, TFYCacheError>) -> Void) {
+        guard validateCacheKey(key) else {
+            DispatchQueue.main.async { completion(.failure(.invalidKey)) }
+            return
+        }
         cacheQueue.async {
             let filePath = self.diskCachePath(forKey: key)
             
@@ -409,6 +425,10 @@ public class TFYSwiftCacheKit: NSObject {
     ///   - key: 缓存键
     ///   - completion: 完成回调
     public func setCache<T: Codable>(_ value: T, forKey key: String, completion: @escaping (Result<Void, TFYCacheError>) -> Void) {
+        guard validateCacheKey(key) else {
+            DispatchQueue.main.async { completion(.failure(.invalidKey)) }
+            return
+        }
         // 设置内存缓存
         setMemoryCache(value, forKey: key)
         
@@ -423,6 +443,10 @@ public class TFYSwiftCacheKit: NSObject {
     
     /// 获取缓存（自动清理过期，主线程回调）
     public func getCache<T: Codable>(_ type: T.Type, forKey key: String, completion: @escaping (Result<T, TFYCacheError>) -> Void) {
+        guard validateCacheKey(key) else {
+            DispatchQueue.main.async { completion(.failure(.invalidKey)) }
+            return
+        }
         // 先尝试从内存缓存获取
         if let memoryValue: T = getMemoryCache(forKey: key) {
             statsQueue.async {
@@ -466,6 +490,10 @@ public class TFYSwiftCacheKit: NSObject {
     ///   - key: 缓存键
     ///   - completion: 完成回调
     public func cacheImage(_ image: UIImage, forKey key: String, completion: @escaping (Result<Void, TFYCacheError>) -> Void) {
+        guard validateCacheKey(key) else {
+            DispatchQueue.main.async { completion(.failure(.invalidKey)) }
+            return
+        }
         // 设置内存缓存
         setMemoryCache(image, forKey: key)
         
@@ -485,8 +513,15 @@ public class TFYSwiftCacheKit: NSObject {
     ///   - key: 缓存键
     ///   - completion: 完成回调
     public func getCachedImage(forKey key: String, completion: @escaping (Result<UIImage, TFYCacheError>) -> Void) {
+        guard validateCacheKey(key) else {
+            DispatchQueue.main.async { completion(.failure(.invalidKey)) }
+            return
+        }
         // 先尝试从内存缓存获取
         if let image: UIImage = getMemoryCache(forKey: key) {
+            statsQueue.async {
+                self.cacheStats.recordHit(source: .memory)
+            }
             completion(.success(image))
             return
         }
@@ -498,11 +533,20 @@ public class TFYSwiftCacheKit: NSObject {
                 if let image = UIImage(data: data) {
                     // 设置到内存缓存
                     self.setMemoryCache(image, forKey: key)
+                    self.statsQueue.async {
+                        self.cacheStats.recordHit(source: .disk)
+                    }
                     completion(.success(image))
                 } else {
+                    self.statsQueue.async {
+                        self.cacheStats.recordMiss()
+                    }
                     completion(.failure(.invalidData))
                 }
             case .failure(let error):
+                self.statsQueue.async {
+                    self.cacheStats.recordMiss()
+                }
                 completion(.failure(error))
             }
         }
@@ -697,36 +741,45 @@ public extension TFYSwiftCacheKit {
 
 // MARK: - 便利扩展
 public extension TFYSwiftCacheKit {
+    private static var syncAccessError: TFYCacheError {
+        let error = NSError(
+            domain: "com.tfy.cache.sync",
+            code: 1,
+            userInfo: [NSLocalizedDescriptionKey: "禁止在主线程调用同步缓存接口，请改用异步接口"]
+        )
+        return .saveFailed(error)
+    }
+    
     /// 同步设置缓存（避免死锁）
     func setCacheSync<T: Codable>(_ value: T, forKey key: String) -> Result<Void, TFYCacheError> {
+        guard !Thread.isMainThread else {
+            return .failure(Self.syncAccessError)
+        }
         let semaphore = DispatchSemaphore(value: 0)
         var result: Result<Void, TFYCacheError>!
-        
-        // 始终在后台队列执行，避免死锁
-        DispatchQueue.global(qos: .userInitiated).async {
-            self.setCache(value, forKey: key) { res in
-                result = res
-                semaphore.signal()
-            }
+
+        self.setCache(value, forKey: key) { res in
+            result = res
+            semaphore.signal()
         }
-        
+
         semaphore.wait()
         return result
     }
     
     /// 同步获取缓存（避免死锁）
     func getCacheSync<T: Codable>(_ type: T.Type, forKey key: String) -> Result<T, TFYCacheError> {
+        guard !Thread.isMainThread else {
+            return .failure(Self.syncAccessError)
+        }
         let semaphore = DispatchSemaphore(value: 0)
         var result: Result<T, TFYCacheError>!
-        
-        // 始终在后台队列执行，避免死锁
-        DispatchQueue.global(qos: .userInitiated).async {
-            self.getCache(type, forKey: key) { res in
-                result = res
-                semaphore.signal()
-            }
+
+        self.getCache(type, forKey: key) { res in
+            result = res
+            semaphore.signal()
         }
-        
+
         semaphore.wait()
         return result
     }
@@ -747,6 +800,25 @@ public extension TFYSwiftCacheKit {
                 continuation.resume(returning: result)
             }
         }
+    }
+
+    /// 异步移除缓存
+    func removeCacheAsync(forKey key: String) async -> Result<Void, TFYCacheError> {
+        await withCheckedContinuation { continuation in
+            removeMemoryCache(forKey: key)
+            removeDiskCache(forKey: key) { result in
+                continuation.resume(returning: result)
+            }
+        }
+    }
+
+    /// 检查缓存是否存在
+    func containsCacheAsync(forKey key: String) async -> Bool {
+        guard validateCacheKey(key) else { return false }
+        if let _: AnyObject = getMemoryCache(forKey: key) {
+            return true
+        }
+        return fileManager.fileExists(atPath: diskCachePath(forKey: key))
     }
 } 
 

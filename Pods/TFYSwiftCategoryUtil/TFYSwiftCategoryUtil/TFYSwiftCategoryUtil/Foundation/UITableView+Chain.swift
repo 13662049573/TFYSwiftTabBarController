@@ -244,43 +244,72 @@ extension UITableView {
     
     // MARK: - 滚动操作
     public func scrollTo(row: Int, in section: Int, at position: UITableView.ScrollPosition, animated: Bool) {
-        guard section >= 0, section < numberOfSections, row >= 0, row < numberOfRows(inSection: section) else { return }
+        guard isValidIndexPath(row: row, section: section) else { return }
         let indexPath = IndexPath(row: row, section: section)
         scrollToRow(at: indexPath, at: position, animated: animated)
     }
     
+    /// 滚动到指定行，并居中显示
+    /// - Parameters:
+    ///   - row: 目标行数
+    ///   - section: 目标组数
+    ///   - animated: 是否使用动画
+    public func scrollToMiddle(row: Int, in section: Int, animated: Bool = true) {
+        guard isValidIndexPath(row: row, section: section) else { return }
+        let indexPath = IndexPath(row: row, section: section)
+        scrollToRow(at: indexPath, at: .middle, animated: animated)
+    }
+
+    /// 滚动到指定行，并居中显示（使用IndexPath）
+    /// - Parameters:
+    ///   - indexPath: 目标位置
+    ///   - animated: 是否使用动画
+    public func scrollToMiddle(at indexPath: IndexPath, animated: Bool = true) {
+        guard isValid(indexPath: indexPath) else { return }
+        scrollToRow(at: indexPath, at: .middle, animated: animated)
+    }
+
+    /// 滚动到指定行，并居中显示（使用cell）
+    /// - Parameters:
+    ///   - cell: 目标cell
+    ///   - animated: 是否使用动画
+    public func scrollToMiddle(cell: UITableViewCell, animated: Bool = true) {
+        guard let indexPath = indexPath(for: cell) else { return }
+        scrollToRow(at: indexPath, at: .middle, animated: animated)
+    }
+    
     // MARK: - 增删改操作
     public func insert(row: Int, in section: Int, with rowAnimation: UITableView.RowAnimation) {
-        guard section >= 0, section < numberOfSections, row >= 0, row <= numberOfRows(inSection: section) else { return }
+        guard isValidIndexPath(row: row, section: section, allowEqual: true) else { return }
         insert(at: IndexPath(row: row, section: section), with: rowAnimation)
     }
     
-    public func reload(row: Int, in section: Int, with rowAnimation: UITableView.RowAnimation) {
-        guard section >= 0, section < numberOfSections, row >= 0, row < numberOfRows(inSection: section) else { return }
+    func reload(row: Int, in section: Int, with rowAnimation: UITableView.RowAnimation) {
+        guard isValidIndexPath(row: row, section: section) else { return }
         reload(at: IndexPath(row: row, section: section), with: rowAnimation)
     }
-    
-    public func delete(row: Int, in section: Int, with rowAnimation: UITableView.RowAnimation) {
-        guard section >= 0, section < numberOfSections, row >= 0, row < numberOfRows(inSection: section) else { return }
+
+    func delete(row: Int, in section: Int, with rowAnimation: UITableView.RowAnimation) {
+        guard isValidIndexPath(row: row, section: section) else { return }
         delete(at: IndexPath(row: row, section: section), with: rowAnimation)
     }
-    
-    public func insert(at indexPath: IndexPath, with rowAnimation: UITableView.RowAnimation) {
+
+    func insert(at indexPath: IndexPath, with rowAnimation: UITableView.RowAnimation) {
         guard isValid(indexPath: indexPath) else { return }
         insertRows(at: [indexPath], with: rowAnimation)
     }
-    
-    public func reload(at indexPath: IndexPath, with rowAnimation: UITableView.RowAnimation) {
+
+    func reload(at indexPath: IndexPath, with rowAnimation: UITableView.RowAnimation) {
         guard isValid(indexPath: indexPath) else { return }
         reloadRows(at: [indexPath], with: rowAnimation)
     }
-    
-    public func delete(at indexPath: IndexPath, with rowAnimation: UITableView.RowAnimation) {
+
+    func delete(at indexPath: IndexPath, with rowAnimation: UITableView.RowAnimation) {
         guard isValid(indexPath: indexPath) else { return }
         deleteRows(at: [indexPath], with: rowAnimation)
     }
-    
-    public func reload(section: Int, with rowAnimation: UITableView.RowAnimation) {
+
+    func reload(section: Int, with rowAnimation: UITableView.RowAnimation) {
         guard section >= 0, section < numberOfSections else { return }
         reloadSections(IndexSet(integer: section), with: rowAnimation)
     }
@@ -322,5 +351,11 @@ extension UITableView {
     // MARK: - 私有方法
     private func identifier(for clz: AnyClass) -> String {
         String(describing: clz).components(separatedBy: ".").last ?? String(describing: clz)
+    }
+    
+    private func isValidIndexPath(row: Int, section: Int, allowEqual: Bool = false) -> Bool {
+        guard section >= 0, section < numberOfSections else { return false }
+        let rowCount = numberOfRows(inSection: section)
+        return allowEqual ? row >= 0 && row <= rowCount : row >= 0 && row < rowCount
     }
 }

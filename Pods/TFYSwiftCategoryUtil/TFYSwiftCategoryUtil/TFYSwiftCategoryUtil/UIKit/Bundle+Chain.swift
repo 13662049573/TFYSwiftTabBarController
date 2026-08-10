@@ -236,7 +236,14 @@ public extension Bundle {
             for item in contents {
                 let itemPath = (bundlePath as NSString).appendingPathComponent(item)
                 let attributes = try fileManager.attributesOfItem(atPath: itemPath)
-                if let fileSize = attributes[.size] as? Int64 {
+                if let fileType = attributes[.type] as? FileAttributeType,
+                   fileType == .typeDirectory {
+                    if let nestedBundle = Bundle(path: itemPath) {
+                        totalSize += nestedBundle.size()
+                    } else {
+                        totalSize += Bundle.recursiveSize(atPath: itemPath, fileManager: fileManager)
+                    }
+                } else if let fileSize = attributes[.size] as? Int64 {
                     totalSize += fileSize
                 }
             }
@@ -245,6 +252,24 @@ public extension Bundle {
         }
         
         return totalSize
+    }
+
+    private static func recursiveSize(atPath path: String, fileManager: FileManager) -> Int64 {
+        do {
+            let attributes = try fileManager.attributesOfItem(atPath: path)
+            if let fileType = attributes[.type] as? FileAttributeType, fileType != .typeDirectory {
+                return attributes[.size] as? Int64 ?? 0
+            }
+
+            let contents = try fileManager.contentsOfDirectory(atPath: path)
+            return contents.reduce(0) { partial, item in
+                let childPath = (path as NSString).appendingPathComponent(item)
+                return partial + recursiveSize(atPath: childPath, fileManager: fileManager)
+            }
+        } catch {
+            TFYUtils.Logger.log("递归计算Bundle大小失败: \(error.localizedDescription)")
+            return 0
+        }
     }
     
     // MARK: 3.7、获取Bundle的格式化大小

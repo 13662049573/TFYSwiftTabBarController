@@ -58,11 +58,54 @@ extension TFY where Base == NumberFormatter {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     public static func stringFormattingNumber(value: String, number nstyle: NumberFormatter.Style = .none) -> String? {
         // 从字符串装成数字
-        guard let number = NumberFormatter().number(from: value) else {
+        guard let number = Self.number(from: value) else {
             // fatalError("数值有问题")
             return nil
         }
         return NumberFormatter.localizedString(from: number, number: nstyle)
+    }
+
+    // MARK: 1.4、安全解析数字字符串
+    /// 安全解析数字字符串
+    /// - Parameters:
+    ///   - value: 字符串值
+    ///   - locale: 解析地区，默认使用 POSIX 保证点号小数稳定解析
+    /// - Returns: NSNumber，失败返回 nil
+    public static func number(from value: String, locale: Locale = Locale(identifier: "en_US_POSIX")) -> NSNumber? {
+        let trimmedValue = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedValue.isEmpty else { return nil }
+
+        let formatter = NumberFormatter()
+        formatter.locale = locale
+        formatter.numberStyle = .decimal
+        formatter.generatesDecimalNumbers = true
+        return formatter.number(from: trimmedValue)
+    }
+
+    // MARK: 1.5、稳定格式化数字
+    /// 稳定格式化数字
+    /// - Parameters:
+    ///   - value: 数字
+    ///   - style: 格式样式
+    ///   - locale: 输出地区
+    ///   - minimumFractionDigits: 最小小数位
+    ///   - maximumFractionDigits: 最大小数位
+    /// - Returns: 格式化后的字符串
+    public static func string(from value: NSNumber,
+                              style: NumberFormatter.Style = .decimal,
+                              locale: Locale = Locale(identifier: "en_US_POSIX"),
+                              minimumFractionDigits: Int? = nil,
+                              maximumFractionDigits: Int? = nil) -> String? {
+        let formatter = NumberFormatter()
+        formatter.locale = locale
+        formatter.numberStyle = style
+        if let minimumFractionDigits = minimumFractionDigits {
+            formatter.minimumFractionDigits = max(0, minimumFractionDigits)
+        }
+        if let maximumFractionDigits = maximumFractionDigits {
+            formatter.maximumFractionDigits = max(0, maximumFractionDigits)
+        }
+        return formatter.string(from: value)
     }
 }
 
@@ -77,7 +120,7 @@ extension TFY where Base == NumberFormatter {
     /// - Returns: 格式化后的值
     public static func customFormatter(value: String, numberFormatter: NumberFormatter) -> String? {
         // 从字符串装成数字
-        guard let number = NumberFormatter().number(from: value) else {
+        guard let number = Self.number(from: value, locale: numberFormatter.locale) else {
             // fatalError("数值有问题")
             return nil
         }
@@ -97,6 +140,7 @@ extension TFY where Base == NumberFormatter {
     ///   - nstyle: 显示样式
     /// - Returns: 格式化后的值
     public static func setGroupingSeparatorAndSize(value: String, separator: String, groupingSize: Int, number nstyle: NumberFormatter.Style = .none) -> String? {
+        guard groupingSize > 0 else { return nil }
         // 创建一个NumberFormatter对象
         let numberFormatter = NumberFormatter()
         // 设置number显示样式

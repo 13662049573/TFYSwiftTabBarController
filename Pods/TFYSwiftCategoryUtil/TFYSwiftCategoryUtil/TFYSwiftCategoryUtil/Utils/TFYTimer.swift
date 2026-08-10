@@ -122,10 +122,7 @@ public class TFYTimer {
     }
     
     deinit {
-        // 确保定时器被正确清理
-        if state != .cancelled {
-            internalTimer.cancel()
-        }
+        cancelIfNeeded()
     }
     
     // MARK: - 状态查询
@@ -173,6 +170,8 @@ public class TFYTimer {
     /// 非重复定时器触发后会自动失效
     public func fire() {
         guard isValid else { return }
+        _executionCount += 1
+        lastExecutionTime = .now()
         handler(self)
         if !repeats {
             cancel()
@@ -182,7 +181,9 @@ public class TFYTimer {
     /// 启动定时器
     public func start() {
         guard isValid && state != .running else { return }
-        startTime = .now()
+        if startTime == nil {
+            startTime = .now()
+        }
         internalTimer.resume()
         state = .running
         onStateChange?(state)
@@ -199,9 +200,7 @@ public class TFYTimer {
     /// 取消定时器
     public func cancel() {
         guard state != .cancelled else { return }
-        internalTimer.cancel()
-        state = .cancelled
-        onStateChange?(state)
+        cancelIfNeeded()
     }
     
     /// 重新设置重复定时器的时间间隔
@@ -225,8 +224,20 @@ public class TFYTimer {
         self.handler = handler
         internalTimer.setEventHandler { [weak self] in
             guard let self = self else { return }
+            self._executionCount += 1
+            self.lastExecutionTime = .now()
             handler(self)
         }
+    }
+
+    private func cancelIfNeeded() {
+        guard state != .cancelled else { return }
+        if state == .created || state == .suspended {
+            internalTimer.resume()
+        }
+        internalTimer.cancel()
+        state = .cancelled
+        onStateChange?(state)
     }
 }
 
@@ -249,23 +260,21 @@ public extension TFYTimer {
                         identifier: String,
                         queue: DispatchQueue = .main,
                         handler: @escaping () -> Void) {
-        
-        workItemsLock.lock()
-        defer { workItemsLock.unlock() }
-        
-        // 取消已存在的工作项
-        if let item = workItems[identifier] {
-            item.cancel()
-        }
-        
-        // 创建新的工作项
+        var previousItem: DispatchWorkItem?
         let item = DispatchWorkItem {
             handler()
             workItemsLock.lock()
             workItems.removeValue(forKey: identifier)
             workItemsLock.unlock()
         }
+        
+        workItemsLock.lock()
+        previousItem = workItems[identifier]
         workItems[identifier] = item
+        workItemsLock.unlock()
+        
+        // 取消已存在的工作项
+        previousItem?.cancel()
         queue.asyncAfter(deadline: .now() + interval, execute: item)
     }
     
@@ -281,16 +290,12 @@ public extension TFYTimer {
                         identifier: String,
                         queue: DispatchQueue = .main,
                         handler: @escaping () -> Void) {
-        
         workItemsLock.lock()
-        defer { workItemsLock.unlock() }
-        
-        // 已存在工作项则直接返回
         if workItems[identifier] != nil {
+            workItemsLock.unlock()
             return
         }
-        
-        // 创建新的工作项
+
         let item = DispatchWorkItem {
             handler()
             workItemsLock.lock()
@@ -298,6 +303,8 @@ public extension TFYTimer {
             workItemsLock.unlock()
         }
         workItems[identifier] = item
+        workItemsLock.unlock()
+        
         queue.asyncAfter(deadline: .now() + interval, execute: item)
     }
     
@@ -536,6 +543,7 @@ public class TFYCountDownTimer {
     
     /// 获取进度（0.0 - 1.0）
     public var progress: Double {
+        guard originalTimes > 0 else { return 0 }
         return Double(originalTimes - leftTimes) / Double(originalTimes)
     }
     

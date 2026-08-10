@@ -8,9 +8,12 @@
 import Foundation
 import UIKit
 
+// MARK: - Type Aliases
 typealias TFYSwiftNavigationBarFrameDidUpdated = (CGRect) -> Void
 
-/// 导航栏默认样式
+// MARK: - Navigation Bar Style Configuration
+/// 导航栏默认样式配置
+@available(iOS 15.0, *)
 public struct TFYSwiftNavigationBarStyle {
     /// 导航栏返回按钮图片
     public static var backImage: UIImage? = TFYSwiftNavigationBarUtility.backImage
@@ -39,89 +42,121 @@ public struct TFYSwiftNavigationBarStyle {
     public static var disableInteractivePopGesture: Bool = false
     /// 全屏滑动返回的最大允许距离
     public static var fullScreenPopMaxAllowedDistanceToLeftEdge: CGFloat = 0.0
-  
 }
 
+// MARK: - Custom Navigation Bar View
 /// 自定义导航栏视图
+@available(iOS 15.0, *)
 public class TFYSwiftNavigationBar: UIView {
-
-    /// 背景图片
-    lazy var backgroundImageView: UIImageView = {
+    
+    // MARK: - UI Components
+    /// 背景图片视图
+    internal lazy var backgroundImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
     
-    /// 底部分割线
-    lazy var shadowImageView: UIImageView = {
+    /// 底部分割线视图
+    internal lazy var shadowImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
     
     /// 内容视图
-    lazy var containerView: UIView = {
+    private lazy var containerView: UIView = {
         let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
-    /// 毛玻璃背景
-    lazy var visualEffectView: UIVisualEffectView = {
-        let effect: UIBlurEffect
-        if #available(iOS 13, *) {
-            effect = UIBlurEffect(style: .systemChromeMaterial)
-        } else {
-            effect = UIBlurEffect(style: .extraLight)
-        }
-        
+    /// 毛玻璃背景视图
+    internal lazy var visualEffectView: UIVisualEffectView = {
+        let effect = UIBlurEffect(style: .systemChromeMaterial)
         let effectView = UIVisualEffectView(effect: effect)
         effectView.isHidden = true
-        effectView.contentView.backgroundColor = TFYSwiftNavigationBarStyle.backgroundColor.withAlphaComponent(0.5)
+        effectView.contentView.backgroundColor = UIColor.clear
+        effectView.translatesAutoresizingMaskIntoConstraints = false
         return effectView
     }()
     
+    // MARK: - Public Properties
+    /// 毛玻璃效果视图（只读）
+    public var blurEffectView: UIVisualEffectView {
+        return visualEffectView
+    }
+    
+    /// 毛玻璃效果是否启用
+    public var isBlurEffectEnabled: Bool {
+        return !visualEffectView.isHidden
+    }
+    
+    // MARK: - Initialization
     public override init(frame: CGRect) {
         super.init(frame: frame)
-        
-        addSubview(backgroundImageView)
-        addSubview(visualEffectView)
-        addSubview(shadowImageView)
-        addSubview(containerView)
-        
-        backgroundImageView.image = TFYSwiftNavigationBarStyle.backgroundImage
+        setupUI()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    public override func layoutSubviews() {
-        super.layoutSubviews()
-       
-        visualEffectView.frame = bounds
-        backgroundImageView.frame = bounds
+    // MARK: - UI Setup
+    private func setupUI() {
+        addSubview(backgroundImageView)
+        addSubview(visualEffectView)
+        addSubview(shadowImageView)
+        addSubview(containerView)
         
-        var safeAreaTop: CGFloat = 20.0
-        if #available(iOS 11, *) {
-            safeAreaTop = TFYSwiftNavigationBarUtility.keyWindow?.safeAreaInsets.top ?? 44.0
-        }
-        containerView.frame = CGRect(x: 0, y: safeAreaTop, width: bounds.width, height: bounds.height - safeAreaTop)
-        
-        let lineHeight = 1 / UIScreen.main.scale
-        shadowImageView.frame = CGRect(x: 0,
-                                       y: bounds.height - lineHeight,
-                                       width: bounds.width,
-                                       height: lineHeight)
+        backgroundImageView.image = TFYSwiftNavigationBarStyle.backgroundImage
+        setupConstraints()
     }
     
+    private func setupConstraints() {
+        // 移除可能存在的约束
+        removeConstraints(constraints)
+        
+        NSLayoutConstraint.activate([
+            backgroundImageView.topAnchor.constraint(equalTo: topAnchor),
+            backgroundImageView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backgroundImageView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backgroundImageView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            
+            visualEffectView.topAnchor.constraint(equalTo: topAnchor),
+            visualEffectView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            visualEffectView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            visualEffectView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            
+            containerView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            containerView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            containerView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            
+            shadowImageView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            shadowImageView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            shadowImageView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            shadowImageView.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale)
+        ])
+        
+        // 设置容器视图的顶部约束
+        let safeAreaTop: CGFloat = TFYSwiftNavigationBarUtility.keyWindow?.safeAreaInsets.top ?? 44.0
+        containerView.topAnchor.constraint(equalTo: topAnchor, constant: safeAreaTop).isActive = true
+    }
+    // MARK: - Public Methods
     /// 是否使用毛玻璃效果
     public func enableBlurEffect(_ enabled: Bool) {
-        if enabled {
-            backgroundColor = .clear
-            backgroundImageView.isHidden = true
-            visualEffectView.isHidden = false
+        // 使用动画切换毛玻璃效果
+        UIView.animate(withDuration: 0.3, animations: {
+            self.backgroundColor = enabled ? .clear : nil
+            self.backgroundImageView.alpha = enabled ? 0.0 : 1.0
+            self.visualEffectView.alpha = enabled ? 1.0 : 0.0
+        }) { _ in
+            self.backgroundImageView.isHidden = enabled
+            self.visualEffectView.isHidden = !enabled
         }
     }
     
@@ -136,10 +171,10 @@ public class TFYSwiftNavigationBar: UIView {
         UIViewController.swizzleUIViewControllerOnce
         UINavigationController.swizzleUINavigationControllerOnce
     }
-
 }
 
-
+// MARK: - UINavigationBar Extension
+@available(iOS 15.0, *)
 extension UINavigationBar {
     
     /// 关联对象Keys
@@ -171,44 +206,53 @@ extension UINavigationBar {
         
         /// UIBarButtonItem 距离屏幕的左右间距
         if TFYSwiftNavigationBarStyle.itemSpace > 0 {
-            for subView in subviews {
-                if NSStringFromClass(subView.classForCoder).contains("ContentView") {
-                    let space = TFYSwiftNavigationBarStyle.itemSpace
-                    if #available(iOS 13.0, *) {
-                        let margins  = subView.layoutMargins
-                        var tmpFrame = CGRect(x: 0,
-                                           y: margins.top,
-                                           width: 0,
-                                           height: subView.frame.height)
-                        tmpFrame.origin.x   = -margins.left + space
-                        tmpFrame.size.width = margins.left + margins.right + subView.frame.width - 2 * space
-                        subView.frame       = tmpFrame
-                    } else {
-                        subView.layoutMargins = UIEdgeInsets(top: 0, left: space, bottom: 0, right: space)
-                    }
-                    break
-                }
+            configureBarButtonItemSpacing()
+        }
+    }
+    
+    private func configureBarButtonItemSpacing() {
+        for subView in subviews {
+            if NSStringFromClass(subView.classForCoder).contains("ContentView") {
+                let space = TFYSwiftNavigationBarStyle.itemSpace
+                let margins = subView.layoutMargins
+                var tmpFrame = CGRect(x: 0,
+                                   y: margins.top,
+                                   width: 0,
+                                   height: subView.frame.height)
+                tmpFrame.origin.x = -margins.left + space
+                tmpFrame.size.width = margins.left + margins.right + subView.frame.width - 2 * space
+                subView.frame = tmpFrame
+                break
             }
         }
     }
     
     private func effectBackdropView() {
-        let viewbacks:[UIView] = subviews
+        let viewbacks: [UIView] = subviews
         viewbacks.forEach { view in
-            if view.isKind(of:NSClassFromString("UIVisualEffectView")!) {
-                let effectViews:[UIView] = view.subviews
+            if view.isKind(of: NSClassFromString("UIVisualEffectView")!) {
+                let effectViews: [UIView] = view.subviews
                 effectViews.forEach { effView in
                     if effView.isKind(of: NSClassFromString("_UIVisualEffectBackdropView")!) {
                         effView.removeFromSuperview()
                     }
                 }
             }
-            
         }
     }
 }
 
-/// TFYSwiftNavigationBar 工具类
+// MARK: - UIBarButtonItem Extension
+@available(iOS 15.0, *)
+public extension UIBarButtonItem {
+    func configure(_ block: (UIBarButtonItem) -> Void) -> UIBarButtonItem {
+        block(self)
+        return self
+    }
+}
+
+// MARK: - Utility Class
+@available(iOS 15.0, *)
 class TFYSwiftNavigationBarUtility {
     
     /// 导航栏返回按钮图片
@@ -222,26 +266,17 @@ class TFYSwiftNavigationBarUtility {
     
     /// 获取应用程序的主窗口
     static var keyWindow: UIWindow? {
-        if #available(iOS 13.0, *) {
-            return UIApplication.shared.connectedScenes
-                .first { $0.activationState == .foregroundActive }
-                .map { $0 as? UIWindowScene }
-                .map { $0?.windows.first } ?? UIApplication.shared.delegate?.window ?? nil
+        guard let windowScene = UIApplication.shared.connectedScenes
+            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene else {
+            return nil
         }
-
-        return UIApplication.shared.delegate?.window ?? nil
+        return windowScene.windows.first
     }
     
     /// 获取导航栏高度
     static var navigationBarHeight: CGFloat {
-        if #available(iOS 11.0, *) {
-            if let top = keyWindow?.safeAreaInsets.top {
-                return top + 44.0
-            }
-            return 64.0
-        } else {
-            return 64.0
-        }
+        let top = keyWindow?.safeAreaInsets.top ?? 44.0
+        return top + 44.0
     }
     
     /// 颜色转图片
@@ -258,8 +293,8 @@ class TFYSwiftNavigationBarUtility {
     /// 方法交换
     public class func swizzleMethod(_ cls: AnyClass, _ originSelector: Selector, _ newSelector: Selector) {
         guard let oriMethod = class_getInstanceMethod(cls, originSelector),
-            let newMethod = class_getInstanceMethod(cls, newSelector) else {
-                return
+              let newMethod = class_getInstanceMethod(cls, newSelector) else {
+            return
         }
         
         let isAddedMethod = class_addMethod(cls, originSelector, method_getImplementation(newMethod), method_getTypeEncoding(newMethod))
@@ -268,6 +303,35 @@ class TFYSwiftNavigationBarUtility {
         } else {
             method_exchangeImplementations(oriMethod, newMethod)
         }
+    }
+}
+
+// MARK: - Associated Object Manager
+@available(iOS 15.0, *)
+class TFYSwiftAssociatedObjectManager {
+    
+    /// 获取关联对象
+    static func getAssociatedObject<T>(_ object: AnyObject, key: UnsafeRawPointer, defaultValue: T) -> T {
+        if let value = objc_getAssociatedObject(object, key) as? T {
+            return value
+        }
+        objc_setAssociatedObject(object, key, defaultValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        return defaultValue
+    }
+    
+    /// 设置关联对象
+    static func setAssociatedObject<T>(_ object: AnyObject, key: UnsafeRawPointer, value: T) {
+        objc_setAssociatedObject(object, key, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    }
+    
+    /// 获取关联对象（可空类型）
+    static func getAssociatedObject<T>(_ object: AnyObject, key: UnsafeRawPointer) -> T? {
+        return objc_getAssociatedObject(object, key) as? T
+    }
+    
+    /// 设置关联对象（可空类型）
+    static func setAssociatedObject<T>(_ object: AnyObject, key: UnsafeRawPointer, value: T?) {
+        objc_setAssociatedObject(object, key, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }
 }
 

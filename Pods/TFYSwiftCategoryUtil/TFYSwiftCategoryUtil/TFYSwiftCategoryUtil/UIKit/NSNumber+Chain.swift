@@ -48,6 +48,24 @@ public extension TFY where Base: NSNumber {
     /// - Returns: 运算结果
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func getResult(oneNumber: NSNumber, type: TFYSwiftOperators, twoNumber: NSNumber) -> Base {
+        guard let resultNum = safeResult(oneNumber: oneNumber, type: type, twoNumber: twoNumber) else {
+            return Base(value: 0)
+        }
+        return resultNum as! Base
+    }
+
+    // MARK: 1.3、安全数值运算
+    /// 安全数值运算，除零时返回 nil
+    /// - Parameters:
+    ///   - oneNumber: 第一个数
+    ///   - type: 运算类型
+    ///   - twoNumber: 第二个数
+    /// - Returns: 运算结果，失败返回 nil
+    func safeResult(oneNumber: NSNumber, type: TFYSwiftOperators, twoNumber: NSNumber) -> NSDecimalNumber? {
+        if type == .TFYSwiftDiv, twoNumber.decimalValue == Decimal.zero {
+            return nil
+        }
+
         var resultNum: NSDecimalNumber = NSDecimalNumber()
         let one: NSDecimalNumber = NSDecimalNumber(decimal: oneNumber.decimalValue)
         let two: NSDecimalNumber = NSDecimalNumber(decimal: twoNumber.decimalValue)
@@ -63,7 +81,7 @@ public extension TFY where Base: NSNumber {
         case .TFYSwiftDiv:
             resultNum = one.dividing(by: two, withBehavior: roundingBehavior)
         }
-        return Base(nonretainedObject: resultNum)
+        return resultNum == NSDecimalNumber.notANumber ? nil : resultNum
     }
     
     ///  无格式,四舍五入
@@ -170,15 +188,15 @@ public let kNumFormat = "¥###,##0.00";
                        groupingSize: Int = 3) -> NumberFormatter {
         let fmt = NumberFormatter.number(style)
         fmt.minimumIntegerDigits = 1
-        fmt.minimumFractionDigits = minFractionDigits
-        fmt.maximumFractionDigits = maxFractionDigits
+        fmt.minimumFractionDigits = max(0, minFractionDigits)
+        fmt.maximumFractionDigits = max(0, maxFractionDigits)
 
         fmt.positivePrefix = positivePrefix
 //        fmt.positiveSuffix = ""
 
-        fmt.usesGroupingSeparator = true //分隔设true
+        fmt.usesGroupingSeparator = groupingSize > 0 //分隔设true
         fmt.groupingSeparator = groupingSeparator //分隔符
-        fmt.groupingSize = groupingSize  //分隔位数
+        fmt.groupingSize = max(1, groupingSize)  //分隔位数
         return fmt
     }
 
@@ -243,7 +261,7 @@ public extension String.StringInterpolation {
     func toPercentString(decimalPlaces: Int = 2) -> String? {
         let formatter = NumberFormatter()
         formatter.numberStyle = .percent
-        formatter.maximumFractionDigits = decimalPlaces
+        formatter.maximumFractionDigits = max(0, decimalPlaces)
         return formatter.string(from: self)
     }
     
@@ -324,7 +342,7 @@ public extension String.StringInterpolation {
     /// - Returns: 四舍五入后的数值
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func rounded(to decimalPlaces: Int) -> NSNumber {
-        let multiplier = pow(10.0, Double(decimalPlaces))
+        let multiplier = pow(10.0, Double(max(0, decimalPlaces)))
         let roundedValue = round(self.doubleValue * multiplier) / multiplier
         return NSNumber(value: roundedValue)
     }
@@ -362,7 +380,7 @@ public extension String.StringInterpolation {
     /// - Returns: 时间间隔格式字符串
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func toTimeIntervalString() -> String {
-        let seconds = self.doubleValue
+        let seconds = max(0, self.doubleValue)
         let hours = Int(seconds) / 3600
         let minutes = Int(seconds) % 3600 / 60
         let secs = Int(seconds) % 60
@@ -379,7 +397,7 @@ public extension String.StringInterpolation {
     /// - Returns: 距离格式字符串
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func toDistanceString() -> String {
-        let meters = self.doubleValue
+        let meters = max(0, self.doubleValue)
         if meters < 1000 {
             return String(format: "%.0fm", meters)
         } else {
@@ -401,7 +419,7 @@ public extension String.StringInterpolation {
     /// - Returns: 重量格式字符串
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func toWeightString() -> String {
-        let grams = self.doubleValue
+        let grams = max(0, self.doubleValue)
         if grams < 1000 {
             return String(format: "%.0fg", grams)
         } else {
@@ -417,5 +435,4 @@ public extension String.StringInterpolation {
         return String(format: "%.1f°", self.doubleValue)
     }
 }
-
 

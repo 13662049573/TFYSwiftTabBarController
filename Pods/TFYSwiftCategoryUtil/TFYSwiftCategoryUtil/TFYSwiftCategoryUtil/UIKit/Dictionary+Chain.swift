@@ -11,13 +11,13 @@ import AVFoundation
 extension Dictionary: TFYCompatible {}
 
 public extension Dictionary {
-    
+
     // MARK: 1.1、检查字典里面是否有某个 key
     /// 检查字典里面是否有某个 key
     func has(_ key: Key) -> Bool {
         return index(forKey: key) != nil
     }
-    
+
     // MARK: 1.2、字典的key或者value组成的数组
     /// 字典的key或者value组成的数组
     /// - Parameter map: map
@@ -25,7 +25,7 @@ public extension Dictionary {
     func toArray<V>(_ map: (Key, Value) -> V) -> [V] {
         return self.map(map)
     }
-    
+
     // MARK: 1.3、JSON字符串 -> 字典
     /// 本地JSON 转 字典
     /// - Parameters:
@@ -38,9 +38,9 @@ public extension Dictionary {
             TFYUtils.Logger.log("未找到文件: \(name).\(ofType)", level: .warning)
             return nil
         }
-        
+
         var encoding: String.Encoding = .utf8
-        
+
         do {
             let jsonString = try String(contentsOfFile: path, usedEncoding: &encoding)
             let dict = Dictionary.jsonToDictionary(json: jsonString)
@@ -59,7 +59,7 @@ public extension Dictionary {
             TFYUtils.Logger.log("JSON字符串转Data失败")
             return nil
         }
-        
+
         do {
             let result = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? Dictionary<String, Any>
             return result
@@ -68,7 +68,7 @@ public extension Dictionary {
             return nil
         }
     }
-    
+
     // MARK: 1.4、字典 -> JSON字符串
     /// 字典转换为JSONString
     /// - Returns: JSON字符串，失败返回nil
@@ -82,24 +82,21 @@ public extension Dictionary {
             return nil
         }
     }
-    
+
     // MARK: 1.5、字典里面所有的 key
     /// 字典里面所有的key
     /// - Returns: key 数组
     func allKeys() -> [Key] {
-        /*
-         shuffled：不会改变原数组，返回一个新的随机化的数组。  可以用于let 数组
-         */
-        return self.keys.shuffled()
+        return Array(self.keys)
     }
-    
+
     // MARK: 1.6、字典里面所有的 value
     /// 字典里面所有的value
     /// - Returns: value 数组
     func allValues() -> [Value] {
-        return self.values.shuffled()
+        return Array(self.values)
     }
-    
+
     // MARK: 1.7、设置value
     subscript<Result>(key: Key, as type: Result.Type) -> Result? {
         get {
@@ -118,7 +115,7 @@ public extension Dictionary {
             self[key] = value2
         }
     }
-    
+
     // MARK: 1.8、设置value
     /// 设置value
     /// - Parameters:
@@ -130,17 +127,23 @@ public extension Dictionary {
             guard keys.count == 1, let key = keys[0] as? Dictionary<Key, Value>.Keys.Element else {
                 return false
             }
-            self[key] = (newValue as! Value)
+            guard let typedValue = newValue as? Value else {
+                return false
+            }
+            self[key] = typedValue
             return true
         }
         guard let key = keys[0] as? Dictionary<Key, Value>.Keys.Element, self.keys.contains(key), var value1 = self[key] as? [String: Any] else {
             return false
         }
         let result = Dictionary<String, Any>.value(keys: Array(keys[1..<keys.count]), oldValue: &value1, newValue: newValue)
-        self[key] = (value1 as! Value)
+        guard let typedValue = value1 as? Value else {
+            return false
+        }
+        self[key] = typedValue
         return result
     }
-    
+
     /// 字典深层次设置value
     /// - Parameters:
     ///   - keys: key链
@@ -158,7 +161,7 @@ public extension Dictionary {
         oldValue[keys[0]] = value1
         return result
     }
-    
+
     /// key是否存在在字典中
     func has(key: Key) -> Bool {
         return index(forKey: key) != nil
@@ -167,7 +170,7 @@ public extension Dictionary {
     mutating func removeAll<S: Sequence>(keys: S) where S.Element == Key {
         keys.forEach { removeValue(forKey: $0) }
     }
-    
+
     /// 字典转Data
     func toData(prettify: Bool = false) -> Data? {
         guard JSONSerialization.isValidJSONObject(self) else {
@@ -176,7 +179,7 @@ public extension Dictionary {
         let options = (prettify == true) ? JSONSerialization.WritingOptions.prettyPrinted : JSONSerialization.WritingOptions()
         return try? JSONSerialization.data(withJSONObject: self, options: options)
     }
-    
+
     /// 字典转json
     func toJson(prettify: Bool = false) -> String? {
         guard JSONSerialization.isValidJSONObject(self) else { return nil }
@@ -184,11 +187,11 @@ public extension Dictionary {
         guard let jsonData = try? JSONSerialization.data(withJSONObject: self, options: options) else { return nil }
         return String(data: jsonData, encoding: .utf8)
     }
-    
+
     func toModel<T>(_ type: T.Type) -> T? where T: Decodable {
         return self.toData()?.toModel(T.self)
     }
-    
+
     // MARK: 1.19、安全获取值
     /// 安全获取值
     /// - Parameters:
@@ -199,7 +202,7 @@ public extension Dictionary {
     func safeValue<T>(for key: Key, defaultValue: T) -> T {
         return self[key] as? T ?? defaultValue
     }
-    
+
     // MARK: 1.20、深度合并字典
     /// 深度合并字典
     /// - Parameter other: 要合并的字典
@@ -207,19 +210,20 @@ public extension Dictionary {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     func tfy_deepMerge(with other: [Key: Value]) -> [Key: Value] {
         var result = self
-        
+
         for (key, value) in other {
             if let existingValue = result[key] as? [String: Any],
-               let newValue = value as? [String: Any] {
-                result[key] = (existingValue.tfy_deepMerge(with: newValue) as! Value)
+               let newValue = value as? [String: Any],
+               let mergedValue = existingValue.tfy_deepMerge(with: newValue) as? Value {
+                result[key] = mergedValue
             } else {
                 result[key] = value
             }
         }
-        
+
         return result
     }
-    
+
     // MARK: 1.21、过滤字典
     /// 过滤字典
     /// - Parameter predicate: 过滤条件
@@ -228,7 +232,7 @@ public extension Dictionary {
     func filter(_ predicate: (Key, Value) -> Bool) -> [Key: Value] {
         return self.filter { predicate($0.key, $0.value) }
     }
-    
+
     // MARK: 1.22、转换字典值
     /// 转换字典值
     /// - Parameter transform: 转换函数
@@ -241,7 +245,7 @@ public extension Dictionary {
         }
         return result
     }
-    
+
     // MARK: 1.23、检查字典是否为空
     /// 检查字典是否为空
     /// - Returns: 是否为空
@@ -249,7 +253,7 @@ public extension Dictionary {
     var isEmpty: Bool {
         return self.count == 0
     }
-    
+
     // MARK: 1.24、获取字典大小
     /// 获取字典大小
     /// - Returns: 字典大小
@@ -257,7 +261,7 @@ public extension Dictionary {
     var size: Int {
         return self.count
     }
-    
+
     // MARK: 1.25、创建空字典
     /// 创建空字典
     /// - Returns: 空字典
@@ -265,7 +269,7 @@ public extension Dictionary {
     static func empty() -> [Key: Value] {
         return [:]
     }
-    
+
     // MARK: 1.26、从数组创建字典
     /// 从数组创建字典
     /// - Parameters:
@@ -284,7 +288,7 @@ public extension Dictionary {
 
 // MARK: - 二、其他基本扩展
 public extension TFY where Base == Dictionary<String, Any> {
-    
+
     // MARK: 2.1、字典转JSON
     /// 字典转JSON
     @discardableResult
@@ -302,5 +306,3 @@ public extension TFY where Base == Dictionary<String, Any> {
         }
     }
 }
-
-

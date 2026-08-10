@@ -34,7 +34,7 @@ extension CLLocationCoordinate2D: @retroactive Equatable {
 // MARK: - Codable Extension
 /// 编码解码扩展
 
-extension CLLocationCoordinate2D: Codable {
+extension CLLocationCoordinate2D: @retroactive Codable {
     
     /// 零坐标点 (0, 0)
     public static let zero = CLLocationCoordinate2D(latitude: 0, longitude: 0)

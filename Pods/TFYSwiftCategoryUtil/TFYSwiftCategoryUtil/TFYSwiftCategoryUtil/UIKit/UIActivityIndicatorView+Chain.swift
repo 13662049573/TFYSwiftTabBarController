@@ -74,7 +74,7 @@ public extension TFY where Base: UIActivityIndicatorView {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func size(_ size: CGSize) -> Self {
-        base.frame.size = size
+        base.frame.size = size.tfy_nonNegative
         return self
     }
     
@@ -107,7 +107,7 @@ public extension TFY where Base: UIActivityIndicatorView {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     @discardableResult
     func alpha(_ alpha: CGFloat) -> Self {
-        base.alpha = alpha
+        base.alpha = min(1, max(0, alpha))
         return self
     }
     
@@ -142,7 +142,9 @@ public extension UIActivityIndicatorView {
     /// - Returns: 活动指示器
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func large() -> UIActivityIndicatorView {
-        return UIActivityIndicatorView(style: .large)
+        let indicator = UIActivityIndicatorView(style: .large)
+        indicator.hidesWhenStopped = true
+        return indicator
     }
     
     // MARK: 2.3、创建中型活动指示器
@@ -150,7 +152,9 @@ public extension UIActivityIndicatorView {
     /// - Returns: 活动指示器
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func medium() -> UIActivityIndicatorView {
-        return UIActivityIndicatorView(style: .medium)
+        let indicator = UIActivityIndicatorView(style: .medium)
+        indicator.hidesWhenStopped = true
+        return indicator
     }
     
     // MARK: 2.5、显示活动指示器
@@ -203,7 +207,7 @@ public extension UIActivityIndicatorView {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     static func custom(size: CGSize, color: UIColor = .systemBlue) -> UIActivityIndicatorView {
         let indicator = UIActivityIndicatorView(style: .large)
-        indicator.frame.size = size
+        indicator.frame.size = size.tfy_nonNegative
         indicator.color = color
         indicator.hidesWhenStopped = true
         return indicator
@@ -224,5 +228,11 @@ public extension UIActivityIndicatorView {
     /// - Note: 支持iOS 15+，适配iPhone和iPad
     var isCurrentlyAnimating: Bool {
         return self.isAnimating
+    }
+}
+
+private extension CGSize {
+    var tfy_nonNegative: CGSize {
+        return CGSize(width: max(0, width), height: max(0, height))
     }
 }

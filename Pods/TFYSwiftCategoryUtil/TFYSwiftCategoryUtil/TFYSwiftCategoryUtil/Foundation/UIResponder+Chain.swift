@@ -32,8 +32,8 @@ public extension TFY where Base: UIResponder {
     var currentViewController: UIViewController? {
         var responder = base.next
         while responder != nil {
-            if responder!.isKind(of: UIViewController.self) {
-                return (responder as! UIViewController)
+            if let viewController = responder as? UIViewController {
+                return viewController
             }
             responder = responder?.next
         }
@@ -53,9 +53,9 @@ public final class FirstResponderListener {
             }
         }
     }
-    
+
     private var observers:[Observer] = []
-    
+
     init() {
         if !isSwizzleFirstResponder {
             isSwizzleFirstResponder = true
@@ -64,29 +64,29 @@ public final class FirstResponderListener {
         }
         value = UIResponder.firstResponder()
     }
-    
+
     private func replaceBecomeFirstResponder() {
         guard let method1 = class_getInstanceMethod(UIResponder.self, #selector(UIResponder.becomeFirstResponder)),
               let method2 = class_getInstanceMethod(UIResponder.self, #selector(UIResponder.swizzle_becomeFirstResponder)) else { return }
         method_exchangeImplementations(method1, method2)
     }
-    
+
     private func replaceResignFirstResponder() {
         guard let method1 = class_getInstanceMethod(UIResponder.self, #selector(UIResponder.resignFirstResponder)),
               let method2 = class_getInstanceMethod(UIResponder.self, #selector(UIResponder.swizzle_resignFirstResponder)) else { return }
         method_exchangeImplementations(method1, method2)
     }
-    
+
     /// 添加通知（闭包方式）
     public func addNotice(target: AnyObject, change: @escaping (UIResponder?) -> Void) {
         observers.append(Observer(target, change))
     }
-    
+
     /// 添加通知（Selector方式）
     public func addNotice(target: AnyObject, action: Selector, needRelease:Bool = false) {
         observers.append(Observer(target, action, needRelease))
     }
-    
+
     /// 移除通知
     public func removeNotice(target: AnyObject) {
         observers = observers.filter { $0.target != nil && $0.target !== target }
@@ -98,12 +98,12 @@ extension FirstResponderListener {
         weak var target:AnyObject?
         var notice : Notice
         typealias Notice = (_ new:UIResponder) -> Void
-        
+
         init(_ target: AnyObject, _ notice: @escaping Notice) {
             self.target = target
             self.notice = notice
         }
-        
+
         init(_ target: AnyObject, _ action: Selector, _ needRelease:Bool = false) {
             self.target = target
             self.notice = { [weak target] in
@@ -119,16 +119,16 @@ extension FirstResponderListener {
 extension UIResponder {
     @objc fileprivate func swizzle_becomeFirstResponder() -> Bool {
         let result = swizzle_becomeFirstResponder()
-        
+
         if result {
             UIApplication.firstResponderListener.value = self
         }
         return result
     }
-    
+
     @objc fileprivate func swizzle_resignFirstResponder() -> Bool {
         let result = swizzle_resignFirstResponder()
-        
+
         if result, UIApplication.firstResponderListener.value === self {
             UIApplication.firstResponderListener.value = nil
         }
@@ -139,7 +139,7 @@ extension UIResponder {
 extension UIApplication {
     /// 第一响应者监听器
     public static let firstResponderListener = FirstResponderListener()
-    
+
     /// 获取第一响应者
     public final func firstResponder() -> UIResponder? {
         return UIResponder.firstResponder()
@@ -155,7 +155,7 @@ extension UIResponder {
         UIApplication.shared.sendAction(#selector(tfy_findFirstResponder(_:)), to: nil, from: kGetFirstResponder, for: nil)
         return tfy_currentFirstResponder
     }
-    
+
     @objc private func tfy_findFirstResponder(_ sender: Any?) {
         // 第一响应者会响应这个方法，并且将静态变量tfy_currentFirstResponder设置为自己
         switch sender {
@@ -165,4 +165,3 @@ extension UIResponder {
         }
     }
 }
-

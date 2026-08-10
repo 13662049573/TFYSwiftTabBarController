@@ -10,14 +10,14 @@ import WebKit
 
 // MARK: - JS注入接口
 open class WKWebHandler: NSObject, WKScriptMessageHandler {
-    
+
     private let script: String
     private let callback: (_ body: Any) -> Void
-    
+
     open var name: String
 
     open var javaScript: String { return script }
-    
+
     public weak var controller: WKWebController?
 
     public init(_ handle: String, javaScript: String, action: @escaping (_ body: Any) -> Void) {
@@ -25,7 +25,7 @@ open class WKWebHandler: NSObject, WKScriptMessageHandler {
         script = javaScript
         callback = action
     }
-    
+
     public init(_ handle: String, action: @escaping () -> Void) {
         name = handle
         script = """
@@ -39,12 +39,26 @@ open class WKWebHandler: NSObject, WKScriptMessageHandler {
         """
         callback = { _ in action() }
     }
-    
+
     public init<T: Decodable>(_ handle: String, action: @escaping (_ body: T) -> Void) {
-        
-        let encoder = try! WKScriptHandlerParamsEncoder()
-        let _ = try! T(from: encoder)
-        
+        name = handle
+
+        let encoder: WKScriptHandlerParamsEncoder
+        do {
+            encoder = try WKScriptHandlerParamsEncoder()
+            _ = try T(from: encoder)
+        } catch {
+            script = """
+            function iOS_make_\(handle)(){
+                window.webkit.messageHandlers.error.postMessage('\(handle)参数解析失败');
+            };
+            """
+            callback = { body in
+                print("js handle[\(handle)] parameter analysis failed body: \(body), error: \(error.localizedDescription)")
+            }
+            return
+        }
+
         var js: String = """
         function iOS_make_\(handle)(){
             if(arguments.length == \(encoder.paramsCount)){
@@ -72,8 +86,7 @@ open class WKWebHandler: NSObject, WKScriptMessageHandler {
         };
         """
         script = js
-        
-        name = handle
+
         callback = { (body: Any) in
             do {
                 let decoder = try WKScriptHandlerParamsDecoder(body)
@@ -84,7 +97,7 @@ open class WKWebHandler: NSObject, WKScriptMessageHandler {
             }
         }
     }
-    
+
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         // 直接调用回调，因为callback的类型已经在初始化时确定
         callback(message.body)

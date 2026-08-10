@@ -56,7 +56,7 @@ public extension TFYCodable {
         guard let data = toData() else { return nil }
         do {
             let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-            let prettyData = try JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted)
+            let prettyData = try JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted, .sortedKeys])
             return String(data: prettyData, encoding: .utf8)
         } catch {
             TFYUtils.Logger.log("TFYCodable: 格式化JSON失败 - \(error.localizedDescription)")
@@ -190,4 +190,3 @@ public extension TFYCodable {
         return false
     }
 }
-
