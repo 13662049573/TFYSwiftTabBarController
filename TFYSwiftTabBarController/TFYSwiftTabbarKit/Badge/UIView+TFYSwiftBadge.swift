@@ -197,11 +197,11 @@ public extension UIView {
 
     @objc func tfy_isReady() -> Bool {
         guard tfy_badgeClass() != nil else { return false }
-        let view = tfy_getActualBadgeSuperView() as? UIView
-        if let view, view.frame.size.width > 10 {
-            return true
+        if tfy_usesLiquidGlassBadgePlacement() {
+            return bounds.width > 10 || tfy_enclosingTabBar() != nil
         }
-        return (view?.tfy_findBarButtonContentView().frame.size.width ?? 0) > 10
+        guard let view = tfy_getActualBadgeSuperView() as? UIView else { return false }
+        return view.bounds.width > 10
     }
 
     @objc func tfy_showBadge() {
@@ -260,6 +260,71 @@ public extension UIView {
         return isHidden || alpha <= 0.01 || superview == nil || isSizeZero
     }
 
+    @objc func tfy_isValidBadgeAnchor() -> Bool {
+        !tfy_isInvisiable() && bounds.width > 10 && bounds.height > 10
+    }
+
+    @objc func tfy_unclipForBadge() {
+        var node: UIView? = self
+        while let current = node {
+            current.clipsToBounds = false
+            current.layer.masksToBounds = false
+            if current is UITabBar { break }
+            node = current.superview
+        }
+    }
+
+    @objc func tfy_enclosingTabBar() -> UITabBar? {
+        var node: UIView? = self
+        while let current = node {
+            if let tabBar = current as? UITabBar { return tabBar }
+            node = current.superview
+        }
+        if let tabBar = tfy_tabBarController?.tabBar { return tabBar }
+        var responder: UIResponder? = next
+        while let current = responder {
+            if let tabBar = current as? UITabBar { return tabBar }
+            if let tab = current as? UITabBarController { return tab.tabBar }
+            responder = current.next
+        }
+        return tfy_tabBarFromRootWindow()
+    }
+
+    /// OS liquid glass is still on in FlatDesign; only the liquid *style* should reparent onto UITabBar.
+    func tfy_usesLiquidGlassBadgePlacement() -> Bool {
+        guard TFYSwiftConstants.isLiquidGlassActive() else { return false }
+        var node: UIView? = self
+        while let current = node {
+            if current is TFYSwiftFlatDesignTabBar || current is TFYSwiftFlatDesignTabBarButton {
+                return false
+            }
+            node = current.superview
+        }
+        if let tab = tfy_tabBarController, tab.tabBarStyleType == .flatDesign {
+            return false
+        }
+        if tfy_tabBarFromRootWindow() is TFYSwiftFlatDesignTabBarHideTabBar {
+            return false
+        }
+        return true
+    }
+
+    /// Liquid-glass `_UITabButton` often lives in a portal, not under `UITabBar`.
+    private func tfy_tabBarFromRootWindow() -> UITabBar? {
+        func bar(from root: UIViewController?) -> UITabBar? {
+            guard let root else { return nil }
+            if let tab = root as? UITabBarController { return tab.tabBar }
+            if let nav = root as? UINavigationController {
+                return bar(from: nav.viewControllers.first) ?? bar(from: nav.visibleViewController)
+            }
+            for child in root.children {
+                if let found = bar(from: child) { return found }
+            }
+            return nil
+        }
+        return bar(from: tfy_getRootViewController())
+    }
+
     @objc func tfy_canNotResponseEvent() -> Bool {
         tfy_isInvisiable() || !isUserInteractionEnabled || tfy_isPlaceholder
     }
@@ -281,7 +346,11 @@ public extension UIView {
 
     @objc func tfy_badge_willMove(toSuperview newSuperview: UIView?) {
         tfy_badge_willMove(toSuperview: newSuperview)
-        if newSuperview != nil, let badge = tfy_badge {
+        // Read the associated badge on this view. UIControl.tfy_badge goes through
+        // tab-image KVC, which throws on `_UIButtonBarButton` (nav bar, not a tab).
+        guard newSuperview != nil else { return }
+        let badge = objc_getAssociatedObject(self, &TFYSwiftAssociatedKeys.badge) as? UIView
+        if let badge {
             tfy_bringBadgeToFront(badge)
         }
     }
@@ -298,7 +367,7 @@ public extension UIView {
 
     private func tfy_showBadgeWithValue(_ value: String?) {
         guard let value else { return }
-        let trimmed = value.trimmingCharacters(in: CharacterSet.decimalDigits.inverted)
+        let trimmed = value.trimmingCharacters(in: .decimalDigits)
         let isNumber = trimmed.isEmpty && !value.isEmpty
         if isNumber, let intValue = Int(value) {
             tfy_showNumberBadgeWithValue(intValue)
@@ -326,6 +395,8 @@ public extension UIView {
             badge.layer.cornerRadius = badge.bounds.width / 2
         }
         badge.tfy_setHidden(false)
+        tfy_unclipForBadge()
+        tfy_bringBadgeToFront(badge)
     }
 
     private func tfy_showNewBadge(_ value: String) {
@@ -350,10 +421,11 @@ public extension UIView {
         tfy_applyBadgeTextProperty { $0.font = tfy_badgeFont ?? TFYSwiftBadgeDefaultFont }
         tfy_adjustLabelWidth(badge)
         tfy_addMargin()
-        badge.center = CGPoint(x: bounds.width + 2 + tfy_badgeCenterOffset.x, y: tfy_badgeCenterOffset.y)
         let radius = tfy_badgeCornerRadius != 0 ? tfy_badgeCornerRadius : badge.bounds.height / 2
         badge.layer.cornerRadius = radius
         badge.tfy_setHidden(false)
+        tfy_unclipForBadge()
+        tfy_bringBadgeToFront(badge)
     }
 
     private func tfy_showNumberBadgeWithValue(_ value: Int) {
@@ -404,9 +476,7 @@ public extension UIView {
 
     private func tfy_bringBadgeToFront(_ view: UIView) {
         guard tfy_isReady() else { return }
-        addSubview(view)
-        bringSubviewToFront(view)
-        view.layer.zPosition = .greatestFiniteMagnitude
+        tfy_placeBadge(view)
         NotificationCenter.default.addObserver(
             forName: .TFYSwiftTabBarStyleTypeDidChange,
             object: nil,
@@ -416,16 +486,86 @@ public extension UIView {
         }
     }
 
+    /// Icon top-right. Liquid glass masks anything outside the capsule, so stay inside.
+    private func tfy_badgeCenterInHost() -> CGPoint {
+        tfy_badgeCenter(in: self)
+    }
+
+    private func tfy_badgeCenter(in host: UIView) -> CGPoint {
+        let offset = tfy_badgeCenterOffset
+        if tfy_usesLiquidGlassBadgePlacement() {
+            let x = max(8, host.bounds.width - 8 + offset.x)
+            let y = offset.y == 0 ? 8 : offset.y
+            return CGPoint(x: x, y: y)
+        }
+        return CGPoint(x: host.bounds.width + 2 + offset.x, y: offset.y)
+    }
+
+    /// Visible platter button / icon. Original `_UITabButton` is often hidden or 1pt.
+    private func tfy_liquidGlassBadgeAnchor() -> UIView {
+        var control: UIControl?
+        if let selfControl = self as? UIControl {
+            control = selfControl
+        } else {
+            var node: UIView? = superview
+            while let current = node {
+                if let found = current as? UIControl {
+                    control = found
+                    break
+                }
+                node = current.superview
+            }
+        }
+        guard let control else { return self }
+        let visible = control.tfy_platterSelectedControl() ?? control
+        if let image = visible.tfy_tabImageView(), image.tfy_isValidBadgeAnchor() {
+            return image
+        }
+        if visible.tfy_isValidBadgeAnchor() { return visible }
+        if control.tfy_isValidBadgeAnchor() { return control }
+        return visible
+    }
+
+    private func tfy_placeBadge(_ badge: UIView) {
+        badge.isUserInteractionEnabled = false
+        if tfy_usesLiquidGlassBadgePlacement(), let tabBar = tfy_enclosingTabBar() {
+            tabBar.clipsToBounds = false
+            tabBar.layer.masksToBounds = false
+            let anchor = tfy_liquidGlassBadgeAnchor()
+            var center = anchor.convert(tfy_badgeCenter(in: anchor), to: tabBar)
+            let hit = tabBar.bounds.insetBy(dx: -80, dy: -80)
+            if anchor.bounds.width <= 10 || !hit.contains(center) {
+                let frame = anchor.convert(anchor.bounds, to: tabBar)
+                if frame.width > 10, frame.height > 1 {
+                    let offset = tfy_badgeCenterOffset
+                    center = CGPoint(x: frame.maxX - 8 + offset.x, y: frame.minY + 8 + offset.y)
+                }
+            }
+            if badge.superview !== tabBar {
+                tabBar.addSubview(badge)
+            }
+            tabBar.bringSubviewToFront(badge)
+            badge.center = center
+            badge.layer.zPosition = TFYSwiftLayerFrontZPosition
+            badge.tfy_setHidden(false)
+            return
+        }
+        addSubview(badge)
+        bringSubviewToFront(badge)
+        badge.center = tfy_badgeCenterInHost()
+        badge.layer.zPosition = TFYSwiftLayerFrontZPosition
+    }
+
     private func tfy_resetRedDotBadgeFrame() {
         var redDotWidth = tfyBadgeDefaultRedDotRadius * 2
         if tfy_badgeRadius > 0 {
             redDotWidth = tfy_badgeRadius * 2
         }
         guard let badge = tfy_badge else { return }
-        badge.frame = CGRect(x: bounds.width, y: -redDotWidth, width: redDotWidth, height: redDotWidth)
-        badge.layoutIfNeeded()
-        badge.center = CGPoint(x: bounds.width + 2 + tfy_badgeCenterOffset.x, y: tfy_badgeCenterOffset.y)
+        badge.bounds = CGRect(origin: .zero, size: CGSize(width: redDotWidth, height: redDotWidth))
+        badge.layer.cornerRadius = redDotWidth / 2
         badge.layer.masksToBounds = true
+        tfy_placeBadge(badge)
     }
 
     private func tfy_addMargin() {
@@ -442,9 +582,8 @@ public extension UIView {
     private func tfy_adjustLabelWidth(_ badgeSuperView: UIView) {
         let label: UILabel? = {
             if let label = badgeSuperView as? UILabel { return label }
-            let badgeLabelSelector = NSSelectorFromString("badgeLabel")
-            if badgeSuperView.responds(to: badgeLabelSelector) {
-                return badgeSuperView.perform(badgeLabelSelector)?.takeUnretainedValue() as? UILabel
+            if badgeSuperView.responds(to: NSSelectorFromString("badgeLabel")) {
+                return badgeSuperView.perform(NSSelectorFromString("badgeLabel"))?.takeUnretainedValue() as? UILabel
             }
             return nil
         }()

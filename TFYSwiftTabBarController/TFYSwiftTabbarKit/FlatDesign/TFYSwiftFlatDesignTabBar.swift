@@ -42,7 +42,7 @@ import UIKit
         }
     }
 
-    @objc public private(set) var selectedItem: TFYSwiftFlatDesignTabBarItem? {
+    @objc public var selectedItem: TFYSwiftFlatDesignTabBarItem? {
         get {
             guard selectedItemIndex >= 0, let items, selectedItemIndex < items.count else { return nil }
             return items[selectedItemIndex]
@@ -64,7 +64,7 @@ import UIKit
 
     @objc public var tabBarButtons: [TFYSwiftFlatDesignTabBarButton] { buttons }
 
-    @objc public override var tintColor: UIColor! {
+    open override var tintColor: UIColor! {
         get { _tintColor ?? super.tintColor ?? .systemBlue }
         set {
             _tintColor = newValue
@@ -192,6 +192,12 @@ import UIKit
 
     // MARK: - Hit Test
 
+    open override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        if super.point(inside: point, with: event) { return true }
+        guard let plus = plusButton ?? TFYSwiftExternPlusButton else { return false }
+        return plus.convert(plus.bounds, to: self).contains(point)
+    }
+
     open override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         if tfy_canNotResponseEvent() {
             return super.hitTest(point, with: event)
@@ -199,17 +205,19 @@ import UIKit
         if clipsToBounds, !self.point(inside: point, with: event) {
             return super.hitTest(point, with: event)
         }
-        if let plus = plusButton {
-            let frame = plus.convert(plus.touchableRect(), to: self)
-            if frame.contains(point), !hasPlusChildViewController() {
+        if let plus = plusButton ?? TFYSwiftExternPlusButton, plus.superview != nil {
+            let plusFrame = plus.convert(plus.bounds, to: self)
+            if plusFrame.contains(point), !plus.tfy_canNotResponseEvent() {
                 return plus
             }
-            if let superview = plus.superview,
-               superview.frame.contains(point),
-               superview.tfy_isPlaceholder,
-               superview.tfy_canNotResponseEvent(),
-               !plus.tfy_canNotResponseEvent() {
-                return plus
+            if let superview = plus.superview {
+                let superFrame = superview.convert(superview.bounds, to: self)
+                if superFrame.contains(point),
+                   superview.tfy_isPlaceholder,
+                   superview.tfy_canNotResponseEvent(),
+                   !plus.tfy_canNotResponseEvent() {
+                    return plus
+                }
             }
         }
         for button in tabBarButtons {
@@ -356,20 +364,28 @@ import UIKit
             plus.layer.contentsScale = tfy_getRootWindow()?.windowScene?.screen.scale ?? UIScreen.main.scale
         }
         plusButton = plus
+        plus.tfy_setTabBarController(tabBarController as? TFYSwiftTabBarController)
+        plus.isUserInteractionEnabled = true
         let placeholder = buttons[Int(TFYSwiftPlusButtonIndex)]
         guard placeholder.tabBarItem != nil else { return }
-        let offset = UIOffset(horizontal: 0, vertical: plus.constantOfPlusButtonCenterYOffsetForTabBarHeight())
-        plus.translatesAutoresizingMaskIntoConstraints = false
-        placeholder.tfy_coverVisiableTabImageViewOrTabButton(
-            true,
-            contentNewView: plus,
-            seclectContentNewView: plus,
-            offset: offset,
-            show: true,
-            delayIfNeededForSeconds: 0.1
-        ) { _, tabBarButton, _ in
-            tabBarButton.tfy_isPlaceholder = true
+        placeholder.tfy_isPlaceholder = true
+        placeholder.isUserInteractionEnabled = false
+        placeholder.imageView.image = nil
+        placeholder.imageView.isHidden = true
+        placeholder.titleLabel.text = nil
+        placeholder.titleLabel.isHidden = true
+        plus.translatesAutoresizingMaskIntoConstraints = true
+        if plus.superview !== contentView {
+            plus.removeFromSuperview()
+            contentView.addSubview(plus)
         }
+        contentView.bringSubviewToFront(plus)
+        let plusSize = plus.bounds.size == .zero ? CGSize(width: 55, height: 80) : plus.bounds.size
+        plus.bounds.size = plusSize
+        plus.center = CGPoint(
+            x: placeholder.frame.midX,
+            y: placeholder.frame.midY + plus.constantOfPlusButtonCenterYOffsetForTabBarHeight()
+        )
     }
 
     private func stopAnimationOfAllLottieView() {

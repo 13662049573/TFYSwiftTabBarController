@@ -147,10 +147,10 @@ public extension UITabBarItem {
 
     @objc func tfy_getActualBadgeSuperView() -> Any? {
         if let tabButton = tfy_tabButton {
-            if !TFYSwiftConstants.isLiquidGlassActive() {
-                return tabButton.tfy_getActualBadgeSuperView()
+            if tabButton.tfy_usesLiquidGlassBadgePlacement() {
+                return tabButton
             }
-            return tabButton
+            return tabButton.tfy_getActualBadgeSuperView()
         }
         return nil
     }
@@ -161,7 +161,7 @@ public extension UITabBarItem {
 
     private func tfy_performOnPlatterCounterparts(_ action: (UIView) -> Void) {
         guard let selfControl = tfy_tabButton else { return }
-        if !TFYSwiftConstants.isLiquidGlassActive() {
+        if !selfControl.tfy_usesLiquidGlassBadgePlacement() {
             if let view = tfy_getActualBadgeSuperViewFromControl(selfControl) {
                 action(view)
             }

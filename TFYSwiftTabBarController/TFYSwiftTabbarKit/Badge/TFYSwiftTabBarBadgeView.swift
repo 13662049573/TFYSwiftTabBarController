@@ -51,7 +51,7 @@ open class TFYSwiftTabBarBadgeView: UIView {
         label.translatesAutoresizingMaskIntoConstraints = false
         addSubview(label)
         bringSubviewToFront(label)
-        label.layer.zPosition = .greatestFiniteMagnitude
+        label.layer.zPosition = TFYSwiftLayerFrontZPosition
         return label
     }()
 

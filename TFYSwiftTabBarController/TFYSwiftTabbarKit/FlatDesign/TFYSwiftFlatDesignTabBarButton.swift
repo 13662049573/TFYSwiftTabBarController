@@ -12,6 +12,7 @@ import UIKit
     @objc public private(set) lazy var imageView: UIImageView = {
         let view = UIImageView()
         view.clipsToBounds = false
+        view.contentMode = .scaleAspectFit
         addSubview(view)
         return view
     }()
@@ -78,6 +79,14 @@ import UIKit
 
     private func updateTabBarButton() {
         guard let item = tabBarItem else { return }
+        if tfy_isPlaceholder {
+            imageView.image = nil
+            imageView.isHidden = true
+            titleLabel.text = nil
+            titleLabel.isHidden = true
+            backgroundColor = item.backgroundColor
+            return
+        }
         isEnabled = item.isEnabled
         var image = item.image
         if isSelected, let selected = item.selectedImage {
@@ -89,6 +98,9 @@ import UIKit
         let attrs = titleTextAttributesForState()
         titleLabel.textColor = attrs[.foregroundColor] as? UIColor
         titleLabel.font = attrs[.font] as? UIFont
+        let isPlaceholder = tfy_isPlaceholder || ((item.title?.isEmpty ?? true) && item.image == nil)
+        titleLabel.isHidden = isPlaceholder || (item.title?.isEmpty ?? true)
+        imageView.isHidden = isPlaceholder
         backgroundColor = isSelected
             ? (item.selectedBackgroundColor ?? item.backgroundColor)
             : item.backgroundColor
@@ -97,49 +109,64 @@ import UIKit
     }
 
     private func updateLayout() {
-        guard bounds != .zero, let item = tabBarItem else { return }
-        let isShowImage = imageView.image != nil
-        let isShowTitle = !(titleLabel.text?.isEmpty ?? true)
-        if isShowImage { imageView.sizeToFit() }
+        guard bounds != .zero else { return }
+        if tfy_isPlaceholder {
+            imageView.isHidden = true
+            titleLabel.isHidden = true
+            return
+        }
+        guard let item = tabBarItem else { return }
 
-        let title = isShowTitle ? (titleLabel.text ?? "") : "height"
+        let isShowTitle = !(titleLabel.text?.isEmpty ?? true)
         let font = titleLabel.font ?? UIFont.systemFont(ofSize: 10, weight: .medium)
-        let titleSize = (title as NSString).boundingRect(
-            with: CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude),
-            options: .usesLineFragmentOrigin,
-            attributes: [.font: font],
-            context: nil
-        ).size
+        let titleSize: CGSize
+        if isShowTitle {
+            titleSize = ((titleLabel.text ?? "") as NSString).boundingRect(
+                with: CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude),
+                options: .usesLineFragmentOrigin,
+                attributes: [.font: font],
+                context: nil
+            ).size
+        } else {
+            titleSize = .zero
+        }
 
         var titleX = (bounds.width - titleSize.width) / 2
         var titleY = bounds.height - titleSize.height - 2
-        if !isShowImage && item.layoutCentered {
+        if !isShowTitle && item.layoutCentered {
             titleY = (bounds.height - titleSize.height) / 2
         }
         titleX += item.titlePositionAdjustment.horizontal
         titleY += item.titlePositionAdjustment.vertical
         titleLabel.frame = CGRect(x: titleX, y: titleY, width: titleSize.width, height: titleSize.height)
+        titleLabel.isHidden = !isShowTitle
 
+        let isShowImage = imageView.image != nil
         if isShowImage {
-            let imageW = imageView.frame.width
-            let imageH = imageView.frame.height
-            var imageX = (bounds.width - imageW) / 2
-            var imageY = (titleLabel.frame.minY - imageH) / 2
+            let raw = imageView.image?.size ?? CGSize(width: 22, height: 22)
+            let side = min(22, max(raw.width, raw.height, 1))
+            var imageX = (bounds.width - side) / 2
+            var imageY = isShowTitle
+                ? max(0, (titleLabel.frame.minY - side) / 2)
+                : (bounds.height - side) / 2
             if !isShowTitle && item.layoutCentered {
-                imageY = (bounds.height - imageH) / 2
+                imageY = (bounds.height - side) / 2
             }
             imageX += item.imagePositionAdjustment.horizontal
             imageY += item.imagePositionAdjustment.vertical
-            imageView.frame = CGRect(x: imageX, y: imageY, width: imageW, height: imageH)
-            let insets = item.imageInsets
-            if insets != .zero {
-                imageView.frame.size.width -= (insets.left + insets.right)
-                imageView.frame.size.height -= (insets.top + insets.bottom)
-            }
+            imageView.frame = CGRect(x: imageX, y: imageY, width: side, height: side)
+            imageView.isHidden = tfy_lottieAnimationView() != nil
         } else {
             imageView.frame = .zero
+            imageView.isHidden = true
         }
         initLottie()
+        if let lottie = tfy_lottieAnimationView() {
+            lottie.translatesAutoresizingMaskIntoConstraints = true
+            lottie.frame = imageView.frame == .zero
+                ? CGRect(x: (bounds.width - 22) / 2, y: max(0, (titleLabel.frame.minY - 22) / 2), width: 22, height: 22)
+                : imageView.frame
+        }
     }
 
     private func titleTextAttributesForState() -> [NSAttributedString.Key: Any] {
@@ -163,11 +190,20 @@ import UIKit
     }
 
     private func initLottie() {
+        guard !tfy_isPlaceholder else { return }
         guard let path = tabBarItem?.lottieFilePath,
               let url = TFYSwiftConstants.tfy_getURL(from: path) else { return }
-        let size = tabBarItem?.lottieSizeValue?.cgSizeValue ?? .zero
+        let size = tabBarItem?.lottieSizeValue?.cgSizeValue ?? CGSize(width: 22, height: 22)
+        let resolved = size == .zero ? CGSize(width: 22, height: 22) : size
         let mode = tfy_tabBarController?.lottieAnimationViewContentMode() ?? .scaleAspectFit
-        tfy_addLottieImage(withLottieURL: url, size: size, contentMode: mode)
+        tfy_addLottieImage(withLottieURL: url, size: resolved, contentMode: mode)
+        titleLabel.isHidden = titleLabel.text?.isEmpty ?? true
+        if let lottie = tfy_lottieAnimationView() {
+            lottie.translatesAutoresizingMaskIntoConstraints = true
+            lottie.frame = imageView.frame == .zero
+                ? CGRect(x: (bounds.width - 22) / 2, y: max(0, (titleLabel.frame.minY - 22) / 2), width: 22, height: 22)
+                : imageView.frame
+        }
     }
 
     private func updateLottie() {

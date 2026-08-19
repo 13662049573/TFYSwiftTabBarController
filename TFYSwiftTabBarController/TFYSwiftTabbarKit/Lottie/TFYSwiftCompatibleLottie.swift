@@ -8,13 +8,12 @@
 
 
 import Foundation
-
 import Lottie
 import UIKit
 
 /// An Objective-C compatible wrapper around Lottie's Animation class.
 /// Use in tandem with CompatibleAnimationView when using Lottie in Objective-C
-@objc
+@objc(TFYSwiftCompatibleLOTAnimation)
 public final class TFYSwiftCompatibleLOTAnimation: NSObject {
     
     // MARK: Lifecycle
@@ -24,6 +23,15 @@ public final class TFYSwiftCompatibleLOTAnimation: NSObject {
     {
         self.filepath = filepath
         super.init()
+    }
+
+    /// Direct Swift factory — do not construct this type via `NSObject.perform`.
+    @objc public static func loadRuntime() {
+        TFYSwiftMakeCompatibleLottieView = { filePath, size in
+            let view = TFYSwiftCompatibleLOTAnimationView.animationView(withFilePath: filePath)
+            view.frame = CGRect(origin: .zero, size: size)
+            return view
+        }
     }
     
     
@@ -43,7 +51,7 @@ public final class TFYSwiftCompatibleLOTAnimation: NSObject {
 
 
 /// An Objective-C compatible wrapper around Lottie's LottieAnimationView.
-@objc
+@objc(TFYSwiftCompatibleLOTAnimationView)
 public final class TFYSwiftCompatibleLOTAnimationView: UIView {
     
     // MARK: Lifecycle
@@ -53,6 +61,13 @@ public final class TFYSwiftCompatibleLOTAnimationView: UIView {
     @objc
     public convenience init(compatibleAnimation: TFYSwiftCompatibleLOTAnimation) {
         self.init(compatibleAnimation: compatibleAnimation, compatibleRenderingEngineOption: .shared)
+    }
+
+    /// Factory for `NSClassFromString` in the core target (cannot import this module).
+    @objc public static func animationView(withFilePath filePath: String) -> TFYSwiftCompatibleLOTAnimationView {
+        TFYSwiftCompatibleLOTAnimationView(
+            compatibleAnimation: TFYSwiftCompatibleLOTAnimation(filepath: filePath)
+        )
     }
     
     /// Initializes a compatible AnimationView with a given compatible animation and rendering engine

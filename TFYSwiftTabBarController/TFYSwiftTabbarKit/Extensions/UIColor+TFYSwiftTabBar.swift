@@ -57,8 +57,8 @@ extension UIColor {
 
     // MARK: - Other
 
-    static var tfy_lightTextColor: UIColor { tfy_systemColor(.lightText, fallback: tfy_rgba(255, 255, 255, 0.6)) }
-    static var tfy_darkTextColor: UIColor { tfy_systemColor(.darkText, fallback: tfy_rgba(0, 0, 0, 1)) }
+    static var tfy_lightTextColor: UIColor { tfy_rgba(255, 255, 255, 0.6) }
+    static var tfy_darkTextColor: UIColor { tfy_rgba(0, 0, 0, 1) }
 
     /// Deprecated in CYL 1.27.5; kept for API parity.
     static var tfy_systemBrownColor: UIColor? { nil }
@@ -81,7 +81,6 @@ extension UIColor {
         case systemBackground, secondarySystemBackground, tertiarySystemBackground
         case systemGroupedBackground, secondarySystemGroupedBackground, tertiarySystemGroupedBackground
         case systemFill, secondarySystemFill, tertiarySystemFill, quaternarySystemFill
-        case lightText, darkText
 
         @available(iOS 13.0, *)
         func color() -> UIColor {
@@ -119,8 +118,6 @@ extension UIColor {
             case .secondarySystemFill: return .secondarySystemFill
             case .tertiarySystemFill: return .tertiarySystemFill
             case .quaternarySystemFill: return .quaternarySystemFill
-            case .lightText: return .lightText
-            case .darkText: return .darkText
             }
         }
     }

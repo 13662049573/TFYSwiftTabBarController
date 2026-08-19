@@ -9,10 +9,6 @@
 import UIKit
 import ObjectiveC
 
-#if canImport(Lottie)
-import Lottie
-#endif
-
 // MARK: - UITabBar (platter / bounds — not duplicated in UIView+TFYSwiftTabBar)
 
 public extension UITabBar {
@@ -72,12 +68,7 @@ public extension UITabBar {
     }
 
     @objc func tfy_platterLiquidLensViewContentView() -> UIView? {
-        let selector = NSSelectorFromString("sourceView")
-        if let portal = tfy_portalView,
-           portal.responds(to: selector),
-           let source = portal.perform(selector)?.takeUnretainedValue() as? UIView {
-            return source
-        }
+        if let source = tfy_portalView?.tfy_valueForKey("sourceView") as? UIView { return source }
         guard let lens = tfy_platterLiquidLensView() else { return nil }
         return lens.subviews.first
     }
@@ -96,6 +87,28 @@ public extension UITabBar {
 
     @objc func tfy_platterVisualProviderFloatingSelectedContentView() -> UIView? {
         tfy_platterView?.subviews.first { $0.tfy_isPlatterVisualProviderFloatingSelectedContentView() }
+    }
+
+    @objc func tfy_platterViews() -> [UIView] { [] }
+
+    @objc func tfy_platterView(withIndex index: Int) -> UIView? {
+        let views = tfy_platterViews()
+        guard index >= 0, index < views.count else { return nil }
+        return views[index]
+    }
+
+    @objc func tfy_platterContentViews() -> [UIControl] { tfy_tabBarSubviews() }
+
+    @objc func tfy_platterPortalViews() -> [UIView] { [] }
+
+    @objc func tfy_platterPortalView(withIndex index: Int) -> UIView? {
+        let views = tfy_platterPortalViews()
+        guard index >= 0, index < views.count else { return nil }
+        return views[index]
+    }
+
+    @objc func tfy_platterSelectedContentView() -> UIView? {
+        tfy_platterView?.subviews.first { $0.tfy_isPlatterSelectedContentView() }
     }
 
     @objc func tfy_platterSelectedContentViewsWithoutPlusButton() -> [UIControl] {
@@ -120,9 +133,7 @@ public extension UITabBar {
     }
 
     @objc func tfy_tabBarButton(withTabIndex tabIndex: UInt) -> UIControl? {
-        let plusIndex = TFYSwiftPlusChildViewController.flatMap {
-            tfy_tabBarController?.viewControllers?.firstIndex(of: $0)
-        } ?? NSNotFound
+        let plusIndex = tfy_tabBarController?.viewControllers?.firstIndex(where: { $0 === TFYSwiftPlusChildViewController }) ?? NSNotFound
         let isPlusAdded = (TFYSwiftPlusChildViewController?.tfy_plusViewControllerEverAdded ?? false) && plusIndex != NSNotFound
         if isPlusAdded { return tfy_visibleControl(withIndex: tabIndex) }
         let withoutPlus = tfy_subTabBarButtonsWithoutPlusButton()
@@ -134,12 +145,6 @@ public extension UITabBar {
         let controls = tfy_visibleControls()
         guard index < controls.count else { return nil }
         return controls[Int(index)]
-    }
-
-    @objc func tfy_platterContentView(withIndex index: Int) -> UIControl? {
-        let views = tfy_platterContentViews()
-        guard index >= 0, index < views.count else { return nil }
-        return views[index]
     }
 }
 
@@ -153,7 +158,7 @@ public extension TFYSwiftTabBar {
                 return stored
             }
             return tfy_platterSelectedContentViews().first
-                ?? tfy_platterContentViews().first
+                ?? tfy_tabBarSubviews().first
                 ?? tfy_visibleControls().first
         }
         set {
@@ -194,9 +199,8 @@ public extension TFYSwiftTabBar {
 
     @objc func tfy_cachedWidthOffset(withIndex index: CGFloat) -> CGFloat {
         guard TFYSwiftConstants.isLiquidGlassActive() else { return 0 }
-        guard tabBarItemsCount > 0 else { return 0 }
-        let originalWidth = tfy_boundsSize().width / CGFloat(tabBarItemsCount)
-        return abs(originalWidth - tabBarItemWidth)
+        let originalWidth = tfy_boundsSize().width / CGFloat(TFYSwiftTabbarItemsCount)
+        return abs(originalWidth - TFYSwiftTabBarItemWidth)
     }
 
     @objc func tfy_animationLottieImage(
@@ -206,7 +210,6 @@ public extension TFYSwiftTabBar {
         defaultSelected: Bool,
         contentMode: UIView.ContentMode
     ) {
-        #if canImport(Lottie)
         guard let lottieURL else { return }
         selectedControl.tfy_animationLottieImage(
             withLottieURL: lottieURL,
@@ -214,16 +217,11 @@ public extension TFYSwiftTabBar {
             defaultSelected: defaultSelected,
             contentMode: contentMode
         )
-        #else
-        _ = (selectedControl, lottieURL, size, defaultSelected, contentMode)
-        #endif
     }
 
     @objc func tfy_stopAnimationOfAllLottieView() {
-        #if canImport(Lottie)
         tfy_visibleControls().forEach { $0.tfy_stopAnimationOfLottieView() }
         tfy_platterSelectedContentViews().forEach { $0.tfy_stopAnimationOfLottieView() }
-        #endif
     }
 
     @objc func tfy_shouldUpdateHiddenStatueForPlusButtonLabel() -> Bool {
@@ -263,6 +261,10 @@ func tfy_noNeedUIDesignRequiresCompatibilityWithIOS26(tabBarController: TFYSwift
     tfy_isIOS26 && (tabBarController?.noNeedUIDesignCompatibility ?? false)
 }
 
-private extension UITabBar {
-    func tfy_platterContentViews() -> [UIControl] { tfy_tabBarSubviews() }
+extension UITabBar {
+    @objc func tfy_platterContentViewWithIndex(_ index: Int) -> UIControl? {
+        let views = tfy_tabBarSubviews()
+        guard index >= 0, index < views.count else { return nil }
+        return views[index]
+    }
 }

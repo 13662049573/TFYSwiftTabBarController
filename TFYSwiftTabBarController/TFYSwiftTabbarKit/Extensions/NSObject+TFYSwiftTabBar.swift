@@ -6,8 +6,11 @@
 //  and NSObject (CYLTabBarControllerReferenceExtension) in CYLTabBarController.h
 //
 
-import UIKit
 import ObjectiveC
+#if SWIFT_PACKAGE
+import TFYSwiftKVCCatch
+#endif
+import UIKit
 
 // MARK: - String
 
@@ -29,7 +32,7 @@ private var tfyTabBarControllerKey: UInt8 = 0
 
 // MARK: - NSObject (TabBar Extension)
 
-extension NSObject {
+public extension NSObject {
 
     var tfy_context: String {
         get {
@@ -89,6 +92,10 @@ extension NSObject {
             if let block = objc_getAssociatedObject(self, &tfyTabBarControllerKey) as? () -> AnyObject? {
                 return block() as? TFYSwiftTabBarController
             }
+            if let viewController = self as? UIViewController,
+               let controller = viewController.tabBarController as? TFYSwiftTabBarController {
+                return controller
+            }
             return nil
         }
         set {
@@ -103,13 +110,10 @@ extension NSObject {
     }
 
     func tfy_sharedAppDelegate() -> (UIResponder & UIApplicationDelegate) {
-        guard let delegate = UIApplication.shared.delegate else {
-            fatalError("UIApplication.shared.delegate is nil")
+        guard let delegate = UIApplication.shared.delegate as? (UIResponder & UIApplicationDelegate) else {
+            fatalError("UIApplication.shared.delegate is nil or not UIResponder & UIApplicationDelegate")
         }
-        if let responder = delegate as? UIResponder & UIApplicationDelegate {
-            return responder
-        }
-        fatalError("UIApplication.shared.delegate is not UIResponder")
+        return delegate
     }
 
     func tfy_forceUpdateInterfaceOrientation(_ orientation: UIInterfaceOrientation) {
@@ -142,6 +146,11 @@ extension NSObject {
             UIViewController.attemptRotationToDeviceOrientation()
             UIDevice.current.setValue(orientation.rawValue, forKey: "orientation")
         }
+    }
+
+    @objc(tfy_valueForKey:)
+    func tfy_valueForKey(_ key: String) -> Any? {
+        TFYSwiftKVCHelper.value(forKey: key, from: self)
     }
 
     @objc(tfy_setValue:forKey:)
@@ -212,6 +221,25 @@ extension NSObject {
         TFYSwiftKVCHelper.removeObserver(observer, forKeyPath: keyPath, from: self)
     }
 
+    /// OC `cyl_performSelector:` — nil-safe wrapper around `perform(_:with:with:)`.
+    @objc(tfy_performSelector:)
+    func tfy_performSelector(_ aSelector: Selector?) {
+        guard let aSelector else { return }
+        tfy_performSelector(aSelector, with: nil)
+    }
+
+    @objc(tfy_performSelector:withObject:)
+    func tfy_performSelector(_ aSelector: Selector?, with object: Any?) {
+        guard let aSelector else { return }
+        tfy_performSelector(aSelector, with: object, with: nil)
+    }
+
+    @objc(tfy_performSelector:withObject:withObject:)
+    func tfy_performSelector(_ aSelector: Selector?, with object1: Any?, with object2: Any?) {
+        guard let aSelector else { return }
+        _ = perform(aSelector, with: object1, with: object2)
+    }
+
     // MARK: - Class Methods
 
     @objc class func tfy_topmostViewController() -> UIViewController? {
@@ -271,11 +299,16 @@ extension NSObject {
     }
 }
 
-// MARK: - Objective-C runtime helpers
+// MARK: - KVC Helper (NSException-safe)
 
 enum TFYSwiftKVCHelper {
+    /// OC `cyl_valueForKey:` uses `@try/@catch`. Swift cannot catch `NSException`.
+    static func value(forKey key: String, from object: NSObject) -> Any? {
+        TFYSwiftSafeValueForKey(object, key)
+    }
+
     static func setValue(_ value: Any?, forKey key: String, on object: NSObject) {
-        object.setValue(value, forKey: key)
+        TFYSwiftSafeSetValueForKey(object, value, key)
     }
 
     static func removeObserver(_ observer: NSObject, forKeyPath keyPath: String, from object: NSObject) {

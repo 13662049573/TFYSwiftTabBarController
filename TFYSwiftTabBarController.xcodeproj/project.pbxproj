@@ -7,9 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		09C01651F539408C93085943 /* DemoFactories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BFDAE670EB34350A703C4A5 /* DemoFactories.swift */; };
 		0A4BB6D5AD4A2D53B36C5D50 /* Pods_TFYSwiftTabBarControllerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1C0D599B12B3964A78C16E8 /* Pods_TFYSwiftTabBarControllerTests.framework */; };
-		3654A9202E7AFDA5008B1DF0 /* AllDemosViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3654A91F2E7AFDA5008B1DF0 /* AllDemosViewController.swift */; };
 		3666A58928220B0D0054F22E /* Pods_TFYSwiftTabBarController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7225CA48D6E76B8327E2B824 /* Pods_TFYSwiftTabBarController.framework */; };
 		369F464726421E56002D8566 /* TFYSwiftTabBarControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F464626421E56002D8566 /* TFYSwiftTabBarControllerTests.swift */; };
 		369F465226421E56002D8566 /* TFYSwiftTabBarControllerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F465126421E56002D8566 /* TFYSwiftTabBarControllerUITests.swift */; };
@@ -17,38 +15,6 @@
 		369F466D26421EAE002D8566 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369F466326421EAD002D8566 /* SceneDelegate.swift */; };
 		369F466E26421EAE002D8566 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 369F466526421EAD002D8566 /* Assets.xcassets */; };
 		369F466F26421EAE002D8566 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 369F466626421EAD002D8566 /* LaunchScreen.storyboard */; };
-		56644AB45E32442ABF1FCEFA /* DemoSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD4B3D988E1E4F1E842FCA51 /* DemoSupport.swift */; };
-		7EB27D62F6974AB08A11943A /* DemoPlusButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25933383ECE5498BA63C300E /* DemoPlusButtons.swift */; };
-		843B1CB23029B35400D50057 /* UIControl+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA33029B35400D50057 /* UIControl+TFYSwiftTabBar.swift */; };
-		843B1CB33029B35400D50057 /* TFYSwiftBaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C993029B35400D50057 /* TFYSwiftBaseViewController.swift */; };
-		843B1CB43029B35400D50057 /* TFYSwiftConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C9A3029B35400D50057 /* TFYSwiftConstants.swift */; };
-		843B1CB53029B35400D50057 /* TFYSwiftTabBar+Extention.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C9D3029B35400D50057 /* TFYSwiftTabBar+Extention.swift */; };
-		843B1CB63029B35400D50057 /* TFYSwiftFlatDesignTabBarHideTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CAD3029B35400D50057 /* TFYSwiftFlatDesignTabBarHideTabBar.swift */; };
-		843B1CB73029B35400D50057 /* TFYSwiftBadgeProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C903029B35400D50057 /* TFYSwiftBadgeProtocol.swift */; };
-		843B1CB83029B35400D50057 /* TFYSwiftFlatDesignPrivate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CAA3029B35400D50057 /* TFYSwiftFlatDesignPrivate.swift */; };
-		843B1CB93029B35400D50057 /* TFYSwiftBaseNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C973029B35400D50057 /* TFYSwiftBaseNavigationController.swift */; };
-		843B1CBA3029B35400D50057 /* UIViewController+TFYSwiftNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA73029B35400D50057 /* UIViewController+TFYSwiftNavigation.swift */; };
-		843B1CBB3029B35400D50057 /* TFYSwiftFlatDesignTabBarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CAC3029B35400D50057 /* TFYSwiftFlatDesignTabBarButton.swift */; };
-		843B1CBC3029B35400D50057 /* UIControl+TFYSwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C933029B35400D50057 /* UIControl+TFYSwiftBadge.swift */; };
-		843B1CBD3029B35400D50057 /* TFYSwiftCompatibleLottie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CB03029B35400D50057 /* TFYSwiftCompatibleLottie.swift */; };
-		843B1CBE3029B35400D50057 /* TFYSwiftTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C9E3029B35400D50057 /* TFYSwiftTabBarController.swift */; };
-		843B1CBF3029B35400D50057 /* UIColor+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA23029B35400D50057 /* UIColor+TFYSwiftTabBar.swift */; };
-		843B1CC03029B35400D50057 /* TFYSwiftPlusButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C9B3029B35400D50057 /* TFYSwiftPlusButton.swift */; };
-		843B1CC13029B35400D50057 /* TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C9C3029B35400D50057 /* TFYSwiftTabBar.swift */; };
-		843B1CC23029B35400D50057 /* UIViewController+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA83029B35400D50057 /* UIViewController+TFYSwiftTabBar.swift */; };
-		843B1CC33029B35400D50057 /* UITabBarItem+TFYSwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C943029B35400D50057 /* UITabBarItem+TFYSwiftBadge.swift */; };
-		843B1CC43029B35400D50057 /* TFYSwiftAssociatedStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA13029B35400D50057 /* TFYSwiftAssociatedStorage.swift */; };
-		843B1CC53029B35400D50057 /* UIImage+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA43029B35400D50057 /* UIImage+TFYSwiftTabBar.swift */; };
-		843B1CC63029B35400D50057 /* UIBarButtonItem+TFYSwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C923029B35400D50057 /* UIBarButtonItem+TFYSwiftBadge.swift */; };
-		843B1CC73029B35400D50057 /* TFYSwiftFlatDesignTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CAB3029B35400D50057 /* TFYSwiftFlatDesignTabBar.swift */; };
-		843B1CC83029B35400D50057 /* CAAnimation+TFYSwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C8F3029B35400D50057 /* CAAnimation+TFYSwiftBadge.swift */; };
-		843B1CC93029B35400D50057 /* UIView+TFYSwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C953029B35400D50057 /* UIView+TFYSwiftBadge.swift */; };
-		843B1CCA3029B35400D50057 /* TFYSwiftBaseTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C983029B35400D50057 /* TFYSwiftBaseTableViewController.swift */; };
-		843B1CCB3029B35400D50057 /* UIView+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA63029B35400D50057 /* UIView+TFYSwiftTabBar.swift */; };
-		843B1CCC3029B35400D50057 /* UITabBarItem+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA53029B35400D50057 /* UITabBarItem+TFYSwiftTabBar.swift */; };
-		843B1CCD3029B35400D50057 /* TFYSwiftFlatDesignTabBarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CAE3029B35400D50057 /* TFYSwiftFlatDesignTabBarItem.swift */; };
-		843B1CCE3029B35400D50057 /* TFYSwiftTabBarBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1C913029B35400D50057 /* TFYSwiftTabBarBadgeView.swift */; };
-		843B1CCF3029B35400D50057 /* NSObject+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B1CA03029B35400D50057 /* NSObject+TFYSwiftTabBar.swift */; };
 		843B1CE33029CFC400D50057 /* green_lottie_tab_news.json in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CD63029CFC400D50057 /* green_lottie_tab_news.json */; };
 		843B1CE43029CFC400D50057 /* gray_tabbar_me_animation.json in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CD13029CFC400D50057 /* gray_tabbar_me_animation.json */; };
 		843B1CE53029CFC400D50057 /* tab_search_animate.json in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CE13029CFC400D50057 /* tab_search_animate.json */; };
@@ -67,6 +33,47 @@
 		843B1CF23029CFC400D50057 /* img_tab_home_2.png in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CD93029CFC400D50057 /* img_tab_home_2.png */; };
 		843B1CF33029CFC400D50057 /* tab_home_animate.json in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CDE3029CFC400D50057 /* tab_home_animate.json */; };
 		843B1CF43029CFC400D50057 /* img_tab_home_1.png in Resources */ = {isa = PBXBuildFile; fileRef = 843B1CD83029CFC400D50057 /* img_tab_home_1.png */; };
+		845A82823035844B00BD703A /* UITabBarItem+TFYSwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82653035844B00BD703A /* UITabBarItem+TFYSwiftBadge.swift */; };
+		845A82833035844B00BD703A /* TFYSwiftTabBarBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82623035844B00BD703A /* TFYSwiftTabBarBadgeView.swift */; };
+		845A82843035844B00BD703A /* UIView+TFYSwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82663035844B00BD703A /* UIView+TFYSwiftBadge.swift */; };
+		845A82853035844B00BD703A /* TFYSwiftBadgeProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82613035844B00BD703A /* TFYSwiftBadgeProtocol.swift */; };
+		845A82863035844B00BD703A /* UIColor+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82733035844B00BD703A /* UIColor+TFYSwiftTabBar.swift */; };
+		845A82873035844B00BD703A /* UITabBarItem+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82763035844B00BD703A /* UITabBarItem+TFYSwiftTabBar.swift */; };
+		845A82883035844B00BD703A /* TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A826D3035844B00BD703A /* TFYSwiftTabBar.swift */; };
+		845A82893035844B00BD703A /* TFYSwiftTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A826F3035844B00BD703A /* TFYSwiftTabBarController.swift */; };
+		845A828A3035844B00BD703A /* TFYSwiftTabBarController+FlatDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82803035844B00BD703A /* TFYSwiftTabBarController+FlatDesign.swift */; };
+		845A828B3035844B00BD703A /* UIImage+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82753035844B00BD703A /* UIImage+TFYSwiftTabBar.swift */; };
+		845A828C3035844B00BD703A /* TFYSwiftFlatDesignTabBarHideTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A827E3035844B00BD703A /* TFYSwiftFlatDesignTabBarHideTabBar.swift */; };
+		845A828D3035844B00BD703A /* TFYSwiftFlatDesignTabBarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A827F3035844B00BD703A /* TFYSwiftFlatDesignTabBarItem.swift */; };
+		845A828E3035844B00BD703A /* TFYSwiftPlusButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A826C3035844B00BD703A /* TFYSwiftPlusButton.swift */; };
+		845A828F3035844B00BD703A /* TFYSwiftFlatDesignTabBarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A827D3035844B00BD703A /* TFYSwiftFlatDesignTabBarButton.swift */; };
+		845A82903035844B00BD703A /* TFYSwiftFlatDesignTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A827C3035844B00BD703A /* TFYSwiftFlatDesignTabBar.swift */; };
+		845A82913035844B00BD703A /* UIViewController+TFYSwiftNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82783035844B00BD703A /* UIViewController+TFYSwiftNavigation.swift */; };
+		845A82923035844B00BD703A /* TFYSwiftBaseNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82683035844B00BD703A /* TFYSwiftBaseNavigationController.swift */; };
+		845A82933035844B00BD703A /* UIBarButtonItem+TFYSwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82633035844B00BD703A /* UIBarButtonItem+TFYSwiftBadge.swift */; };
+		845A82943035844B00BD703A /* TFYSwiftAssociatedStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82723035844B00BD703A /* TFYSwiftAssociatedStorage.swift */; };
+		845A82953035844B00BD703A /* TFYSwiftTabBar+Extention.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A826E3035844B00BD703A /* TFYSwiftTabBar+Extention.swift */; };
+		845A82963035844B00BD703A /* TFYSwiftBaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A826A3035844B00BD703A /* TFYSwiftBaseViewController.swift */; };
+		845A82973035844B00BD703A /* CAAnimation+TFYSwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82603035844B00BD703A /* CAAnimation+TFYSwiftBadge.swift */; };
+		845A82983035844B00BD703A /* TFYSwiftConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A826B3035844B00BD703A /* TFYSwiftConstants.swift */; };
+		845A82993035844B00BD703A /* TFYSwiftFlatDesignPrivate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A827B3035844B00BD703A /* TFYSwiftFlatDesignPrivate.swift */; };
+		845A829A3035844B00BD703A /* UIViewController+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82793035844B00BD703A /* UIViewController+TFYSwiftTabBar.swift */; };
+		845A829B3035844B00BD703A /* NSObject+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82713035844B00BD703A /* NSObject+TFYSwiftTabBar.swift */; };
+		845A829C3035844B00BD703A /* TFYSwiftBaseTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82693035844B00BD703A /* TFYSwiftBaseTableViewController.swift */; };
+		845A829D3035844B00BD703A /* UIView+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82773035844B00BD703A /* UIView+TFYSwiftTabBar.swift */; };
+		845A829E3035844B00BD703A /* UIControl+TFYSwiftTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82743035844B00BD703A /* UIControl+TFYSwiftTabBar.swift */; };
+		845A829F3035844B00BD703A /* UIControl+TFYSwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82643035844B00BD703A /* UIControl+TFYSwiftBadge.swift */; };
+		845A82A33035848700BD703A /* TFYSwiftKVCCatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 845A82A13035848700BD703A /* TFYSwiftKVCCatch.m */; };
+		845A82A6303584AC00BD703A /* TFYSwiftCompatibleLottie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82A4303584AC00BD703A /* TFYSwiftCompatibleLottie.swift */; };
+		845A82B0303584CE00BD703A /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82AA303584CE00BD703A /* HomeViewController.swift */; };
+		845A82B1303584CE00BD703A /* PlusButtonSubclass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82AE303584CE00BD703A /* PlusButtonSubclass.swift */; };
+		845A82B2303584CE00BD703A /* PublishViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82AF303584CE00BD703A /* PublishViewController.swift */; };
+		845A82B3303584CE00BD703A /* CityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82A7303584CE00BD703A /* CityViewController.swift */; };
+		845A82B4303584CE00BD703A /* MainTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82AB303584CE00BD703A /* MainTabBarController.swift */; };
+		845A82B5303584CE00BD703A /* DemoRootNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82A8303584CE00BD703A /* DemoRootNavigationController.swift */; };
+		845A82B6303584CE00BD703A /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82A9303584CE00BD703A /* DetailViewController.swift */; };
+		845A82B7303584CE00BD703A /* MineViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82AD303584CE00BD703A /* MineViewController.swift */; };
+		845A82B8303584CE00BD703A /* MessageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845A82AC303584CE00BD703A /* MessageViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -87,8 +94,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		25933383ECE5498BA63C300E /* DemoPlusButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoPlusButtons.swift; sourceTree = "<group>"; };
-		3654A91F2E7AFDA5008B1DF0 /* AllDemosViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllDemosViewController.swift; sourceTree = "<group>"; };
 		369F462C26421E55002D8566 /* TFYSwiftTabBarController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TFYSwiftTabBarController.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		369F464226421E56002D8566 /* TFYSwiftTabBarControllerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TFYSwiftTabBarControllerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		369F464626421E56002D8566 /* TFYSwiftTabBarControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarControllerTests.swift; sourceTree = "<group>"; };
@@ -103,36 +108,6 @@
 		369F466A26421EAD002D8566 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3ED0DD7FF3393B7F53426101 /* Pods-TFYSwiftTabBarController.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarController.debug.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarController/Pods-TFYSwiftTabBarController.debug.xcconfig"; sourceTree = "<group>"; };
 		7225CA48D6E76B8327E2B824 /* Pods_TFYSwiftTabBarController.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TFYSwiftTabBarController.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		843B1C8F3029B35400D50057 /* CAAnimation+TFYSwiftBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CAAnimation+TFYSwiftBadge.swift"; sourceTree = "<group>"; };
-		843B1C903029B35400D50057 /* TFYSwiftBadgeProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftBadgeProtocol.swift; sourceTree = "<group>"; };
-		843B1C913029B35400D50057 /* TFYSwiftTabBarBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarBadgeView.swift; sourceTree = "<group>"; };
-		843B1C923029B35400D50057 /* UIBarButtonItem+TFYSwiftBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIBarButtonItem+TFYSwiftBadge.swift"; sourceTree = "<group>"; };
-		843B1C933029B35400D50057 /* UIControl+TFYSwiftBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIControl+TFYSwiftBadge.swift"; sourceTree = "<group>"; };
-		843B1C943029B35400D50057 /* UITabBarItem+TFYSwiftBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITabBarItem+TFYSwiftBadge.swift"; sourceTree = "<group>"; };
-		843B1C953029B35400D50057 /* UIView+TFYSwiftBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+TFYSwiftBadge.swift"; sourceTree = "<group>"; };
-		843B1C973029B35400D50057 /* TFYSwiftBaseNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftBaseNavigationController.swift; sourceTree = "<group>"; };
-		843B1C983029B35400D50057 /* TFYSwiftBaseTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftBaseTableViewController.swift; sourceTree = "<group>"; };
-		843B1C993029B35400D50057 /* TFYSwiftBaseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftBaseViewController.swift; sourceTree = "<group>"; };
-		843B1C9A3029B35400D50057 /* TFYSwiftConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftConstants.swift; sourceTree = "<group>"; };
-		843B1C9B3029B35400D50057 /* TFYSwiftPlusButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftPlusButton.swift; sourceTree = "<group>"; };
-		843B1C9C3029B35400D50057 /* TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBar.swift; sourceTree = "<group>"; };
-		843B1C9D3029B35400D50057 /* TFYSwiftTabBar+Extention.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TFYSwiftTabBar+Extention.swift"; sourceTree = "<group>"; };
-		843B1C9E3029B35400D50057 /* TFYSwiftTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarController.swift; sourceTree = "<group>"; };
-		843B1CA03029B35400D50057 /* NSObject+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSObject+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
-		843B1CA13029B35400D50057 /* TFYSwiftAssociatedStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftAssociatedStorage.swift; sourceTree = "<group>"; };
-		843B1CA23029B35400D50057 /* UIColor+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
-		843B1CA33029B35400D50057 /* UIControl+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIControl+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
-		843B1CA43029B35400D50057 /* UIImage+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
-		843B1CA53029B35400D50057 /* UITabBarItem+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITabBarItem+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
-		843B1CA63029B35400D50057 /* UIView+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
-		843B1CA73029B35400D50057 /* UIViewController+TFYSwiftNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+TFYSwiftNavigation.swift"; sourceTree = "<group>"; };
-		843B1CA83029B35400D50057 /* UIViewController+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
-		843B1CAA3029B35400D50057 /* TFYSwiftFlatDesignPrivate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftFlatDesignPrivate.swift; sourceTree = "<group>"; };
-		843B1CAB3029B35400D50057 /* TFYSwiftFlatDesignTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftFlatDesignTabBar.swift; sourceTree = "<group>"; };
-		843B1CAC3029B35400D50057 /* TFYSwiftFlatDesignTabBarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftFlatDesignTabBarButton.swift; sourceTree = "<group>"; };
-		843B1CAD3029B35400D50057 /* TFYSwiftFlatDesignTabBarHideTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftFlatDesignTabBarHideTabBar.swift; sourceTree = "<group>"; };
-		843B1CAE3029B35400D50057 /* TFYSwiftFlatDesignTabBarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftFlatDesignTabBarItem.swift; sourceTree = "<group>"; };
-		843B1CB03029B35400D50057 /* TFYSwiftCompatibleLottie.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftCompatibleLottie.swift; sourceTree = "<group>"; };
 		843B1CD03029CFC400D50057 /* gray_tabbar_home_animation.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gray_tabbar_home_animation.json; sourceTree = "<group>"; };
 		843B1CD13029CFC400D50057 /* gray_tabbar_me_animation.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gray_tabbar_me_animation.json; sourceTree = "<group>"; };
 		843B1CD23029CFC400D50057 /* gray_tabbar_message_animation.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gray_tabbar_message_animation.json; sourceTree = "<group>"; };
@@ -151,11 +126,52 @@
 		843B1CDF3029CFC400D50057 /* tab_me_animate.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = tab_me_animate.json; sourceTree = "<group>"; };
 		843B1CE03029CFC400D50057 /* tab_message_animate.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = tab_message_animate.json; sourceTree = "<group>"; };
 		843B1CE13029CFC400D50057 /* tab_search_animate.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = tab_search_animate.json; sourceTree = "<group>"; };
-		8BFDAE670EB34350A703C4A5 /* DemoFactories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoFactories.swift; sourceTree = "<group>"; };
+		845A82603035844B00BD703A /* CAAnimation+TFYSwiftBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CAAnimation+TFYSwiftBadge.swift"; sourceTree = "<group>"; };
+		845A82613035844B00BD703A /* TFYSwiftBadgeProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftBadgeProtocol.swift; sourceTree = "<group>"; };
+		845A82623035844B00BD703A /* TFYSwiftTabBarBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarBadgeView.swift; sourceTree = "<group>"; };
+		845A82633035844B00BD703A /* UIBarButtonItem+TFYSwiftBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIBarButtonItem+TFYSwiftBadge.swift"; sourceTree = "<group>"; };
+		845A82643035844B00BD703A /* UIControl+TFYSwiftBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIControl+TFYSwiftBadge.swift"; sourceTree = "<group>"; };
+		845A82653035844B00BD703A /* UITabBarItem+TFYSwiftBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITabBarItem+TFYSwiftBadge.swift"; sourceTree = "<group>"; };
+		845A82663035844B00BD703A /* UIView+TFYSwiftBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+TFYSwiftBadge.swift"; sourceTree = "<group>"; };
+		845A82683035844B00BD703A /* TFYSwiftBaseNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftBaseNavigationController.swift; sourceTree = "<group>"; };
+		845A82693035844B00BD703A /* TFYSwiftBaseTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftBaseTableViewController.swift; sourceTree = "<group>"; };
+		845A826A3035844B00BD703A /* TFYSwiftBaseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftBaseViewController.swift; sourceTree = "<group>"; };
+		845A826B3035844B00BD703A /* TFYSwiftConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftConstants.swift; sourceTree = "<group>"; };
+		845A826C3035844B00BD703A /* TFYSwiftPlusButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftPlusButton.swift; sourceTree = "<group>"; };
+		845A826D3035844B00BD703A /* TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBar.swift; sourceTree = "<group>"; };
+		845A826E3035844B00BD703A /* TFYSwiftTabBar+Extention.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TFYSwiftTabBar+Extention.swift"; sourceTree = "<group>"; };
+		845A826F3035844B00BD703A /* TFYSwiftTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftTabBarController.swift; sourceTree = "<group>"; };
+		845A82713035844B00BD703A /* NSObject+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSObject+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
+		845A82723035844B00BD703A /* TFYSwiftAssociatedStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftAssociatedStorage.swift; sourceTree = "<group>"; };
+		845A82733035844B00BD703A /* UIColor+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
+		845A82743035844B00BD703A /* UIControl+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIControl+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
+		845A82753035844B00BD703A /* UIImage+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
+		845A82763035844B00BD703A /* UITabBarItem+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITabBarItem+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
+		845A82773035844B00BD703A /* UIView+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
+		845A82783035844B00BD703A /* UIViewController+TFYSwiftNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+TFYSwiftNavigation.swift"; sourceTree = "<group>"; };
+		845A82793035844B00BD703A /* UIViewController+TFYSwiftTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+TFYSwiftTabBar.swift"; sourceTree = "<group>"; };
+		845A827B3035844B00BD703A /* TFYSwiftFlatDesignPrivate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftFlatDesignPrivate.swift; sourceTree = "<group>"; };
+		845A827C3035844B00BD703A /* TFYSwiftFlatDesignTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftFlatDesignTabBar.swift; sourceTree = "<group>"; };
+		845A827D3035844B00BD703A /* TFYSwiftFlatDesignTabBarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftFlatDesignTabBarButton.swift; sourceTree = "<group>"; };
+		845A827E3035844B00BD703A /* TFYSwiftFlatDesignTabBarHideTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftFlatDesignTabBarHideTabBar.swift; sourceTree = "<group>"; };
+		845A827F3035844B00BD703A /* TFYSwiftFlatDesignTabBarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftFlatDesignTabBarItem.swift; sourceTree = "<group>"; };
+		845A82803035844B00BD703A /* TFYSwiftTabBarController+FlatDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TFYSwiftTabBarController+FlatDesign.swift"; sourceTree = "<group>"; };
+		845A82A03035848700BD703A /* TFYSwiftKVCCatch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TFYSwiftKVCCatch.h; sourceTree = "<group>"; };
+		845A82A13035848700BD703A /* TFYSwiftKVCCatch.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TFYSwiftKVCCatch.m; sourceTree = "<group>"; };
+		845A82A4303584AC00BD703A /* TFYSwiftCompatibleLottie.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TFYSwiftCompatibleLottie.swift; sourceTree = "<group>"; };
+		845A82A7303584CE00BD703A /* CityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CityViewController.swift; sourceTree = "<group>"; };
+		845A82A8303584CE00BD703A /* DemoRootNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoRootNavigationController.swift; sourceTree = "<group>"; };
+		845A82A9303584CE00BD703A /* DetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
+		845A82AA303584CE00BD703A /* HomeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
+		845A82AB303584CE00BD703A /* MainTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabBarController.swift; sourceTree = "<group>"; };
+		845A82AC303584CE00BD703A /* MessageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageViewController.swift; sourceTree = "<group>"; };
+		845A82AD303584CE00BD703A /* MineViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MineViewController.swift; sourceTree = "<group>"; };
+		845A82AE303584CE00BD703A /* PlusButtonSubclass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlusButtonSubclass.swift; sourceTree = "<group>"; };
+		845A82AF303584CE00BD703A /* PublishViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishViewController.swift; sourceTree = "<group>"; };
+		845A82C13035850000BD703A /* TFYSwiftTabBarController-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TFYSwiftTabBarController-Bridging-Header.h"; sourceTree = "<group>"; };
 		B1C0D599B12B3964A78C16E8 /* Pods_TFYSwiftTabBarControllerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_TFYSwiftTabBarControllerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDCD4064C5B7C7B113B98962 /* Pods-TFYSwiftTabBarControllerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarControllerTests.release.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarControllerTests/Pods-TFYSwiftTabBarControllerTests.release.xcconfig"; sourceTree = "<group>"; };
 		C608986C04E4C03923A8A79C /* Pods-TFYSwiftTabBarControllerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarControllerTests.debug.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarControllerTests/Pods-TFYSwiftTabBarControllerTests.debug.xcconfig"; sourceTree = "<group>"; };
-		CD4B3D988E1E4F1E842FCA51 /* DemoSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoSupport.swift; sourceTree = "<group>"; };
 		E1977E78E9D9FFD0AE3A2D3A /* Pods-TFYSwiftTabBarController.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TFYSwiftTabBarController.release.xcconfig"; path = "Target Support Files/Pods-TFYSwiftTabBarController/Pods-TFYSwiftTabBarController.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -252,10 +268,15 @@
 		369F465F26421EAD002D8566 /* Class */ = {
 			isa = PBXGroup;
 			children = (
-				3654A91F2E7AFDA5008B1DF0 /* AllDemosViewController.swift */,
-				CD4B3D988E1E4F1E842FCA51 /* DemoSupport.swift */,
-				8BFDAE670EB34350A703C4A5 /* DemoFactories.swift */,
-				25933383ECE5498BA63C300E /* DemoPlusButtons.swift */,
+				845A82A7303584CE00BD703A /* CityViewController.swift */,
+				845A82A8303584CE00BD703A /* DemoRootNavigationController.swift */,
+				845A82A9303584CE00BD703A /* DetailViewController.swift */,
+				845A82AA303584CE00BD703A /* HomeViewController.swift */,
+				845A82AB303584CE00BD703A /* MainTabBarController.swift */,
+				845A82AC303584CE00BD703A /* MessageViewController.swift */,
+				845A82AD303584CE00BD703A /* MineViewController.swift */,
+				845A82AE303584CE00BD703A /* PlusButtonSubclass.swift */,
+				845A82AF303584CE00BD703A /* PublishViewController.swift */,
 			);
 			path = Class;
 			sourceTree = "<group>";
@@ -265,6 +286,7 @@
 			children = (
 				369F466226421EAD002D8566 /* AppDelegate.swift */,
 				369F466326421EAD002D8566 /* SceneDelegate.swift */,
+				845A82C13035850000BD703A /* TFYSwiftTabBarController-Bridging-Header.h */,
 			);
 			path = AppDelegate;
 			sourceTree = "<group>";
@@ -283,78 +305,15 @@
 		369F46742642213B002D8566 /* TFYSwiftTabbarKit */ = {
 			isa = PBXGroup;
 			children = (
-				843B1C963029B35400D50057 /* Badge */,
-				843B1C9F3029B35400D50057 /* Core */,
-				843B1CA93029B35400D50057 /* Extensions */,
-				843B1CAF3029B35400D50057 /* FlatDesign */,
-				843B1CB13029B35400D50057 /* Lottie */,
+				845A82A13035848700BD703A /* TFYSwiftKVCCatch.m */,
+				845A82A5303584AC00BD703A /* Lottie */,
+				845A82A23035848700BD703A /* include */,
+				845A82673035844B00BD703A /* Badge */,
+				845A82703035844B00BD703A /* Core */,
+				845A827A3035844B00BD703A /* Extensions */,
+				845A82813035844B00BD703A /* FlatDesign */,
 			);
 			path = TFYSwiftTabbarKit;
-			sourceTree = "<group>";
-		};
-		843B1C963029B35400D50057 /* Badge */ = {
-			isa = PBXGroup;
-			children = (
-				843B1C8F3029B35400D50057 /* CAAnimation+TFYSwiftBadge.swift */,
-				843B1C903029B35400D50057 /* TFYSwiftBadgeProtocol.swift */,
-				843B1C913029B35400D50057 /* TFYSwiftTabBarBadgeView.swift */,
-				843B1C923029B35400D50057 /* UIBarButtonItem+TFYSwiftBadge.swift */,
-				843B1C933029B35400D50057 /* UIControl+TFYSwiftBadge.swift */,
-				843B1C943029B35400D50057 /* UITabBarItem+TFYSwiftBadge.swift */,
-				843B1C953029B35400D50057 /* UIView+TFYSwiftBadge.swift */,
-			);
-			path = Badge;
-			sourceTree = "<group>";
-		};
-		843B1C9F3029B35400D50057 /* Core */ = {
-			isa = PBXGroup;
-			children = (
-				843B1C973029B35400D50057 /* TFYSwiftBaseNavigationController.swift */,
-				843B1C983029B35400D50057 /* TFYSwiftBaseTableViewController.swift */,
-				843B1C993029B35400D50057 /* TFYSwiftBaseViewController.swift */,
-				843B1C9A3029B35400D50057 /* TFYSwiftConstants.swift */,
-				843B1C9B3029B35400D50057 /* TFYSwiftPlusButton.swift */,
-				843B1C9C3029B35400D50057 /* TFYSwiftTabBar.swift */,
-				843B1C9D3029B35400D50057 /* TFYSwiftTabBar+Extention.swift */,
-				843B1C9E3029B35400D50057 /* TFYSwiftTabBarController.swift */,
-			);
-			path = Core;
-			sourceTree = "<group>";
-		};
-		843B1CA93029B35400D50057 /* Extensions */ = {
-			isa = PBXGroup;
-			children = (
-				843B1CA03029B35400D50057 /* NSObject+TFYSwiftTabBar.swift */,
-				843B1CA13029B35400D50057 /* TFYSwiftAssociatedStorage.swift */,
-				843B1CA23029B35400D50057 /* UIColor+TFYSwiftTabBar.swift */,
-				843B1CA33029B35400D50057 /* UIControl+TFYSwiftTabBar.swift */,
-				843B1CA43029B35400D50057 /* UIImage+TFYSwiftTabBar.swift */,
-				843B1CA53029B35400D50057 /* UITabBarItem+TFYSwiftTabBar.swift */,
-				843B1CA63029B35400D50057 /* UIView+TFYSwiftTabBar.swift */,
-				843B1CA73029B35400D50057 /* UIViewController+TFYSwiftNavigation.swift */,
-				843B1CA83029B35400D50057 /* UIViewController+TFYSwiftTabBar.swift */,
-			);
-			path = Extensions;
-			sourceTree = "<group>";
-		};
-		843B1CAF3029B35400D50057 /* FlatDesign */ = {
-			isa = PBXGroup;
-			children = (
-				843B1CAA3029B35400D50057 /* TFYSwiftFlatDesignPrivate.swift */,
-				843B1CAB3029B35400D50057 /* TFYSwiftFlatDesignTabBar.swift */,
-				843B1CAC3029B35400D50057 /* TFYSwiftFlatDesignTabBarButton.swift */,
-				843B1CAD3029B35400D50057 /* TFYSwiftFlatDesignTabBarHideTabBar.swift */,
-				843B1CAE3029B35400D50057 /* TFYSwiftFlatDesignTabBarItem.swift */,
-			);
-			path = FlatDesign;
-			sourceTree = "<group>";
-		};
-		843B1CB13029B35400D50057 /* Lottie */ = {
-			isa = PBXGroup;
-			children = (
-				843B1CB03029B35400D50057 /* TFYSwiftCompatibleLottie.swift */,
-			);
-			path = Lottie;
 			sourceTree = "<group>";
 		};
 		843B1CE23029CFC400D50057 /* LottieResources */ = {
@@ -380,6 +339,80 @@
 				843B1CE13029CFC400D50057 /* tab_search_animate.json */,
 			);
 			path = LottieResources;
+			sourceTree = "<group>";
+		};
+		845A82673035844B00BD703A /* Badge */ = {
+			isa = PBXGroup;
+			children = (
+				845A82603035844B00BD703A /* CAAnimation+TFYSwiftBadge.swift */,
+				845A82613035844B00BD703A /* TFYSwiftBadgeProtocol.swift */,
+				845A82623035844B00BD703A /* TFYSwiftTabBarBadgeView.swift */,
+				845A82633035844B00BD703A /* UIBarButtonItem+TFYSwiftBadge.swift */,
+				845A82643035844B00BD703A /* UIControl+TFYSwiftBadge.swift */,
+				845A82653035844B00BD703A /* UITabBarItem+TFYSwiftBadge.swift */,
+				845A82663035844B00BD703A /* UIView+TFYSwiftBadge.swift */,
+			);
+			path = Badge;
+			sourceTree = "<group>";
+		};
+		845A82703035844B00BD703A /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				845A82683035844B00BD703A /* TFYSwiftBaseNavigationController.swift */,
+				845A82693035844B00BD703A /* TFYSwiftBaseTableViewController.swift */,
+				845A826A3035844B00BD703A /* TFYSwiftBaseViewController.swift */,
+				845A826B3035844B00BD703A /* TFYSwiftConstants.swift */,
+				845A826C3035844B00BD703A /* TFYSwiftPlusButton.swift */,
+				845A826D3035844B00BD703A /* TFYSwiftTabBar.swift */,
+				845A826E3035844B00BD703A /* TFYSwiftTabBar+Extention.swift */,
+				845A826F3035844B00BD703A /* TFYSwiftTabBarController.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		845A827A3035844B00BD703A /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				845A82713035844B00BD703A /* NSObject+TFYSwiftTabBar.swift */,
+				845A82723035844B00BD703A /* TFYSwiftAssociatedStorage.swift */,
+				845A82733035844B00BD703A /* UIColor+TFYSwiftTabBar.swift */,
+				845A82743035844B00BD703A /* UIControl+TFYSwiftTabBar.swift */,
+				845A82753035844B00BD703A /* UIImage+TFYSwiftTabBar.swift */,
+				845A82763035844B00BD703A /* UITabBarItem+TFYSwiftTabBar.swift */,
+				845A82773035844B00BD703A /* UIView+TFYSwiftTabBar.swift */,
+				845A82783035844B00BD703A /* UIViewController+TFYSwiftNavigation.swift */,
+				845A82793035844B00BD703A /* UIViewController+TFYSwiftTabBar.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		845A82813035844B00BD703A /* FlatDesign */ = {
+			isa = PBXGroup;
+			children = (
+				845A827B3035844B00BD703A /* TFYSwiftFlatDesignPrivate.swift */,
+				845A827C3035844B00BD703A /* TFYSwiftFlatDesignTabBar.swift */,
+				845A827D3035844B00BD703A /* TFYSwiftFlatDesignTabBarButton.swift */,
+				845A827E3035844B00BD703A /* TFYSwiftFlatDesignTabBarHideTabBar.swift */,
+				845A827F3035844B00BD703A /* TFYSwiftFlatDesignTabBarItem.swift */,
+				845A82803035844B00BD703A /* TFYSwiftTabBarController+FlatDesign.swift */,
+			);
+			path = FlatDesign;
+			sourceTree = "<group>";
+		};
+		845A82A23035848700BD703A /* include */ = {
+			isa = PBXGroup;
+			children = (
+				845A82A03035848700BD703A /* TFYSwiftKVCCatch.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		845A82A5303584AC00BD703A /* Lottie */ = {
+			isa = PBXGroup;
+			children = (
+				845A82A4303584AC00BD703A /* TFYSwiftCompatibleLottie.swift */,
+			);
+			path = Lottie;
 			sourceTree = "<group>";
 		};
 		97549CD3453ACE389340D529 /* Frameworks */ = {
@@ -459,7 +492,7 @@
 				BuildIndependentTargetsInParallel = YES;
 				CLASSPREFIX = TFYSwift;
 				LastSwiftUpdateCheck = 1250;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					369F462B26421E55002D8566 = {
 						CreatedOnToolsVersion = 12.5;
@@ -592,9 +625,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TFYSwiftTabBarController/Pods-TFYSwiftTabBarController-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-TFYSwiftTabBarController/Pods-TFYSwiftTabBarController-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -608,41 +645,48 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				845A82A6303584AC00BD703A /* TFYSwiftCompatibleLottie.swift in Sources */,
 				369F466C26421EAE002D8566 /* AppDelegate.swift in Sources */,
-				3654A9202E7AFDA5008B1DF0 /* AllDemosViewController.swift in Sources */,
-				56644AB45E32442ABF1FCEFA /* DemoSupport.swift in Sources */,
-				09C01651F539408C93085943 /* DemoFactories.swift in Sources */,
-				7EB27D62F6974AB08A11943A /* DemoPlusButtons.swift in Sources */,
-				843B1CB23029B35400D50057 /* UIControl+TFYSwiftTabBar.swift in Sources */,
-				843B1CB33029B35400D50057 /* TFYSwiftBaseViewController.swift in Sources */,
-				843B1CB43029B35400D50057 /* TFYSwiftConstants.swift in Sources */,
-				843B1CB53029B35400D50057 /* TFYSwiftTabBar+Extention.swift in Sources */,
-				843B1CB63029B35400D50057 /* TFYSwiftFlatDesignTabBarHideTabBar.swift in Sources */,
-				843B1CB73029B35400D50057 /* TFYSwiftBadgeProtocol.swift in Sources */,
-				843B1CB83029B35400D50057 /* TFYSwiftFlatDesignPrivate.swift in Sources */,
-				843B1CB93029B35400D50057 /* TFYSwiftBaseNavigationController.swift in Sources */,
-				843B1CBA3029B35400D50057 /* UIViewController+TFYSwiftNavigation.swift in Sources */,
-				843B1CBB3029B35400D50057 /* TFYSwiftFlatDesignTabBarButton.swift in Sources */,
-				843B1CBC3029B35400D50057 /* UIControl+TFYSwiftBadge.swift in Sources */,
-				843B1CBD3029B35400D50057 /* TFYSwiftCompatibleLottie.swift in Sources */,
-				843B1CBE3029B35400D50057 /* TFYSwiftTabBarController.swift in Sources */,
-				843B1CBF3029B35400D50057 /* UIColor+TFYSwiftTabBar.swift in Sources */,
-				843B1CC03029B35400D50057 /* TFYSwiftPlusButton.swift in Sources */,
-				843B1CC13029B35400D50057 /* TFYSwiftTabBar.swift in Sources */,
-				843B1CC23029B35400D50057 /* UIViewController+TFYSwiftTabBar.swift in Sources */,
-				843B1CC33029B35400D50057 /* UITabBarItem+TFYSwiftBadge.swift in Sources */,
-				843B1CC43029B35400D50057 /* TFYSwiftAssociatedStorage.swift in Sources */,
-				843B1CC53029B35400D50057 /* UIImage+TFYSwiftTabBar.swift in Sources */,
-				843B1CC63029B35400D50057 /* UIBarButtonItem+TFYSwiftBadge.swift in Sources */,
-				843B1CC73029B35400D50057 /* TFYSwiftFlatDesignTabBar.swift in Sources */,
-				843B1CC83029B35400D50057 /* CAAnimation+TFYSwiftBadge.swift in Sources */,
-				843B1CC93029B35400D50057 /* UIView+TFYSwiftBadge.swift in Sources */,
-				843B1CCA3029B35400D50057 /* TFYSwiftBaseTableViewController.swift in Sources */,
-				843B1CCB3029B35400D50057 /* UIView+TFYSwiftTabBar.swift in Sources */,
-				843B1CCC3029B35400D50057 /* UITabBarItem+TFYSwiftTabBar.swift in Sources */,
-				843B1CCD3029B35400D50057 /* TFYSwiftFlatDesignTabBarItem.swift in Sources */,
-				843B1CCE3029B35400D50057 /* TFYSwiftTabBarBadgeView.swift in Sources */,
-				843B1CCF3029B35400D50057 /* NSObject+TFYSwiftTabBar.swift in Sources */,
+				845A82823035844B00BD703A /* UITabBarItem+TFYSwiftBadge.swift in Sources */,
+				845A82833035844B00BD703A /* TFYSwiftTabBarBadgeView.swift in Sources */,
+				845A82843035844B00BD703A /* UIView+TFYSwiftBadge.swift in Sources */,
+				845A82853035844B00BD703A /* TFYSwiftBadgeProtocol.swift in Sources */,
+				845A82863035844B00BD703A /* UIColor+TFYSwiftTabBar.swift in Sources */,
+				845A82873035844B00BD703A /* UITabBarItem+TFYSwiftTabBar.swift in Sources */,
+				845A82883035844B00BD703A /* TFYSwiftTabBar.swift in Sources */,
+				845A82893035844B00BD703A /* TFYSwiftTabBarController.swift in Sources */,
+				845A828A3035844B00BD703A /* TFYSwiftTabBarController+FlatDesign.swift in Sources */,
+				845A828B3035844B00BD703A /* UIImage+TFYSwiftTabBar.swift in Sources */,
+				845A828C3035844B00BD703A /* TFYSwiftFlatDesignTabBarHideTabBar.swift in Sources */,
+				845A828D3035844B00BD703A /* TFYSwiftFlatDesignTabBarItem.swift in Sources */,
+				845A828E3035844B00BD703A /* TFYSwiftPlusButton.swift in Sources */,
+				845A828F3035844B00BD703A /* TFYSwiftFlatDesignTabBarButton.swift in Sources */,
+				845A82903035844B00BD703A /* TFYSwiftFlatDesignTabBar.swift in Sources */,
+				845A82913035844B00BD703A /* UIViewController+TFYSwiftNavigation.swift in Sources */,
+				845A82923035844B00BD703A /* TFYSwiftBaseNavigationController.swift in Sources */,
+				845A82933035844B00BD703A /* UIBarButtonItem+TFYSwiftBadge.swift in Sources */,
+				845A82943035844B00BD703A /* TFYSwiftAssociatedStorage.swift in Sources */,
+				845A82953035844B00BD703A /* TFYSwiftTabBar+Extention.swift in Sources */,
+				845A82963035844B00BD703A /* TFYSwiftBaseViewController.swift in Sources */,
+				845A82973035844B00BD703A /* CAAnimation+TFYSwiftBadge.swift in Sources */,
+				845A82A33035848700BD703A /* TFYSwiftKVCCatch.m in Sources */,
+				845A82983035844B00BD703A /* TFYSwiftConstants.swift in Sources */,
+				845A82993035844B00BD703A /* TFYSwiftFlatDesignPrivate.swift in Sources */,
+				845A82B0303584CE00BD703A /* HomeViewController.swift in Sources */,
+				845A82B1303584CE00BD703A /* PlusButtonSubclass.swift in Sources */,
+				845A82B2303584CE00BD703A /* PublishViewController.swift in Sources */,
+				845A82B3303584CE00BD703A /* CityViewController.swift in Sources */,
+				845A82B4303584CE00BD703A /* MainTabBarController.swift in Sources */,
+				845A82B5303584CE00BD703A /* DemoRootNavigationController.swift in Sources */,
+				845A82B6303584CE00BD703A /* DetailViewController.swift in Sources */,
+				845A82B7303584CE00BD703A /* MineViewController.swift in Sources */,
+				845A82B8303584CE00BD703A /* MessageViewController.swift in Sources */,
+				845A829A3035844B00BD703A /* UIViewController+TFYSwiftTabBar.swift in Sources */,
+				845A829B3035844B00BD703A /* NSObject+TFYSwiftTabBar.swift in Sources */,
+				845A829C3035844B00BD703A /* TFYSwiftBaseTableViewController.swift in Sources */,
+				845A829D3035844B00BD703A /* UIView+TFYSwiftTabBar.swift in Sources */,
+				845A829E3035844B00BD703A /* UIControl+TFYSwiftTabBar.swift in Sources */,
+				845A829F3035844B00BD703A /* UIControl+TFYSwiftBadge.swift in Sources */,
 				369F466D26421EAE002D8566 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -827,6 +871,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/TFYSwiftTabBarController/TFYSwiftTabbarKit/include",
+				);
 				INFOPLIST_FILE = TFYSwiftTabBarController/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -836,7 +884,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.tfy.TFYSwiftTabBarController;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "TFYSwiftTabBarController/AppDelegate/TFYSwiftTabBarController-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -854,6 +902,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/TFYSwiftTabBarController/TFYSwiftTabbarKit/include",
+				);
 				INFOPLIST_FILE = TFYSwiftTabBarController/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -863,7 +915,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.tfy.TFYSwiftTabBarController;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "TFYSwiftTabBarController/AppDelegate/TFYSwiftTabBarController-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

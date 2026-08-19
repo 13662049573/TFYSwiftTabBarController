@@ -140,33 +140,71 @@ public extension UIViewController {
     }
 
     @objc func tfy_setTabBarVisible(_ visible: Bool, animated: Bool, completion: ((Bool) -> Void)? = nil) {
-        if hidesBottomBarWhenPushed == !visible {
-            completion?(true)
-            return
-        }
-        guard let tabBar = tfy_tabBarController?.tabBar else {
+        guard let tabBarController = tfy_tabBarController else {
             completion?(false)
             return
         }
-        let screenSize = tfy_screenSize()
-        let tabBarHeight = tfy_getTabBarFullH(tabBar.frame.height)
-        let visibleFrame = CGRect(x: 0, y: screenSize.height - tabBarHeight, width: screenSize.width, height: tabBarHeight)
-        let hiddenFrame = CGRect(x: 0, y: screenSize.height, width: screenSize.width, height: tabBarHeight)
+        if visible == tfy_tabBarIsVisible() {
+            completion?(true)
+            return
+        }
+        if tabBarController.tabBarStyleType == .flatDesign {
+            tabBarController.setTabBarHidden(!visible, animated: animated)
+            completion?(true)
+            return
+        }
+        tabBarController.tfy_isTabBarSlidOffscreen = !visible
+        let bars = tfy_tabBarViewsToSlide(tabBarController)
+        guard let host = tabBarController.view, !bars.isEmpty else {
+            completion?(false)
+            return
+        }
+        tfy_animate(tabBars: bars, in: host, visible: visible, animated: animated, completion: completion)
+    }
+
+    private func tfy_tabBarViewsToSlide(_ controller: TFYSwiftTabBarController) -> [UIView] {
+        var views: [UIView] = []
+        let custom = controller.tfy_cylTabBar
+        if custom.superview != nil {
+            views.append(custom)
+        } else {
+            views.append(controller.tabBar)
+        }
+        for subview in controller.view.subviews {
+            let name = NSStringFromClass(type(of: subview))
+            if name == "_UITabContainerView" || (name.hasPrefix("_UITab") && name.contains("Container")),
+               !views.contains(where: { $0 === subview }) {
+                views.append(subview)
+            }
+        }
+        return views
+    }
+
+    private func tfy_animate(tabBars: [UIView], in host: UIView, visible: Bool, animated: Bool, completion: ((Bool) -> Void)?) {
+        let barHeight = tabBars.map(\.frame.height).max() ?? 0
+        let visibleFrame = CGRect(x: 0, y: host.bounds.height - barHeight, width: host.bounds.width, height: barHeight)
+        let hiddenFrame = CGRect(x: 0, y: host.bounds.height, width: host.bounds.width, height: barHeight)
         let duration = animated ? tfyFullScreenAnimationTime : 0
         if visible {
-            tabBar.frame = hiddenFrame
-        } else if tabBar.frame != visibleFrame {
-            tabBar.frame = visibleFrame
+            tabBars.forEach { $0.frame = hiddenFrame; $0.isHidden = false }
+        } else {
+            tabBars.forEach { bar in
+                if bar.frame != visibleFrame { bar.frame = visibleFrame }
+            }
         }
         let targetFrame = visible ? visibleFrame : hiddenFrame
         UIView.animate(withDuration: duration, delay: 0, options: .curveEaseInOut, animations: {
-            tabBar.frame = targetFrame
+            tabBars.forEach { $0.frame = targetFrame }
         }, completion: completion)
     }
 
     @objc func tfy_tabBarIsVisible() -> Bool {
-        guard let tabBar = tfy_tabBarController?.tabBar else { return false }
-        return tabBar.frame.minY < tfy_screenSize().height
+        guard let controller = tfy_tabBarController else { return false }
+        let bar = controller.tfy_cylTabBar
+        if controller.tabBarStyleType == .flatDesign {
+            return !bar.isHidden && bar.alpha > 0.01 && bar.frame.minY < controller.view.bounds.height
+        }
+        return bar.frame.minY < controller.view.bounds.height && !bar.isHidden
     }
 
     @objc func tfy_showTabBarAnimated(_ animated: Bool, completion: ((Bool) -> Void)? = nil) {

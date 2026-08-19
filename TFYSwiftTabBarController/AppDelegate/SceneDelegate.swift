@@ -15,10 +15,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     @available(iOS 13.0, *)
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
+        PlusButtonSubclass.registerPlusButton()
         let window = UIWindow(windowScene: windowScene)
-        let menu = AllDemosViewController()
-        let nav = TFYSwiftNavigationController(rootViewController: menu)
-        window.rootViewController = nav
+        window.rootViewController = DemoRootNavigationController()
         window.makeKeyAndVisible()
         self.window = window
     }

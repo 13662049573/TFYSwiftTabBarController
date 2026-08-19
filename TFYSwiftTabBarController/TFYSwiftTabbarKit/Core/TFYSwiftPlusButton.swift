@@ -25,6 +25,8 @@ public var TFYSwiftPlusChildViewController: UIViewController?
     @objc optional static func selectedContentImage() -> UIImage?
     @objc optional func isLayoutCentered() -> Bool
     @objc optional static func matchedTabBarContext(_ tabBarContext: String) -> Bool
+    /// Deprecated in 1.6.0. Use `multiplierOfTabBarHeight(_:)`.
+    @objc optional static func multiplerInCenterY() -> CGFloat
 }
 
 open class TFYSwiftPlusButton: UIButton {
@@ -34,6 +36,12 @@ open class TFYSwiftPlusButton: UIButton {
     public var contentImage: UIImage?
     private var snapshot: UIImage?
     private weak var contentView: UIButton?
+
+    /// Deprecated in 1.6.0. Use `registerPlusButton()`.
+    @available(*, deprecated, renamed: "registerPlusButton()")
+    open class func registerSubclass() {
+        registerPlusButton()
+    }
 
     open class func registerPlusButton() {
         guard let subclass = self as? TFYSwiftPlusButtonSubclassing.Type else { return }
@@ -83,15 +91,31 @@ open class TFYSwiftPlusButton: UIButton {
             return
         }
 
-        guard let tabBarController = sender.tfy_tabBarController,
-              let plusChild = TFYSwiftPlusChildViewController,
-              let index = tabBarController.viewControllers?.firstIndex(of: plusChild) else { return }
+        guard let plusChild = TFYSwiftPlusChildViewController else { return }
+        let tabBarController = sender.tfy_tabBarController
+            ?? tfy_flatDesignTabBarController(from: sender)
+        guard let tabBarController,
+              let index = tabBarController.viewControllers?.firstIndex(where: {
+                  $0 === plusChild || $0.tfy_isEqualToViewController(plusChild)
+              }) else { return }
 
         tabBarController.selectedIndex = index
         if !sender.tfy_userInteractionDisabled {
             sender.isSelected = true
             tabBarController.tabChangedToControl(self)
         }
+    }
+
+    private func tfy_flatDesignTabBarController(from view: UIView) -> TFYSwiftTabBarController? {
+        var node: UIView? = view
+        while let current = node {
+            if let flat = current as? TFYSwiftFlatDesignTabBar,
+               let tab = flat.delegate as? TFYSwiftTabBarController {
+                return tab
+            }
+            node = current.superview
+        }
+        return nil
     }
 
     private class func addSelectViewControllerTarget(_ plusButton: TFYSwiftPlusButton) {
@@ -113,7 +137,7 @@ open class TFYSwiftPlusButton: UIButton {
     }
 
     open func defaultMultiplierOfTabBarHeight() -> CGFloat {
-        let height = tfy_tabBarController?.tabBar.bounds.size.height ?? 49
+        let height = tfy_tabBarController?.tabBar.tfy_boundsSize().height ?? 49
         return multiplierOfTabBarHeight(height, plusButtonHeight: frame.size.height)
     }
 
@@ -126,6 +150,10 @@ open class TFYSwiftPlusButton: UIButton {
            let value = type.multiplierOfTabBarHeight?(tabBarHeight) {
             return value
         }
+        if let type = type(of: self) as? TFYSwiftPlusButtonSubclassing.Type,
+           let value = type.multiplerInCenterY?() {
+            return value
+        }
         let heightDifference = plusButtonHeight - tabBarHeight
         if heightDifference < 0 {
             return 0.5
@@ -136,7 +164,7 @@ open class TFYSwiftPlusButton: UIButton {
     }
 
     open func constantOfPlusButtonCenterYOffsetForTabBarHeight() -> CGFloat {
-        let height = tfy_tabBarController?.tabBar.bounds.size.height ?? 49
+        let height = tfy_tabBarController?.tabBar.tfy_boundsSize().height ?? 49
         return constantOfPlusButtonCenterYOffsetForTabBarHeight(height)
     }
 
@@ -152,24 +180,26 @@ open class TFYSwiftPlusButton: UIButton {
 
     open func getSnapshot() -> UIImage? {
         if let snapshot {
-            guard let cgImage = snapshot.cgImage else { return snapshot }
-            return UIImage(cgImage: cgImage, scale: snapshot.scale, orientation: snapshot.imageOrientation)
+            return UIImage(cgImage: snapshot.cgImage!, scale: snapshot.scale, orientation: snapshot.imageOrientation)
         }
         snapshot = tfy_takeSnapshot()
         return snapshot
     }
 
     @objc open class func selectedContentView() -> UIButton {
-        if let button = TFYSwiftExternPlusButton {
-            button.isHighlighted = true
-        }
+        let live = TFYSwiftExternPlusButton
+        let wasHighlighted = live?.isHighlighted ?? false
+        live?.isHighlighted = true
         guard let type = self as? TFYSwiftPlusButtonSubclassing.Type,
               let plusButton = type.plusButton() as? TFYSwiftPlusButton else {
+            live?.isHighlighted = wasHighlighted
             return UIButton(type: .custom)
         }
-        if !plusButton.tfy_userInteractionDisabled {
-            plusButton.isHighlighted = true
-        }
+        live?.isHighlighted = wasHighlighted
+        plusButton.isHighlighted = true
+        plusButton.isUserInteractionEnabled = false
+        plusButton.backgroundColor = .clear
+        plusButton.isOpaque = false
         return plusButton
     }
 
@@ -207,8 +237,18 @@ open class TFYSwiftPlusButton: UIButton {
         guard let plus = TFYSwiftExternPlusButton, TFYSwiftPlusChildViewController != nil else { return }
         guard !plus.tfy_keepShowingPlusButtonLabel else { return }
         guard let label = plus.tfy_tabLabel(), !(label.text?.isEmpty ?? true) else { return }
-        label.tfy_setHidden(hidden)
-        plus.resolveSelectedContentView().tfy_tabLabel()?.tfy_setHidden(!hidden)
+        label.isHidden = hidden
+        clearOpaqueLabelFill(label)
+        let coverLabel = plus.resolveSelectedContentView().tfy_tabLabel()
+        coverLabel?.isHidden = !hidden
+        if let coverLabel {
+            clearOpaqueLabelFill(coverLabel)
+        }
+    }
+
+    private func clearOpaqueLabelFill(_ label: UILabel) {
+        label.backgroundColor = .clear
+        label.isOpaque = false
     }
 
     @objc open class func contentImage() -> UIImage? { nil }
@@ -227,8 +267,7 @@ open class TFYSwiftPlusButton: UIButton {
     }
 
     open class func hasPlusButton(forTabBarContext tabBarContext: String?) -> Bool {
-        guard let plusButton = TFYSwiftExternPlusButton else { return false }
-        let matched = type(of: plusButton).matchedTabBarContext()
+        let matched = matchedTabBarContext()
         guard let tabBarContext, !matched.isEmpty else { return false }
         return matched == tabBarContext
     }

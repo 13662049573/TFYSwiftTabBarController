@@ -28,24 +28,15 @@ public extension UIViewController {
         tfy_getActualBadgeSuperView() as? UIView
     }
 
+    /// Matches OC `cyl_isSystemStyleTabBar`: any CYL/TFY tab bar that is **not** FlatDesign.
     @objc func tfy_isSystemStyleTabBar() -> Bool {
-        if let controller = self as? TFYSwiftTabBarController {
-            return controller.tabBarStyleType != .flatDesign
-        }
-        if let controller = tabBarController as? TFYSwiftTabBarController {
-            return controller.tabBarStyleType != .flatDesign
-        }
-        return false
+        guard let controller = self as? TFYSwiftTabBarController else { return false }
+        return controller.tabBarStyleType != .flatDesign
     }
 
     @objc func tfy_isFlatDesignStyleTabBar() -> Bool {
-        if let controller = self as? TFYSwiftTabBarController {
-            return controller.tabBarStyleType == .flatDesign
-        }
-        if let controller = tabBarController as? TFYSwiftTabBarController {
-            return controller.tabBarStyleType == .flatDesign
-        }
-        return false
+        guard let controller = self as? TFYSwiftTabBarController else { return false }
+        return controller.tabBarStyleType == .flatDesign
     }
 
     @objc var tfy_embedInTabBarController: Bool {
@@ -102,9 +93,48 @@ public extension UIViewController {
         }
     }
 
+    /// FlatDesign custom tab item (mirrors `cyl_tabBarItem`).
+    @objc var tfy_tabBarItem: TFYSwiftFlatDesignTabBarItem {
+        get {
+            if let item = objc_getAssociatedObject(self, &TFYSwiftAssociatedKeys.flatDesignTabBarItem) as? TFYSwiftFlatDesignTabBarItem {
+                return item
+            }
+            let item = TFYSwiftFlatDesignTabBarItem(
+                title: title ?? "Item",
+                image: UIImage.tfy_tabItemPlaceholderImage(),
+                selectedImage: UIImage.tfy_tabItemPlaceholderImage()
+            )
+            item.index = UInt(NSNotFound)
+            objc_setAssociatedObject(self, &TFYSwiftAssociatedKeys.flatDesignTabBarItem, item, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            let resolved = tfy_getViewControllerInsteadOfNavigationController()
+            if resolved !== self {
+                objc_setAssociatedObject(resolved, &TFYSwiftAssociatedKeys.flatDesignTabBarItem, item, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            }
+            return item
+        }
+        set {
+            let oldItem = (objc_getAssociatedObject(self, &TFYSwiftAssociatedKeys.flatDesignTabBarItem) as? TFYSwiftFlatDesignTabBarItem)
+                ?? tfy_getViewControllerInsteadOfNavigationController().tfy_tabBarItem
+            if let tabBarController = tfyflatdesign_tabBarController as? TFYSwiftTabBarController,
+               tabBarController.tabBarStyleType == .flatDesign {
+                tabBarController.changeItem(oldItem, toItem: newValue)
+                tfy_tabButton = newValue.tabBarButton
+            }
+            objc_setAssociatedObject(self, &TFYSwiftAssociatedKeys.flatDesignTabBarItem, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            let resolved = tfy_getViewControllerInsteadOfNavigationController()
+            if resolved !== self {
+                objc_setAssociatedObject(resolved, &TFYSwiftAssociatedKeys.flatDesignTabBarItem, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            }
+        }
+    }
+
+    @objc func tfy_setTabBarItem(_ tabBarItem: TFYSwiftFlatDesignTabBarItem?) {
+        tfy_tabBarItem = tabBarItem ?? TFYSwiftFlatDesignTabBarItem(title: title, image: nil)
+    }
+
     @objc var tfy_plusViewControllerEverAdded: Bool {
         get { (objc_getAssociatedObject(self, &TFYSwiftAssociatedKeys.plusViewControllerEverAdded) as? NSNumber)?.boolValue ?? false }
-        set { objc_setAssociatedObject(self, &TFYSwiftAssociatedKeys.plusViewControllerEverAdded, NSNumber(value: newValue), .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+        set { objc_setAssociatedObject(self, &TFYSwiftAssociatedKeys.plusViewControllerEverAdded, NSNumber(value: newValue), .OBJC_ASSOCIATION_ASSIGN) }
     }
 
     // MARK: - Badge forwarding
@@ -114,7 +144,7 @@ public extension UIViewController {
     }
 
     @objc func tfy_showBadge() {
-        tfy_actualBadgeHost?.tfy_showBadge()
+        tfy_showBadgeValue("", animationType: .none)
     }
 
     @objc func tfy_showBadgeValue(_ value: String?, animationType: TFYSwiftBadgeAnimationType) {
@@ -122,11 +152,11 @@ public extension UIViewController {
     }
 
     @objc func tfy_showBadgeValue(_ value: String?, animationTypeValue: NSNumber?) {
-        tfy_actualBadgeHost?.tfy_showBadgeValue(value, animationTypeValue: animationTypeValue)
+        tfy_paintBadgeWhenReady(value, animationTypeValue: animationTypeValue, attemptsLeft: 8)
     }
 
     @objc func tfy_clearBadge() {
-        tfy_actualBadgeHost?.tfy_clearBadge()
+        tfy_paintClearBadge()
     }
 
     @objc func tfy_resumeBadge() {
@@ -201,7 +231,11 @@ public extension UIViewController {
     @objc func tfy_popSelectTabBarChildViewController(at index: UInt, animated: Bool) -> UIViewController? {
         let viewController = tfy_getViewControllerInsteadOfNavigationController()
         viewController.tfy_checkTabBarChildControllerValidity(at: index)
-        guard let tabBarController = viewController.tfy_tabBarController else { return nil }
+        let tabBarController = viewController.tfy_tabBarController
+            ?? (viewController.tabBarController as? TFYSwiftTabBarController)
+        guard let tabBarController else { return nil }
+        let count = tabBarController.viewControllers?.count ?? 0
+        guard index != UInt(NSNotFound), Int(index) < count else { return nil }
         tabBarController.selectedIndex = Int(index)
         viewController.navigationController?.popToRootViewController(animated: animated)
         let selected = tabBarController.selectedViewController
@@ -218,11 +252,15 @@ public extension UIViewController {
     }
 
     @objc func tfy_popSelectTabBarChildViewController(for classType: AnyClass) -> UIViewController? {
-        guard let tabBarController = tfy_getViewControllerInsteadOfNavigationController().tfy_tabBarController,
+        let host = tfy_getViewControllerInsteadOfNavigationController()
+        let tabBarController = host.tfy_tabBarController
+            ?? (host.tabBarController as? TFYSwiftTabBarController)
+        guard let tabBarController,
               let viewControllers = tabBarController.viewControllers else {
             return nil
         }
         let atIndex = tfy_index(for: classType, in: viewControllers)
+        guard atIndex != NSNotFound else { return nil }
         return tfy_popSelectTabBarChildViewController(at: UInt(atIndex))
     }
 
@@ -282,10 +320,7 @@ public extension UIViewController {
     }
 
     @objc func tfy_getViewControllerInsteadOfNavigationController() -> UIViewController {
-        if let nav = self as? UINavigationController, let first = nav.viewControllers.first {
-            return first
-        }
-        return self
+        tfy_resolveViewControllerInsteadOfNavigationController(from: self) ?? self
     }
 
     @objc func tfy_handleNavigationBackAction() {
@@ -305,8 +340,8 @@ public extension UIViewController {
     }
 
     @objc var tfy_visiableTabButton: UIControl? {
-        if TFYSwiftConstants.isLiquidGlassActive() {
-            return tabBarItem.tfy_selectedTabButton
+        if tfy_usesLiquidGlassBadgePlacement() {
+            return tabBarItem.tfy_selectedTabButton ?? tfy_tabButton
         }
         return tfy_tabButton
     }
@@ -324,6 +359,13 @@ public extension UIViewController {
         addChild(viewController)
     }
 
+    func tfy_usesLiquidGlassBadgePlacement() -> Bool {
+        let tab = (tabBarController as? TFYSwiftTabBarController)
+            ?? (tfyflatdesign_tabBarController as? TFYSwiftTabBarController)
+        if tab?.tabBarStyleType == .flatDesign { return false }
+        return TFYSwiftConstants.isLiquidGlassActive()
+    }
+
     @objc func tfy_isReady() -> Bool {
         true
     }
@@ -332,11 +374,25 @@ public extension UIViewController {
         if tfy_isPlaceholder { return nil }
 
         let viewController = tfy_getViewControllerInsteadOfNavigationController()
-        guard let viewControllerItem = viewController.tabBarItem else { return nil }
-        let viewControllerControl = viewControllerItem.tfy_tabButton
+        let viewControllerItem = viewController.tabBarItem
+        let viewControllerControl = viewControllerItem?.tfy_tabButton
         let navigationViewControllerItem = viewController.navigationController?.tabBarItem
 
-        if TFYSwiftConstants.isLiquidGlassActive() {
+        // FlatDesign custom button wins even on iOS 26, where a hidden system `_UITabButton` still exists.
+        if let tab = (viewController.tabBarController as? TFYSwiftTabBarController)
+            ?? (viewController.tfyflatdesign_tabBarController as? TFYSwiftTabBarController),
+           tab.tabBarStyleType == .flatDesign {
+            if let button = viewController.tfy_tabBarItem.tabBarButton
+                ?? viewController.navigationController?.tfy_tabBarItem.tabBarButton
+                ?? (viewController.tfy_tabButton as? TFYSwiftFlatDesignTabBarButton) {
+                return button.actualBadgeSuperView()
+            }
+        }
+
+        if viewController.tfy_usesLiquidGlassBadgePlacement() {
+            if let visible = viewController.tfy_visiableTabButton {
+                return visible
+            }
             if let viewControllerControl {
                 return viewControllerControl
             }
@@ -345,9 +401,86 @@ public extension UIViewController {
 
         if let viewControllerControl {
             viewControllerControl.layoutIfNeeded()
-            return viewControllerControl.tfy_getActualBadgeSuperView()
+            return viewControllerControl.tfy_getActualBadgeSuperView() ?? viewControllerControl
         }
         return navigationViewControllerItem?.tfy_getActualBadgeSuperView()
+    }
+
+    private func tfy_paintBadgeWhenReady(_ value: String?, animationTypeValue: NSNumber?, attemptsLeft: Int) {
+        let host = tfy_getActualBadgeSuperView()
+        let ready: Bool
+        if let view = host as? UIView {
+            ready = view.tfy_isReady()
+        } else if let item = host as? UITabBarItem {
+            ready = item.tfy_isReady() || item.tfy_tabButton != nil
+        } else {
+            ready = host != nil
+        }
+        if ready || attemptsLeft <= 0 {
+            tfy_paintBadge(value, animationTypeValue: animationTypeValue)
+            return
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+            self?.tfy_paintBadgeWhenReady(value, animationTypeValue: animationTypeValue, attemptsLeft: attemptsLeft - 1)
+        }
+    }
+
+    private func tfy_paintBadge(_ value: String?, animationTypeValue: NSNumber?) {
+        let inner = tfy_getViewControllerInsteadOfNavigationController()
+        let host: Any
+        if let resolved = tfy_getActualBadgeSuperView() {
+            host = resolved
+        } else if let button = inner.tfy_tabButton
+            ?? (inner.tfy_usesLiquidGlassBadgePlacement() ? inner.tabBarItem.tfy_tabButton : nil) {
+            host = button
+        } else {
+            host = inner.tabBarItem as Any
+        }
+        if let item = host as? UITabBarItem {
+            item.tfy_showBadgeValue(value, animationTypeValue: animationTypeValue)
+            return
+        }
+        if let control = host as? UIControl {
+            let liquid = control.tfy_usesLiquidGlassBadgePlacement()
+            let target: UIView = liquid
+                ? control
+                : ((control.tfy_getActualBadgeSuperView() as? UIView) ?? control)
+            target.tfy_showBadgeValue(value, animationTypeValue: animationTypeValue)
+            guard liquid else { return }
+            let counterpart: UIControl? = control.tfy_isPlatterSelectedControl()
+                ? control.tfy_platterNormalControl()
+                : control.tfy_platterSelectedControl()
+            if let counterpart, counterpart !== control {
+                counterpart.tfy_showBadgeValue(value, animationTypeValue: animationTypeValue)
+            }
+            return
+        }
+        (host as? UIView)?.tfy_showBadgeValue(value, animationTypeValue: animationTypeValue)
+    }
+
+    private func tfy_paintClearBadge() {
+        let host = tfy_getActualBadgeSuperView()
+        if let item = host as? UITabBarItem {
+            item.tfy_clearBadge()
+            return
+        }
+        if let control = host as? UIControl {
+            let liquid = control.tfy_usesLiquidGlassBadgePlacement()
+            let target: UIView = liquid
+                ? control
+                : ((control.tfy_getActualBadgeSuperView() as? UIView) ?? control)
+            target.tfy_clearBadge()
+            if liquid {
+                let counterpart: UIControl? = control.tfy_isPlatterSelectedControl()
+                    ? control.tfy_platterNormalControl()
+                    : control.tfy_platterSelectedControl()
+                if let counterpart, counterpart !== control {
+                    counterpart.tfy_clearBadge()
+                }
+            }
+            return
+        }
+        (host as? UIView)?.tfy_clearBadge()
     }
 
     // MARK: - Deprecated badge point

@@ -8,10 +8,6 @@
 import ObjectiveC
 import UIKit
 
-#if canImport(Lottie)
-import Lottie
-#endif
-
 public extension UIView {
 
     // MARK: - Tab / Plus identification
@@ -155,15 +151,13 @@ public extension UIView {
     }
 
     @objc func tfy_isTabBadgeView() -> Bool {
-        let isExactClass = type(of: self) == UIView.self
-        guard isExactClass else { return false }
+        guard tfy_isUIViewSubclassNotExactUIView() else { return false }
         let prefix = "_U" + "IB" + "adg"
         return tfy_classStringHasPrefix(prefix)
     }
 
     @objc func tfy_isTabBackgroundView() -> Bool {
-        let isExactClass = type(of: self) == UIView.self
-        guard isExactClass else { return false }
+        guard tfy_isUIViewSubclassNotExactUIView() else { return false }
         let prefix = "_U" + "IB" + "arBac"
         return tfy_classStringHasPrefix(prefix) && tfy_classStringHasSuffix("nd")
     }
@@ -214,12 +208,30 @@ public extension UIView {
     }
 
     @objc func tfy_imageViewInTabBarButton() -> UIImageView? {
-        if let imageView = (self as? UIButton)?.imageView {
+        // Do not KVC `imageView`. iOS 26 `_UITabButton` / `_UIButtonBarButton`
+        // throw NSUnknownKeyException; Swift cannot catch NSException.
+        // `NSStringFromClass` may be module-qualified (`UIKit._UITabButton`),
+        // so a leading-`_` check on the full string is not enough.
+        let lastComponent = NSStringFromClass(type(of: self))
+            .split(separator: ".")
+            .last
+            .map(String.init) ?? ""
+        if !lastComponent.hasPrefix("_"),
+           let button = self as? UIButton,
+           let imageView = button.imageView {
             return imageView
         }
 
+        if let imageView = tfy_firstImageViewAmongTabButtonViews(subviews) {
+            return imageView
+        }
+        return tfy_firstImageViewAmongTabButtonViews(Array(tfy_allSubviews().dropFirst()))
+    }
+
+    /// OC `cyl_imageViewInTabBarButton` subview walk. Liquid-glass tab buttons nest the icon.
+    private func tfy_firstImageViewAmongTabButtonViews(_ views: [UIView]) -> UIImageView? {
         var imageView: UIImageView?
-        for subview in subviews {
+        for subview in views {
             let classString = NSStringFromClass(type(of: subview))
             if classString.hasPrefix("UITabBar"), classString.hasSuffix("SwappableImageView") {
                 return subview as? UIImageView
@@ -262,8 +274,7 @@ public extension UIView {
     }
 
     @objc func tfy_isTabEffectContentView() -> Bool {
-        let isExactClass = type(of: self) == UIView.self
-        guard isExactClass else { return false }
+        guard tfy_isUIViewSubclassNotExactUIView() else { return false }
         let prefix = "_U" + "IVisualE" + "ffectC"
         return tfy_classStringHasPrefix(prefix) && tfy_classStringHasSuffix("entView")
     }
@@ -297,22 +308,19 @@ public extension UIView {
     }
 
     @objc func tfy_isLottieAnimationView() -> Bool {
-        #if canImport(Lottie)
-        if self is TFYSwiftCompatibleLOTAnimationView { return true }
+        // OC: isKindOfClass:[UIView] && !isMemberOfClass:[UIView]
+        guard tfy_isUIViewSubclassNotExactUIView() else { return false }
+
         if let lotClass = NSClassFromString("LOTAnimationView"), isKind(of: lotClass) {
             return true
         }
-        #endif
 
+        let className = NSStringFromClass(type(of: self))
         let swiftCompatClassStringCandidates = [
             "TFYSwiftCompatibleLOTAnimationView",
             "CYLCompatibleLOTAnimationView"
         ]
-        let className = NSStringFromClass(type(of: self))
-        if swiftCompatClassStringCandidates.contains(where: { className.contains($0) }) {
-            return true
-        }
-        return false
+        return swiftCompatClassStringCandidates.contains(where: { className.contains($0) })
     }
 
     @objc func tfy_addPlatterViewThenBringSubviewToFront(_ view: UIView) {
@@ -342,7 +350,7 @@ public extension UIView {
     @objc func tfy_bringSubviewToTop(_ view: UIView) {
         addSubview(view)
         bringSubviewToFront(view)
-        view.layer.zPosition = .greatestFiniteMagnitude
+        view.layer.zPosition = TFYSwiftLayerFrontZPosition
     }
 
     @objc func tfy_setHidden(_ hidden: Bool) {
@@ -418,6 +426,12 @@ public extension UIView {
 
     // MARK: - Internal helpers
 
+    /// OC `isKindOfClass:[UIView] && !isMemberOfClass:[UIView]`.
+    /// Private UIKit views (`_UIBarBackground`, `_UIBadgeView`, Lottie views) are subclasses, not exact `UIView`.
+    @objc func tfy_isUIViewSubclassNotExactUIView() -> Bool {
+        isKind(of: UIView.self) && type(of: self) != UIView.self
+    }
+
     @objc func tfy_isKindOfClass(_ aClass: AnyClass) -> Bool {
         guard isKind(of: aClass), type(of: self) != aClass else { return false }
         return tfy_isTabBarClass()
@@ -436,9 +450,8 @@ public extension UIView {
     }
 
     @objc func tfy_contentView() -> UIView? {
-        let selector = NSSelectorFromString("view")
-        if responds(to: selector) {
-            return perform(selector)?.takeUnretainedValue() as? UIView
+        if responds(to: NSSelectorFromString("view")) {
+            return tfy_valueForKey("view") as? UIView
         }
         return nil
     }
@@ -479,10 +492,17 @@ public extension UITabBar {
     }
 
     @objc func tfy_selectedContentControl(fromContentControl contentControl: UIControl) -> UIControl? {
-        guard let index = tfy_subTabBarButtons().firstIndex(of: contentControl), index != NSNotFound else {
-            return nil
+        let buttons = tfy_subTabBarButtons()
+        if let index = buttons.firstIndex(where: { $0 === contentControl }) {
+            return tfy_platterSelectedContentView(withIndex: index)
         }
-        return tfy_platterSelectedContentView(withIndex: index)
+        let visibleIndex = contentControl.tfy_tabBarItemVisibleIndex
+        if visibleIndex != NSNotFound {
+            let selected = tfy_platterSelectedContentViews()
+            if visibleIndex < selected.count { return selected[visibleIndex] }
+            return tfy_platterSelectedContentView(withIndex: visibleIndex)
+        }
+        return nil
     }
 
     @objc func tfy_normalContentControl(fromSelectedContentControl selectedContentControl: UIControl) -> UIControl? {

@@ -5,6 +5,7 @@
 //  Converted from CYLTabBarController.h / CYLTabBarController.m (core path)
 //
 
+import ObjectiveC
 import UIKit
 
 @objc public protocol TFYSwiftTabBarControllerDelegate: UITabBarControllerDelegate {
@@ -14,9 +15,9 @@ import UIKit
 
 public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController) -> Void
 
-@objc open class TFYSwiftTabBarController: UITabBarController, UITabBarControllerDelegate {
+@objc open class TFYSwiftTabBarController: UITabBarController, TFYSwiftTabBarControllerDelegate {
 
-    private static let tabImageViewDefaultOffsetContext = UnsafeRawPointer(bitPattern: "TFYSwiftTabImageViewDefaultOffset".hashValue)!
+    private static var tabImageViewDefaultOffsetContext: UInt8 = 0
 
     @objc public var tabBarStyleType: TFYSwiftTabBarStyleType = .default {
         didSet { applyTabBarStyleType(tabBarStyleType) }
@@ -25,10 +26,23 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
     public var viewDidLayoutSubviewsBlock: TFYSwiftViewDidLayoutSubViewsBlock?
     public var tabBarItemsAttributes: [[AnyHashable: Any]] = []
     @objc public var tabBarHeight: CGFloat {
-        get { _tabBarHeight }
+        get {
+            if _tabBarHeight == 0 {
+                if TFYSwiftTabBarHeight == 0 { TFYSwiftTabBarHeight = 49 }
+                _tabBarHeight = TFYSwiftTabBarHeight
+            }
+            return _tabBarHeight
+        }
         set {
-            guard !isFlatDesignStyle else { return }
+            if isFlatDesignStyle {
+                guard _tabBarHeight != newValue else { return }
+                _tabBarHeight = newValue
+                TFYSwiftTabBarHeight = newValue
+                tfy_flatDesignUpdateTabBarHeight(newValue)
+                return
+            }
             _tabBarHeight = newValue
+            TFYSwiftTabBarHeight = newValue
         }
     }
 
@@ -47,7 +61,10 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
     @objc public private(set) var lottieSizes = NSMutableArray()
 
     private var _tabBarHeight: CGFloat = 0
-    private var _cylTabBar: UIView?
+    /// Stored custom tab bar (CYLTabBar or FlatDesignTabBar). Internal for FlatDesign extension.
+    var _cylTabBar: UIView?
+    /// Manual `tfy_hideTabBarAnimated` — layout must not snap the bar back on screen.
+    var tfy_isTabBarSlidOffscreen = false
     private var _storedViewControllers: [UIViewController]?
     private var observingTabImageViewDefaultOffset = false
     private var invokeOnceViewDidLayoutSubViewsBlock = false
@@ -143,7 +160,7 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
         self.tabBarStyleType = styleType
         _ = tfy_cylTabBar
         applyContext(context)
-        setViewControllers(viewControllers)
+        self.viewControllers = viewControllers
         delegate = self
     }
 
@@ -228,18 +245,21 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
 
     @objc public var tfy_cylTabBar: UIView {
         if isFlatDesignStyle {
-            // FlatDesign tab bar lives in a separate module; core path returns stored view or system tabBar.
+            if _cylTabBar is TFYSwiftTabBar {
+                _cylTabBar = nil
+            }
+            if _cylTabBar == nil {
+                tfy_installFlatDesignTabBarIfNeeded()
+            }
             return _cylTabBar ?? tabBar
+        }
+        if _cylTabBar is TFYSwiftFlatDesignTabBar {
+            _cylTabBar = nil
         }
         if _cylTabBar == nil {
             setUpDefaultStyleTabBar()
             if !observingTabImageViewDefaultOffset, let bar = _cylTabBar as? TFYSwiftTabBar {
-                bar.addObserver(
-                    self,
-                    forKeyPath: "tabImageViewDefaultOffset",
-                    options: .new,
-                    context: UnsafeMutableRawPointer(mutating: TFYSwiftTabBarController.tabImageViewDefaultOffsetContext)
-                )
+                bar.addObserver(self, forKeyPath: "tabImageViewDefaultOffset", options: .new, context: &Self.tabImageViewDefaultOffsetContext)
                 observingTabImageViewDefaultOffset = true
             }
             NotificationCenter.default.post(name: .TFYSwiftTabBarStyleTypeDidChange, object: self)
@@ -259,14 +279,23 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
     open override var viewControllers: [UIViewController]? {
         get { _storedViewControllers ?? super.viewControllers }
         set {
-            _storedViewControllers = newValue
-            // Avoid ObjC selector clash with custom setViewControllers(_:).
-            if let newValue {
-                tfy_applyViewControllers(newValue)
-            } else {
-                super.viewControllers = nil
-            }
+            // Do not write `_storedViewControllers` first: UIKit's setter compares
+            // via this getter and will no-op if it already matches, leaving the
+            // internal list empty. iOS 26 then asserts in setSelectedViewController:.
+            tfy_applyViewControllers(newValue)
         }
+    }
+
+    /// Install VCs into UIKit's list. The getter must not already return `viewControllers`
+    /// or iOS 26 skips the update and later `setSelectedViewController:` asserts.
+    func commitViewControllersToSuper(_ viewControllers: [UIViewController]?) {
+        _storedViewControllers = nil
+        if let viewControllers {
+            super.setViewControllers(viewControllers, animated: false)
+        } else {
+            super.viewControllers = nil
+        }
+        _storedViewControllers = viewControllers
     }
 
     // MARK: - Lifecycle
@@ -274,6 +303,7 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
     open override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         guard !isFlatDesignStyle else {
+            tfy_flatDesignViewDidLayoutSubviews()
             invokeLayoutBlockIfNeeded()
             return
         }
@@ -310,17 +340,31 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
 
         configureLiquidGlassPlusButtonIfNeeded()
         invokeLayoutBlockIfNeeded()
+        tfy_keepTabBarOffscreenIfNeeded()
     }
 
     open override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         guard !isFlatDesignStyle else { return }
+        if tfy_isTabBarSlidOffscreen { return }
         if TFYSwiftConstants.isLiquidGlassActive() || tabBarHeight == 0 { return }
         var frame = tfy_cylTabBar.frame
         let height = tabBarFrame.size.height
         frame.size.height = height
         frame.origin.y = view.frame.height - height
         tfy_cylTabBar.frame = frame
+    }
+
+    func tfy_keepTabBarOffscreenIfNeeded() {
+        guard tfy_isTabBarSlidOffscreen, !isFlatDesignStyle else { return }
+        let y = view.bounds.height
+        tfy_cylTabBar.frame.origin.y = y
+        for subview in view.subviews {
+            let name = NSStringFromClass(type(of: subview))
+            if name == "_UITabContainerView" || (name.hasPrefix("_UITab") && name.contains("Container")) {
+                subview.frame.origin.y = y
+            }
+        }
     }
 
     open override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
@@ -402,31 +446,40 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
     open override var selectedViewController: UIViewController? {
         get { super.selectedViewController }
         set {
-            guard let selectedViewController = newValue else { return }
-            let index = _storedViewControllers?.firstIndex(of: selectedViewController) ?? NSNotFound
-            guard index != NSNotFound else { return }
-            guard super.viewControllers?.contains(where: { $0 === selectedViewController }) == true else { return }
-            super.selectedViewController = selectedViewController
+            guard let requested = newValue else { return }
+            let installed = (super.viewControllers ?? []) + children
+            let target = installed.first(where: { $0.tfy_isEqualToViewController(requested) }) ?? requested
+            guard installed.contains(where: { $0 === target }) else {
+                if let idx = (viewControllers ?? []).firstIndex(where: { $0.tfy_isEqualToViewController(requested) }),
+                   idx != NSNotFound {
+                    super.selectedIndex = idx
+                }
+                return
+            }
+            super.selectedViewController = target
 
-            guard !isFlatDesignStyle else { return }
-            if selectedViewController.tfy_isPlaceholder { return }
+            guard !isFlatDesignStyle else {
+                tfy_flatDesignDidSelectViewController(target)
+                return
+            }
+            if target.tfy_isPlaceholder { return }
 
             fixTabBarTransparencyIfNeeded()
 
             if !TFYSwiftConstants.isLiquidGlassActive() { return }
 
-            if selectedViewController === TFYSwiftPlusChildViewController {
+            if target === TFYSwiftPlusChildViewController {
                 TFYSwiftExternPlusButton?.isSelected = true
                 tabChangedToSelectedIndex(
                     TFYSwiftPlusButtonIndex,
-                    viewController: selectedViewController,
+                    viewController: target,
                     control: TFYSwiftExternPlusButton
                 )
             } else {
                 tabChangedToSelectedIndex(
                     UInt(selectedIndex),
-                    viewController: selectedViewController,
-                    control: selectedViewController.tfy_tabButton
+                    viewController: target,
+                    control: target.tfy_tabButton
                 )
             }
         }
@@ -437,18 +490,35 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
         set {
             let selectedIndex = newValue
             guard !isFlatDesignStyle else {
-                super.selectedIndex = selectedIndex
+                tfy_flatDesignSetSelectedIndex(selectedIndex)
                 return
             }
-            super.selectedIndex = selectedIndex
+            guard selectedIndex >= 0, selectedIndex != NSNotFound else { return }
             var selectedViewController: UIViewController?
-            if let vcs = viewControllers, selectedIndex >= 0, selectedIndex < vcs.count {
+            if let vcs = viewControllers, selectedIndex < vcs.count {
                 selectedViewController = vcs[selectedIndex]
-                self.selectedViewController = selectedViewController
             }
             if selectedViewController?.tfy_isPlaceholder == true { return }
+            if let selectedViewController {
+                self.selectedViewController = selectedViewController
+            } else {
+                super.selectedIndex = selectedIndex
+            }
             tabChangedToSelectedIndex(UInt(selectedIndex), viewController: selectedViewController, control: nil)
         }
+    }
+
+    @objc(setTabBarHidden:animated:)
+    open override func setTabBarHidden(_ hidden: Bool, animated: Bool) {
+        guard tabBarStyleType == .flatDesign else {
+            if #available(iOS 18.0, *) {
+                super.setTabBarHidden(hidden, animated: animated)
+            } else {
+                tabBar.isHidden = hidden
+            }
+            return
+        }
+        tfy_setFlatDesignTabBarHidden(hidden, animated: animated)
     }
 
     // MARK: - UITabBarControllerDelegate
@@ -474,8 +544,7 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
     ) -> Bool {
         guard TFYSwiftConstants.isLiquidGlassActive(), tabBar is TFYSwiftTabBar else { return false }
         guard hasPlusChildViewController() else { return true }
-        if let plusChild = TFYSwiftPlusChildViewController,
-           selectedViewController === plusChild,
+        if selectedViewController === TFYSwiftPlusChildViewController,
            (tabBar as? TFYSwiftTabBar)?.isPlusButtonLayoutCentered() != true {
             return false
         }
@@ -508,11 +577,11 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
     }
 
     @objc public func hasPlusButton() -> Bool {
-        (tfy_cylTabBar as? TFYSwiftTabBar)?.hasPlusButton() ?? false
+        customTabBarHasPlusButton()
     }
 
     @objc public func allItemsInTabBarCount() -> UInt {
-        var count = (tfy_cylTabBar as? TFYSwiftTabBar)?.tabBarItemsCount ?? 0
+        var count = TFYSwiftTabbarItemsCount
         if hasPlusButton() { count += 1 }
         return count
     }
@@ -585,7 +654,7 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
         viewController.tabBarItem.tfy_tabButton?.tfy_userInteractionDisabled = !shouldSelect
         guard shouldSelect, hasPlusChildViewController() else { return }
         let plusButton = TFYSwiftExternPlusButton
-        let isCurrent = TFYSwiftPlusChildViewController.map { viewController.tfy_isEqualToViewController($0) } ?? false
+        let isCurrent = viewController.tfy_isEqualToViewController(TFYSwiftPlusChildViewController ?? UIViewController())
         if plusButton?.isSelected == true, !isCurrent {
             plusButton?.isSelected = false
         }
@@ -602,8 +671,7 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
         change: [NSKeyValueChangeKey: Any]?,
         context: UnsafeMutableRawPointer?
     ) {
-        guard let context,
-              context == UnsafeMutableRawPointer(mutating: TFYSwiftTabBarController.tabImageViewDefaultOffsetContext) else {
+        guard context == UnsafeMutableRawPointer(&Self.tabImageViewDefaultOffsetContext) else {
             super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
             return
         }
@@ -623,11 +691,9 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
     @objc(tfy_setViewControllers:)
     public func setViewControllers(_ viewControllers: [UIViewController]?) {
         if isFlatDesignStyle {
-            super.setViewControllers(viewControllers, animated: false)
             _storedViewControllers = viewControllers
-            if viewControllers?.isEmpty == false {
-                super.selectedIndex = 0
-            }
+            _ = tfy_cylTabBar
+            tfy_flatDesignSetViewControllers(viewControllers)
             return
         }
 
@@ -650,21 +716,19 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
                 $0.tfy_getViewControllerInsteadOfNavigationController().tfy_setTabBarController(nil)
                 $0.tfy_setTabBarController(nil)
             }
-            _storedViewControllers = nil
+            commitViewControllersToSuper(nil)
             return
         }
 
-        (tfy_cylTabBar as? TFYSwiftTabBar)?.tabBarItemsCount = UInt(viewControllers.count)
         alignTabControlIfNeeded(with: viewControllers)
+        TFYSwiftTabbarItemsCount = UInt(viewControllers.count)
 
         guard tfy_cylTabBar is TFYSwiftTabBar, let tabBar = tfy_cylTabBar as? TFYSwiftTabBar else {
-            _storedViewControllers = viewControllers
-            super.viewControllers = viewControllers
+            commitViewControllersToSuper(viewControllers)
             return
         }
 
-        let plusButtonWidth = tabBar.plusButton?.frame.width ?? 0
-        tabBar.tabBarItemWidth = (tabBar.tfy_boundsSize().width - plusButtonWidth) / CGFloat(tabBar.tabBarItemsCount)
+        TFYSwiftTabBarItemWidth = (tabBar.tfy_boundsSize().width - TFYSwiftPlusButtonWidth) / CGFloat(TFYSwiftTabbarItemsCount)
         var idx = 0
         for viewController in _storedViewControllers ?? viewControllers {
             var title: String?
@@ -703,6 +767,7 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
                 }
             } else {
                 title = ""
+                viewController.tabBarItem.title = ""
                 if !(TFYSwiftConstants.isLiquidGlassActive() && hasPlusButton()) {
                     idx -= 1
                 }
@@ -723,6 +788,9 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
             wireTabBarControllerReferences(for: viewController)
             idx += 1
         }
+        // UITabBarController only installs tab buttons in the superclass setter.
+        // OC `@synthesize viewControllers = _viewControllers` has no Swift equivalent.
+        commitViewControllersToSuper(_storedViewControllers)
     }
 
     // MARK: - Private — Tab Bar Setup
@@ -786,7 +854,20 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
     // MARK: - Private — Plus Button Alignment
 
     private func hasPlusChildViewController() -> Bool {
-        (tfy_cylTabBar as? TFYSwiftTabBar)?.hasPlusChildViewController() ?? false
+        customTabBarHasPlusChildViewController()
+    }
+
+    /// OC `CYL_PERFORM_SELECTOR_BOOL(self.cyl_tabBar, hasPlusButton)` — FlatDesign is not `TFYSwiftTabBar`.
+    private func customTabBarHasPlusButton() -> Bool {
+        if let bar = tfy_cylTabBar as? TFYSwiftTabBar { return bar.hasPlusButton() }
+        if let bar = tfy_cylTabBar as? TFYSwiftFlatDesignTabBar { return bar.hasPlusButton() }
+        return false
+    }
+
+    private func customTabBarHasPlusChildViewController() -> Bool {
+        if let bar = tfy_cylTabBar as? TFYSwiftTabBar { return bar.hasPlusChildViewController() }
+        if let bar = tfy_cylTabBar as? TFYSwiftFlatDesignTabBar { return bar.hasPlusChildViewController() }
+        return false
     }
 
     private func isPlusViewControllerAdded(_ viewControllers: [UIViewController]?) -> Bool {
@@ -807,8 +888,12 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
         return vcs.contains { $0.tfy_getViewControllerInsteadOfNavigationController() === resolved }
     }
 
-    private func alignTabControlIfNeeded(with viewControllers: [UIViewController]) {
-        guard (tfy_cylTabBar as? TFYSwiftTabBar)?.hasPlusButton() == true else {
+    func alignTabControlIfNeeded(with viewControllers: [UIViewController]) {
+        if isFlatDesignStyle {
+            alignFlatDesignTabControlIfNeeded(with: viewControllers)
+            return
+        }
+        guard customTabBarHasPlusButton() else {
             _storedViewControllers = viewControllers
             return
         }
@@ -841,22 +926,53 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
             alignTabControlIfNeededWithPlusChild(from: viewControllers)
             let plusInfo: [AnyHashable: Any] = [
                 TFYSwiftTabBarItemTitle: "",
-                TFYSwiftTabBarItemImage: UIImage.tfy_tabItemPlaceholderImage() ?? UIImage(),
-                TFYSwiftTabBarItemSelectedImage: UIImage.tfy_tabItemPlaceholderImage() ?? UIImage()
+                TFYSwiftTabBarItemImage: UIImage.tfy_tabItemPlaceholderImage() as Any,
+                TFYSwiftTabBarItemSelectedImage: UIImage.tfy_tabItemPlaceholderImage() as Any
             ]
             tabBarItemsAttributes = alignViewControllers(tabBarItemsAttributes, withPlusPlaceholder: plusInfo)
         }
         doubleCheckTabControlAlign(with: _storedViewControllers ?? viewControllers)
     }
 
+    /// OC `alignTabControlIfNeededWithViewControllers:` FlatDesign branch — insert plus child + placeholder attrs.
+    private func alignFlatDesignTabControlIfNeeded(with viewControllers: [UIViewController]) {
+        guard tfy_cylTabBar is TFYSwiftFlatDesignTabBar else { return }
+        guard customTabBarHasPlusButton() else {
+            _storedViewControllers = viewControllers
+            return
+        }
+        doubleCheckTabControlAlign(with: _storedViewControllers ?? viewControllers)
+        let isAdded = isPlusViewControllerAdded(_storedViewControllers ?? [])
+        let addedFlag = TFYSwiftPlusChildViewController?.tfy_plusViewControllerEverAdded ?? false
+        let hasPlusChild = hasPlusChildViewController() && !isAdded && !addedFlag
+        if hasPlusChild {
+            alignTabControlIfNeededWithPlusChild(from: viewControllers)
+            TFYSwiftPlusChildViewController?.tfy_plusViewControllerEverAdded = true
+        } else {
+            TFYSwiftExternPlusButton?.tfy_tabBarChildViewControllerIndex = NSNotFound
+        }
+        guard customTabBarHasPlusButton(), tfy_cylTabBar is TFYSwiftFlatDesignTabBar else {
+            if !hasPlusChild { _storedViewControllers = viewControllers }
+            return
+        }
+        alignTabControlIfNeededWithPlusChild(from: viewControllers)
+        let plusInfo: [AnyHashable: Any] = [
+            TFYSwiftTabBarItemTitle: "",
+            TFYSwiftTabBarItemImage: UIImage.tfy_tabItemPlaceholderImage() as Any,
+            TFYSwiftTabBarItemSelectedImage: UIImage.tfy_tabItemPlaceholderImage() as Any
+        ]
+        tabBarItemsAttributes = alignViewControllers(tabBarItemsAttributes, withPlusPlaceholder: plusInfo)
+        doubleCheckTabControlAlign(with: _storedViewControllers ?? viewControllers)
+    }
+
     private func alignTabControlIfNeededWithPlusChild(from viewControllers: [UIViewController]) {
-        guard (tfy_cylTabBar as? TFYSwiftTabBar)?.hasPlusButton() == true else {
+        guard customTabBarHasPlusButton() else {
             _storedViewControllers = viewControllers
             return
         }
         let placeholder: UIViewController
-        if hasPlusChildViewController(), let plusChildViewController = TFYSwiftPlusChildViewController {
-            placeholder = plusChildViewController
+        if hasPlusChildViewController() {
+            placeholder = TFYSwiftPlusChildViewController!
         } else {
             let vc = UIViewController()
             vc.tfy_isPlaceholder = true
@@ -867,7 +983,7 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
     }
 
     private func alignViewControllers<T>(_ array: [T], withPlusPlaceholder placeholder: T) -> [T] {
-        guard (tfy_cylTabBar as? TFYSwiftTabBar)?.hasPlusButton() == true else { return array }
+        guard customTabBarHasPlusButton() else { return array }
         var result = array
         let plusIndex = Int(TFYSwiftPlusButtonIndex != 0 ? TFYSwiftPlusButtonIndex : UInt(array.count / 2))
         guard result.count > plusIndex else { return result }
@@ -920,18 +1036,15 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
         if imageOffset == .zero { imageOffset = self.imagePositionAdjustment }
         viewController.tabBarItem.tfy_imagePositionAdjustment = imageOffset
 
-        if viewController !== TFYSwiftPlusChildViewController {
-            lottieURLs.add(lottieURL ?? NSNull())
-            let trueSize = lottieURL.map {
-                _ in TFYSwiftConstants.tfy_getTrueLottieSizeValue(lottieSizeValue, fromNormalImage: normalImage)
-            }
-            lottieSizes.add(trueSize ?? NSNull())
+        if let lottieURL {
+            lottieURLs.add(lottieURL)
             viewController.tabBarItem.tfy_lottieURL = lottieURL
             viewController.tfy_getViewControllerInsteadOfNavigationController().tabBarItem.tfy_lottieURL = lottieURL
+            let trueSize = TFYSwiftConstants.tfy_getTrueLottieSizeValue(lottieSizeValue, fromNormalImage: normalImage)
+            lottieSizes.add(trueSize)
             viewController.tabBarItem.tfy_lottieSizeValue = trueSize
             viewController.tfy_getViewControllerInsteadOfNavigationController().tabBarItem.tfy_lottieSizeValue = trueSize
         }
-        addChild(viewController)
     }
 
     private func wireTabBarControllerReferences(for viewController: UIViewController) {
@@ -956,10 +1069,10 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
         let contentControl = control
         var selectedContentControl: UIControl?
         if let tabBar = tfy_cylTabBar as? TFYSwiftTabBar {
+            selectedContentControl = tabBar.tfy_selectedContentControl(fromContentControl: control)
             if control.tfy_isPlusControl() {
                 tabBar.tfy_setSelectedControl(TFYSwiftExternPlusButton)
             } else {
-                selectedContentControl = tabBar.tfy_selectedContentControl(fromContentControl: control)
                 tabBar.tfy_setSelectedControl(selectedContentControl ?? contentControl)
             }
             if shouldSelect {
@@ -972,6 +1085,10 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
 
         let delegateControl = control
         beginShowPlatterLiquidLensView(for: delegateControl)
+        if TFYSwiftConstants.isLiquidGlassActive(),
+           let cover = TFYSwiftExternPlusButton?.selectedContentView {
+            alignLiquidGlassPlusSelectedCover(cover)
+        }
         if shouldSelect,
            let delegate = delegate as? TFYSwiftTabBarControllerDelegate {
             delegate.tabBarController?(self, didSelectControl: delegateControl)
@@ -1104,7 +1221,6 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
         guard let tabBar = tfy_cylTabBar as? TFYSwiftTabBar else { return }
         let index = tabBar.tfy_subTabBarButtonsWithoutPlusButton().firstIndex(of: control) ?? NSNotFound
         guard index != NSNotFound, !control.tfy_isPlusButton() else { return }
-        guard index < lottieURLs.count, index < lottieSizes.count else { return }
         let url = lottieURLs[index] as? URL
         let sizeValue = lottieSizes[index] as? NSValue
         guard let url, let sizeValue else { return }
@@ -1140,6 +1256,7 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
         }
         if let bar = tfy_cylTabBar as? TFYSwiftTabBar {
             bar.context = tfy_context
+            bar.setValue(tfy_context, forKey: "context")
         }
     }
 
@@ -1168,33 +1285,46 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
     private func configureLiquidGlassPlusButtonIfNeeded() {
         guard TFYSwiftConstants.isLiquidGlassActive(), hasPlusButton(), tfy_cylTabBar is TFYSwiftTabBar else { return }
         guard let plusIndex = TFYSwiftExternPlusButton?.tfy_tabBarItemVisibleIndex,
-              let plusOrigin = (tfy_cylTabBar as? TFYSwiftTabBar)?.tfy_platterContentView(withIndex: Int(plusIndex)) else { return }
+              let plusOrigin = (tfy_cylTabBar as? TFYSwiftTabBar)?.tfy_platterContentViewWithIndex(plusIndex) else { return }
         let selectedCover = TFYSwiftExternPlusButton?.resolveSelectedContentView()
         let plusSelected = plusOrigin.tfy_platterSelectedControl()
         plusOrigin.tfy_tabImageView()?.tfy_setHidden(true)
         plusOrigin.tfy_swappableImageViewViewInTabBarButton()?.tfy_setHidden(true)
+        plusOrigin.tfy_tabLabel()?.isHidden = true
+        plusSelected?.tfy_tabLabel()?.isHidden = true
 
         let delay: TimeInterval = 0.5
         if hasPlusChildViewController(), let selectedCover, let plusSelected {
             plusSelected.tfy_coverTabImageViewOrTabButton(
                 true,
                 newView: selectedCover,
-                offset: .zero,
+                offset: UIOffset.zero,
                 show: true,
                 delayIfNeededForSeconds: delay
-            ) { _, _, cover in
-                guard let cover,
-                      let plusButton = TFYSwiftExternPlusButton,
-                      let platterView = plusButton.superview,
-                      let container = cover.superview else { return }
-                let converted = container.convert(plusButton.center, from: platterView)
-                cover.center = converted
+            ) { [weak self] _, _, cover in
+                guard let self, let cover else { return }
+                self.alignLiquidGlassPlusSelectedCover(cover)
+                TFYSwiftExternPlusButton?.setTabLabelHidden(
+                    self.selectedViewController === TFYSwiftPlusChildViewController
+                )
             }
         } else {
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                 plusSelected?.tfy_tabImageView()?.tfy_setHidden(true)
                 plusSelected?.tfy_swappableImageViewViewInTabBarButton()?.tfy_setHidden(true)
+                plusSelected?.tfy_tabLabel()?.isHidden = true
             }
+        }
+    }
+
+    private func alignLiquidGlassPlusSelectedCover(_ cover: UIView) {
+        guard let plus = TFYSwiftExternPlusButton, let platterView = plus.superview else { return }
+        cover.backgroundColor = .clear
+        cover.isOpaque = false
+        cover.clipsToBounds = false
+        cover.isUserInteractionEnabled = false
+        if let container = cover.superview {
+            cover.center = container.convert(plus.center, from: platterView)
         }
     }
 

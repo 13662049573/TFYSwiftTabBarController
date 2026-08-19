@@ -32,7 +32,6 @@ enum TFYSwiftAssociatedKeys {
     static var tabBarItemVisibleIndex: UInt8 = 0
     static var tabBarChildViewControllerIndex: UInt8 = 0
     static var lottieURL: UInt8 = 0
-    static var loadedLottieFilePath: UInt8 = 0
     static var lottieSizeValue: UInt8 = 0
     static var imagePositionAdjustment: UInt8 = 0
     static var tabButton: UInt8 = 0
@@ -45,16 +44,22 @@ enum TFYSwiftAssociatedKeys {
     static var tabBadgePointView: UInt8 = 0
     static var tabBadgePointViewOffset: UInt8 = 0
     static var userInteractionDisabled: UInt8 = 0
+    static var flatDesignTabBarItem: UInt8 = 0
 }
 
 enum TFYSwiftPrivateUIKitClassNames {
     static let portalView: String = ["_", "UI", "Portal", "View"].joined()
 }
 
-func tfy_getViewControllerInsteadOfNavigationController(from viewController: UIViewController?) -> UIViewController? {
+func tfy_resolveViewControllerInsteadOfNavigationController(from viewController: UIViewController?) -> UIViewController? {
     guard let viewController else { return nil }
     if let nav = viewController as? UINavigationController, let first = nav.viewControllers.first {
         return first
     }
     return viewController
+}
+
+/// Backward-compatible alias used by older call sites.
+func tfy_getViewControllerInsteadOfNavigationController(from viewController: UIViewController?) -> UIViewController? {
+    tfy_resolveViewControllerInsteadOfNavigationController(from: viewController)
 }

@@ -67,8 +67,6 @@ public typealias TFYSwiftTabBarDidLayoutSubViewsBlock = (TFYSwiftTabBar) -> Void
         }
     }
 
-    @objc public var tabBarItemsCount: UInt = 0
-
     @objc public var tabBarButtonArray: [UIControl] = []
 
     @objc public private(set) var plusButtonActive = false
@@ -81,7 +79,7 @@ public typealias TFYSwiftTabBarDidLayoutSubViewsBlock = (TFYSwiftTabBar) -> Void
     @objc public weak var liquidGlassLongGestureRecognizer: UIGestureRecognizer?
 
     private var _plusButton: TFYSwiftPlusButton?
-    private var _tabBarItemWidth: CGFloat = 0
+    private var _tabBarItemWidth: CGFloat = TFYSwiftTabBarItemWidth
     private var observedViews = NSMutableSet()
     private var lottieObserver: NSObjectProtocol?
 
@@ -98,6 +96,7 @@ public typealias TFYSwiftTabBarDidLayoutSubViewsBlock = (TFYSwiftTabBar) -> Void
     }
 
     private func sharedInit() {
+        _tabBarItemWidth = TFYSwiftTabBarItemWidth
         addObserver(self, forKeyPath: "tabBarItemWidth", options: .new, context: TFYSwiftTabBar.tabBarContext)
         lottieObserver = NotificationCenter.default.addObserver(
             forName: .TFYSwiftTabBarItemLottieAnimationPlaying,
@@ -168,40 +167,37 @@ public typealias TFYSwiftTabBarDidLayoutSubViewsBlock = (TFYSwiftTabBar) -> Void
 
         let addedToTabBar = _plusButton?.superview === self
         if !addedToTabBar, hasPlusButton() {
-            guard tabBarItemsCount > 0 else { return }
-            tabBarItemWidth = tabBarWidth / CGFloat(tabBarItemsCount)
+            TFYSwiftTabBarItemWidth = tabBarWidth / CGFloat(TFYSwiftTabbarItemsCount)
             for (buttonIndex, childView) in tabBarButtonArray.enumerated() {
-                let childViewX = CGFloat(buttonIndex) * tabBarItemWidth
-                changeX(forChildView: childView, childViewX: childViewX, tabBarItemWidth: tabBarItemWidth, index: UInt(buttonIndex))
+                let childViewX = CGFloat(buttonIndex) * TFYSwiftTabBarItemWidth
+                changeX(forChildView: childView, childViewX: childViewX, tabBarItemWidth: TFYSwiftTabBarItemWidth, index: UInt(buttonIndex))
             }
             didLayoutSubViewsBlock?(self)
             return
         }
 
-        guard tabBarItemsCount > 0 else { return }
-        let plusButtonWidth = _plusButton?.frame.width ?? 0
-        tabBarItemWidth = (tabBarWidth - plusButtonWidth) / CGFloat(tabBarItemsCount)
+        TFYSwiftTabBarItemWidth = (tabBarWidth - TFYSwiftPlusButtonWidth) / CGFloat(TFYSwiftTabbarItemsCount)
         let plusButtonIndex = plusButtonIndex()
         for (buttonIndex, childView) in tabBarButtonArray.enumerated() {
             var childViewX: CGFloat
             var visibleTabIndex = CGFloat(buttonIndex)
-            var itemWidth = tabBarItemWidth
+            var itemWidth = TFYSwiftTabBarItemWidth
 
             if tfy_hasPlusChildViewController() {
                 if buttonIndex <= Int(plusButtonIndex) {
-                    childViewX = CGFloat(buttonIndex) * tabBarItemWidth
+                    childViewX = CGFloat(buttonIndex) * TFYSwiftTabBarItemWidth
                 } else {
-                    childViewX = CGFloat(buttonIndex - 1) * tabBarItemWidth + plusButtonWidth
+                    childViewX = CGFloat(buttonIndex - 1) * TFYSwiftTabBarItemWidth + TFYSwiftPlusButtonWidth
                 }
                 if buttonIndex == Int(plusButtonIndex) {
-                    itemWidth = plusButtonWidth
+                    itemWidth = TFYSwiftPlusButtonWidth
                 }
             } else {
                 if buttonIndex >= Int(plusButtonIndex) {
-                    childViewX = CGFloat(buttonIndex) * tabBarItemWidth + plusButtonWidth
+                    childViewX = CGFloat(buttonIndex) * TFYSwiftTabBarItemWidth + TFYSwiftPlusButtonWidth
                     visibleTabIndex = CGFloat(buttonIndex + 1)
                 } else {
-                    childViewX = CGFloat(buttonIndex) * tabBarItemWidth
+                    childViewX = CGFloat(buttonIndex) * TFYSwiftTabBarItemWidth
                 }
             }
 
@@ -231,7 +227,7 @@ public typealias TFYSwiftTabBarDidLayoutSubViewsBlock = (TFYSwiftTabBar) -> Void
 
     @objc public func plusButtonIndex() -> UInt {
         guard let plusButton = _plusButton else { return UInt(NSNotFound) }
-        let index = type(of: plusButton).index(forTabbarItemsCount: tabBarItemsCount)
+        let index = type(of: plusButton).index(forTabbarItemsCount: TFYSwiftTabbarItemsCount)
         let tabBarWidth = tfy_boundsSize().width
         let tabBarHeight = tfy_boundsSize().height
 
@@ -242,7 +238,7 @@ public typealias TFYSwiftTabBarDidLayoutSubViewsBlock = (TFYSwiftTabBar) -> Void
                 x: tabBarWidth * 0.5,
                 y: tabBarHeight * multiplier + yOffset
             )
-            let childViewX = CGFloat(index) * tabBarItemWidth
+            let childViewX = CGFloat(index) * TFYSwiftTabBarItemWidth
             let itemWidth = plusButton.frame.width
             changeX(forChildView: plusButton, childViewX: childViewX, tabBarItemWidth: itemWidth, index: index)
             TFYSwiftPlusButtonIndex = index
@@ -259,6 +255,7 @@ public typealias TFYSwiftTabBarDidLayoutSubViewsBlock = (TFYSwiftTabBar) -> Void
             CATransaction.commit()
         }
         TFYSwiftExternPlusButton?.tfy_tabBarChildViewControllerIndex = Int(index)
+        hidePlusPlaceholderSystemChrome()
         return index
     }
 
@@ -272,6 +269,34 @@ public typealias TFYSwiftTabBarDidLayoutSubViewsBlock = (TFYSwiftTabBar) -> Void
 
     @objc public func isPlusButtonLayoutCentered() -> Bool {
         plusButton?.isLayoutCentered() ?? false
+    }
+
+    private func hidePlusPlaceholderSystemChrome() {
+        let index = Int(TFYSwiftPlusButtonIndex)
+        guard index >= 0, index < tabBarButtonArray.count else { return }
+        hideSystemTabChrome(on: tabBarButtonArray[index])
+        if let selected = tabBarButtonArray[index].tfy_platterSelectedControl() {
+            hideSystemTabChrome(on: selected)
+        }
+    }
+
+    private func hideSystemTabChrome(on host: UIView) {
+        for view in host.tfy_allSubviews() {
+            if isInsidePlusButton(view) { continue }
+            if view.tfy_isTabBadgeView() { continue }
+            if view.tfy_isTabLabel() || view.tfy_isButtonLabel() {
+                view.isHidden = true
+            }
+        }
+    }
+
+    private func isInsidePlusButton(_ view: UIView) -> Bool {
+        var node: UIView? = view
+        while let current = node {
+            if current is TFYSwiftPlusButton { return true }
+            node = current.superview
+        }
+        return false
     }
 
     @objc public func tabBarController() -> TFYSwiftTabBarController? {
@@ -290,23 +315,34 @@ public typealias TFYSwiftTabBarDidLayoutSubViewsBlock = (TFYSwiftTabBar) -> Void
         if clipsToBounds, !self.point(inside: point, with: event) {
             return super.hitTest(point, with: event)
         }
-        if let plusButton = plusButton {
-            let frame = plusButton.touchableRect()
-            if frame.contains(point) {
-                return plusButton
+        let plus = plusButton ?? TFYSwiftExternPlusButton
+        if let plus, plus.superview != nil, !plus.tfy_canNotResponseEvent() {
+            let plusFrame = plus.superview?.convert(plus.touchableRect(), to: self)
+                ?? plus.convert(plus.bounds, to: self)
+            if plusFrame.contains(point) {
+                return plus
             }
         }
-        var buttons = tabBarButtonArray
-        if buttons.isEmpty {
-            buttons = tfy_visibleControls()
+        // Liquid glass: converting platter-local tab frames and returning those
+        // controls steals UIKit's native hit (「我的」 especially). Plus is handled
+        // above; everything else goes to UIKit.
+        if TFYSwiftConstants.isLiquidGlassActive() {
+            if let result = super.hitTest(point, with: event) {
+                return result
+            }
+            for subview in subviews.reversed() {
+                let subPoint = convert(point, to: subview)
+                if let result = subview.hitTest(subPoint, with: event) {
+                    return result
+                }
+            }
+            return super.hitTest(point, with: event)
         }
-        for selectedTabBarButton in buttons {
-            let imageView = selectedTabBarButton.tfy_getActualBadgeSuperView() as? UIView
-            let buttonFrame = selectedTabBarButton.frame
-            let imageFrame = imageView.map { $0.convert($0.bounds, to: self) } ?? .zero
-            let contains = buttonFrame.contains(point) || imageFrame.contains(point)
-            if contains, !selectedTabBarButton.tfy_canNotResponseEvent() {
-                return selectedTabBarButton
+        let buttons = tfy_tabBarSubviews().filter { !($0 is TFYSwiftPlusButton) }
+        for button in buttons {
+            let buttonFrame = button.convert(button.bounds, to: self)
+            if buttonFrame.contains(point), !button.tfy_canNotResponseEvent() {
+                return button
             }
         }
         if let result = super.hitTest(point, with: event) {

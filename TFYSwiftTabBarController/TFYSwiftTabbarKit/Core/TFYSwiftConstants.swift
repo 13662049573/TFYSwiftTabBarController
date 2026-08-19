@@ -26,9 +26,14 @@ public var TFYSwiftTabbarItemsCount: UInt = 0
 public var TFYSwiftPlusButtonIndex: UInt = 0
 public var TFYSwiftPlusButtonWidth: CGFloat = 0
 public var TFYSwiftTabBarItemWidth: CGFloat = 0
-public var TFYSwiftTabBarHeight: CGFloat = 0
+public var TFYSwiftTabBarHeight: CGFloat = 49
 public var TFYSwiftTabBarItemImagePlaceholderWidth: CGFloat = 22
 public var TFYSwiftTabBarItemImagePlaceholderHeight: CGFloat = 22
+/// CALayer.zPosition is Float. `CGFloat.greatestFiniteMagnitude` is DBL_MAX and trips iOS 26.
+let TFYSwiftLayerFrontZPosition = CGFloat(Float.greatestFiniteMagnitude.nextDown)
+
+/// Hook for `TFYSwiftTabBarControllerLottie`. Do not `perform` Swift Lottie inits — that crashes in `object_getMethodImplementation`.
+public var TFYSwiftMakeCompatibleLottieView: ((String, CGSize) -> UIView?)?
 
 // MARK: - Notifications
 
@@ -120,11 +125,12 @@ public final class TFYSwiftConstants: NSObject {
         fromLottieURLs lottieURLs: NSMutableArray?,
         tabBarItemsAttributes: [[AnyHashable: Any]]?
     ) -> Bool {
-        let containsURL = lottieURLs?.contains { $0 is URL } ?? false
-        let containsAttribute = tabBarItemsAttributes?.contains {
-            $0[TFYSwiftTabBarLottieURL] is URL || $0[TFYSwiftTabBarLottieFilePath] is String
-        } ?? false
-        return containsURL || containsAttribute
+        let urlCount = lottieURLs?.count ?? 0
+        var fromAttributes = false
+        if let first = tabBarItemsAttributes?.first {
+            fromAttributes = first[TFYSwiftTabBarLottieURL] != nil || first[TFYSwiftTabBarLottieFilePath] != nil
+        }
+        return urlCount > 0 || fromAttributes
     }
 }
 
@@ -173,6 +179,14 @@ public func tfy_scaleValue(_ value: CGFloat) -> CGFloat {
 
 public func tfy_hScaleValue(_ value: CGFloat) -> CGFloat {
     value * TFYSwiftConstants.uiBasisHeightScale()
+}
+
+public func tfy_scaleFont(_ fontSize: CGFloat) -> UIFont {
+    UIFont.systemFont(ofSize: tfy_scaleValue(fontSize))
+}
+
+public func tfy_scaleBoldFont(_ fontSize: CGFloat) -> UIFont {
+    UIFont.boldSystemFont(ofSize: tfy_scaleValue(fontSize))
 }
 
 public func tfy_rgbColor(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat) -> UIColor {

@@ -34,9 +34,8 @@ public extension UITabBarItem {
     }
 
     @objc var tfy_view: UIView? {
-        let selector = NSSelectorFromString("view")
-        if responds(to: selector) {
-            return perform(selector)?.takeUnretainedValue() as? UIView
+        if responds(to: NSSelectorFromString("view")) {
+            return (self as NSObject).tfy_valueForKey("view") as? UIView
         }
         return nil
     }
@@ -54,7 +53,7 @@ public extension UITabBarItem {
     }
 
     @objc var tfy_selectedTabButton: UIControl? {
-        guard TFYSwiftConstants.isLiquidGlassActive(), let view = tfy_view else { return nil }
+        guard let view = tfy_view, view.tfy_usesLiquidGlassBadgePlacement() else { return nil }
         guard let index = view.superview?.subviews.firstIndex(of: view), index != NSNotFound else { return nil }
         guard let platterView = tfy_tabBarController?.tabBar.tfy_platterView, platterView.tfy_isPlatterView() else { return nil }
         guard let selectedContentView = platterView.subviews.first(where: { $0.tfy_isPlatterSelectedContentView() }) else { return nil }
@@ -63,8 +62,8 @@ public extension UITabBarItem {
     }
 
     @objc var tfy_visiableTabButton: UIControl? {
-        if TFYSwiftConstants.isLiquidGlassActive() {
-            return tfy_selectedTabButton
+        if let view = tfy_view, view.tfy_usesLiquidGlassBadgePlacement() {
+            return tfy_selectedTabButton ?? tfy_tabButton
         }
         return tfy_tabButton
     }

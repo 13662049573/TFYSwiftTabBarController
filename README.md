@@ -3,8 +3,8 @@
 <div align="center">
     <img src="https://raw.githubusercontent.com/13662049573/TFYSwiftTabBarController/master/Assets/logo.png" width="200" alt="TFYSwiftTabBarController"/>
     <br>
-    <h3>🚀 高度自定义的 iOS TabBar 控制器</h3>
-    <p>一个优雅、强大且功能丰富的 Swift TabBar 框架，让你的应用拥有独特的 TabBar 体验</p>
+    <h3>Swift TabBar 控制器</h3>
+    <p>中间 Plus、角标、扁平自定义栏、Lottie、iOS 26 Liquid Glass</p>
 </div>
 
 <div align="center">
@@ -26,305 +26,196 @@
     <a href="https://github.com/13662049573/TFYSwiftTabBarController/stargazers">
         <img src="https://img.shields.io/github/stars/13662049573/TFYSwiftTabBarController.svg?style=flat-square" alt="Stars"/>
     </a>
-    <a href="https://github.com/13662049573/TFYSwiftTabBarController/network">
-        <img src="https://img.shields.io/github/forks/13662049573/TFYSwiftTabBarController.svg?style=flat-square" alt="Forks"/>
-    </a>
 </div>
 
 ---
 
-## ✨ 核心特性
+## 核心能力
 
-<div align="center">
-    <table>
-        <tr>
-            <td align="center">
-                <b>🎨 完全自定义</b><br>
-                <small>支持自定义样式、布局、颜色等</small>
-            </td>
-            <td align="center">
-                <b>🔔 灵活角标</b><br>
-                <small>支持数字角标、小红点、自定义样式</small>
-            </td>
-            <td align="center">
-                <b>📱 多种布局</b><br>
-                <small>提供填充、居中、分隔等多种布局</small>
-            </td>
-        </tr>
-        <tr>
-            <td align="center">
-                <b>🎯 事件拦截</b><br>
-                <small>支持点击事件拦截和自定义处理</small>
-            </td>
-            <td align="center">
-                <b>💫 丰富动画</b><br>
-                <small>内置多种切换动画，支持自定义</small>
-            </td>
-            <td align="center">
-                <b>📐 自适应布局</b><br>
-                <small>完美支持横竖屏切换</small>
-            </td>
-        </tr>
-        <tr>
-            <td align="center">
-                <b>🔄 More 模式</b><br>
-                <small>支持原生"更多"导航模式</small>
-            </td>
-            <td align="center">
-                <b>⚡️ 高性能</b><br>
-                <small>采用高效渲染，确保流畅体验</small>
-            </td>
-            <td align="center">
-                <b>♿ 可访问性</b><br>
-                <small>完整的 VoiceOver 支持</small>
-            </td>
-        </tr>
-    </table>
-</div>
+- **四种栏样式**：`default` / `system` / `flatDesign` / `liquidGlass`（iOS 26）
+- **中间 Plus 按钮**：凸起按钮、可挂 Child VC，或只做动作
+- **角标**：数字、红点、文字；呼吸 / 抖动 / 弹跳等动画；Tab、UIView、UIBarButtonItem 通用
+- **扁平自定义 TabBar**：独立 `TFYSwiftFlatDesignTabBar`，可与系统 UITabBar 对照
+- **Lottie Tab 动画**：属性字典里带 `TFYSwiftTabBarLottieFilePath` 即可
+- **导航辅助**：Push 隐藏栏、禁侧滑、隐藏导航分隔线
 
-## 📱 效果预览
+库模块名是 **`TFYSwiftTabbarKit`**。本仓库的 Example App 把 Kit 编进 App target，所以 Demo 里写的是 `import TFYSwiftTabBarController`。
 
-<div align="center">
-    <img src="https://raw.githubusercontent.com/13662049573/TFYSwiftTabBarController/master/Assets/preview1.gif" width="200" alt="预览1"/>
-    <img src="https://raw.githubusercontent.com/13662049573/TFYSwiftTabBarController/master/Assets/preview2.gif" width="200" alt="预览2"/>
-    <img src="https://raw.githubusercontent.com/13662049573/TFYSwiftTabBarController/master/Assets/preview3.gif" width="200" alt="预览3"/>
-</div>
+## 系统要求
 
-## 🚀 快速开始
+- iOS 15.0+
+- Swift 5.0+
+- Xcode 16.0+（含 iOS 26 SDK 才能编 Liquid Glass / `UIScrollEdgeElementContainerInteraction`）
+- 依赖 [lottie-ios](https://github.com/airbnb/lottie-ios) 4.0+
 
-### 📋 系统要求
+## 安装
 
-- **iOS 15.0+**
-- **Swift 5.0+**
-- **Xcode 13.0+**
-
-### 📦 安装方式
-
-#### CocoaPods
+### CocoaPods
 
 ```ruby
-# Podfile
-pod 'TFYSwiftTabbarKit'
+pod 'TFYSwiftTabbarKit', '~> 2.0.7'
 ```
 
 ```bash
-# 终端执行
 pod install
 ```
 
-#### Swift Package Manager
+### Swift Package Manager
+
+Xcode：File → Add Package Dependencies，填：
+
+`https://github.com/13662049573/TFYSwiftTabBarController.git`
+
+或在 `Package.swift` 里：
 
 ```swift
-// Package.swift
 dependencies: [
-    .package(url: "https://github.com/13662049573/TFYSwiftTabBarController.git", .upToNextMajor(from: "2.0.6"))
+    .package(url: "https://github.com/13662049573/TFYSwiftTabBarController.git", .upToNextMajor(from: "2.0.7"))
 ]
 ```
 
-### 🎯 基础使用
+然后把 `TFYSwiftTabbarKit` 加到 target 的 `dependencies`。
+
+## 基础用法
 
 ```swift
 import TFYSwiftTabbarKit
+import UIKit
 
-class TabBarController: TFYSwiftTabbarController {
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        // 创建视图控制器
-        let homeVC = HomeViewController()
-        let profileVC = ProfileViewController()
-        
-        // 配置 TabBarItems
-        let homeItem = TFYSwiftTabBarItem(
-            title: "首页", 
-            image: UIImage(named: "home"),
-            selectedImage: UIImage(named: "home_selected")
+final class MainTabBarController: TFYSwiftTabBarController {
+
+    convenience init() {
+        let home = TFYSwiftBaseNavigationController(rootViewController: HomeViewController())
+        let mine = TFYSwiftBaseNavigationController(rootViewController: MineViewController())
+        self.init(
+            viewControllers: [home, mine],
+            tabBarItemsAttributes: [
+                [
+                    TFYSwiftTabBarItemTitle: "首页",
+                    TFYSwiftTabBarItemImage: UIImage(systemName: "house") as Any,
+                    TFYSwiftTabBarItemSelectedImage: UIImage(systemName: "house.fill") as Any,
+                ],
+                [
+                    TFYSwiftTabBarItemTitle: "我的",
+                    TFYSwiftTabBarItemImage: UIImage(systemName: "person") as Any,
+                    TFYSwiftTabBarItemSelectedImage: UIImage(systemName: "person.fill") as Any,
+                ],
+            ],
+            imageInsets: .zero,
+            titlePositionAdjustment: UIOffset(horizontal: 0, vertical: -3.5),
+            styleType: .default,
+            context: nil
         )
-        
-        let profileItem = TFYSwiftTabBarItem(
-            title: "我的", 
-            image: UIImage(named: "profile"),
-            selectedImage: UIImage(named: "profile_selected")
-        )
-        
-        // 设置控制器
-        homeVC.tabBarItem = homeItem
-        profileVC.tabBarItem = profileItem
-        
-        viewControllers = [homeVC, profileVC]
     }
 }
 ```
 
-## 🎨 高级功能
-
-### 自定义样式
+`AppDelegate` 里如果要用 Lottie Tab，先注册运行时工厂：
 
 ```swift
-// 创建自定义样式的 TabBarItem
-class CustomTabBarItemView: TFYSwiftTabBarItemContentView {
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        
-        // 设置样式
-        textColor = .systemGray
-        iconColor = .systemGray
-        highlightTextColor = .systemBlue
-        highlightIconColor = .systemBlue
-        
-        // 自定义布局
-        titlePositionAdjustment = UIOffset(horizontal: 0, vertical: -3)
+TFYSwiftCompatibleLOTAnimation.loadRuntime()
+```
+
+启动时把 `MainTabBarController` 设成窗口根控制器（或包一层导航）。
+
+### 属性字典键
+
+| 键 | 含义 |
+| --- | --- |
+| `TFYSwiftTabBarItemTitle` | 标题 |
+| `TFYSwiftTabBarItemImage` | 普通图（`UIImage` 或图片名 `String`） |
+| `TFYSwiftTabBarItemSelectedImage` | 选中图 |
+| `TFYSwiftTabBarLottieFilePath` | 本地 Lottie JSON 路径 |
+| `TFYSwiftTabBarLottieURL` | Lottie 资源 URL |
+| `TFYSwiftTabBarLottieSize` | Lottie 尺寸 `NSValue(cgSize:)` |
+
+## 中间 Plus 按钮
+
+子类化 `TFYSwiftPlusButton` 并实现 `TFYSwiftPlusButtonSubclassing`，在启动时注册：
+
+```swift
+final class PlusButtonSubclass: TFYSwiftPlusButton, TFYSwiftPlusButtonSubclassing {
+    static func plusButton() -> Any { /* 配置按钮 */ }
+    static func indexOfPlusButtonInTabBar() -> UInt { 2 }
+    static func plusChildViewController() -> UIViewController {
+        TFYSwiftBaseNavigationController(rootViewController: PublishViewController())
     }
+    static func shouldSelectPlusChildViewController() -> Bool { true }
 }
 
-// 使用自定义样式
-let item = TFYSwiftTabBarItem(CustomTabBarItemView())
+PlusButtonSubclass.registerPlusButton()
 ```
 
-### 角标设置
+不提供 `plusChildViewController` 时，Plus 只占位，点击走 `didSelectControl`。
+
+## 角标
 
 ```swift
-// 数字角标
-item.badgeValue = "99+"
+child.tfy_showBadgeValue("99", animationType: .bounce)
+child.tfy_showBadgeValue("", animationType: .shake)   // 红点
+child.tfy_clearBadge()
+child.tfy_resumeBadge()
 
-// 小红点
-item.badgeValue = ""
-
-// 自定义角标样式
-item.badgeColor = .systemRed
+navigationItem.rightBarButtonItem?.tfy_showBadgeValue("5", animationType: .scaleOnce)
 ```
 
-### 事件拦截
+常用外观：`tfy_badgeBackgroundColor`、`tfy_badgeTextColor`、`tfy_badgeCenterOffset`、`tfy_badgeRadius`、`tfy_badgeMaximumBadgeNumber`。
+
+## 样式切换
 
 ```swift
-// 设置事件拦截
-tabBarController.shouldHijackHandler = { tabBarController, viewController, index in
-    // 拦截特定 Tab 的点击
-    return index == 1
-}
-
-tabBarController.didHijackHandler = { tabBarController, viewController, index in
-    // 处理被拦截的事件
-    print("Tab \(index) 被拦截了！")
-}
+tab.tabBarStyleType = .flatDesign   // 或 .liquidGlass / .system / .default
+tab.tabBarHeight = 49
+tab.setTabBarHidden(true, animated: true)
+tab.hideTabBarShadowImageView()
 ```
 
-### 动画效果
+扁平栏下 Item 用 `TFYSwiftFlatDesignTabBarItem`（`layoutCentered`、`backgroundColor` 等）。也可单独用 `TFYSwiftFlatDesignTabBar` 当普通视图。
+
+## 点击与跳转
 
 ```swift
-class AnimatedTabBarItemView: TFYSwiftTabBarItemContentView {
-    override func selectAnimation(animated: Bool, completion: (() -> Void)?) {
-        if animated {
-            UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.5, options: .curveEaseInOut, animations: {
-                self.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
-            }) { _ in
-                UIView.animate(withDuration: 0.2, animations: {
-                    self.transform = CGAffineTransform.identity
-                }) { _ in
-                    completion?()
-                }
-            }
-        } else {
-            completion?()
-        }
-    }
+func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
+    updateSelectionStatusIfNeeded(for: tabBarController, shouldSelectViewController: viewController)
+    return true
 }
+
+func tabBarController(_ tabBarController: TFYSwiftTabBarController, didSelectControl control: UIControl) {
+    // Plus 按钮也会走到这里
+}
+
+_ = tfy_popSelectTabBarChildViewController(for: MineViewController.self)
+_ = tfy_popSelectTabBarChildViewController(at: 0, animated: true)
 ```
 
-## 📚 功能演示
+Push 时：
 
-我们提供了完整的功能演示，包括：
+```swift
+detail.tfy_hidesBottomBarWhenPushed = true
+detail.tfy_navigationBarHidden = true
+detail.tfy_disablePopGestureRecognizer = true
+navigationController?.pushViewController(detail, animated: true)
+```
 
-- 🏠 **基础TabBar** - 展示基础的TabBar功能
-- 🎨 **自定义TabBar** - 展示自定义样式的TabBar
-- 🔔 **徽章功能** - 展示徽章显示和管理功能
-- 💫 **动画效果** - 展示丰富的动画和交互效果
-- 🎯 **事件劫持** - 展示自定义点击事件处理
-- 🔄 **More按钮** - 展示自定义More按钮样式
-- 📐 **响应式布局** - 展示不同屏幕尺寸和方向的适配
+## Example
 
-## 🛠️ 最新优化 (2024年)
+打开 `TFYSwiftTabBarController.xcworkspace`（不要只开 `.xcodeproj`，Demo 依赖 CocoaPods 的 Lottie / NavigationKit）。
 
-### 🚀 代码质量优化
+Demo 入口是 `DemoRootNavigationController` → `MainTabBarController`：首页是全量 API 目录，同城 / 消息 / 我的 / 中间 Plus「发布」对照原版 CYL 动作。摇一摇给当前 Tab 打角标。
 
-- ✅ **添加MARK注释** - 为所有类添加清晰的MARK注释分组
-- ✅ **方法重构** - 将复杂方法拆分为更小、更专注的方法
-- ✅ **命名规范** - 统一命名规范，提高代码可读性
-- ✅ **注释完善** - 为所有公共API添加详细注释
+## 目录
 
-### ⚡ 性能优化
+```
+TFYSwiftTabBarController/TFYSwiftTabbarKit/
+  Core/          控制器、自定义 UITabBar、Plus、常量
+  Badge/         角标
+  FlatDesign/    扁平栏
+  Lottie/        Compatible Lottie 包装
+  Extensions/    UIKit 扩展、KVC 辅助
+  include/       ObjC KVC catch 头文件（Swift 捕不到 NSException）
+  TFYSwiftKVCCatch.m
+```
 
-- ✅ **懒加载** - 使用`lazy var`优化内存使用
-- ✅ **方法优化** - 减少重复计算和不必要的对象创建
-- ✅ **布局优化** - 优化布局计算逻辑，提高渲染性能
-- ✅ **内存管理** - 改进内存管理，避免循环引用
+## 许可
 
-### 🔧 可维护性提升
-
-- ✅ **模块化设计** - 将复杂功能拆分为独立模块
-- ✅ **单一职责** - 每个类和方法只负责单一功能
-- ✅ **依赖注入** - 改进组件间的依赖关系
-- ✅ **错误处理** - 增强错误处理和边界条件检查
-
-## 📊 优化效果对比
-
-| 指标 | 优化前 | 优化后 | 改进 |
-|------|--------|--------|------|
-| 代码可读性 | 一般 | 优秀 | 大幅提升 |
-| 方法复杂度 | 高 | 低 | 显著降低 |
-| 内存使用 | 一般 | 优化 | 更高效 |
-| 可维护性 | 一般 | 优秀 | 大幅提升 |
-| 性能 | 一般 | 优化 | 更流畅 |
-
-## 🤝 社区贡献
-
-我们欢迎所有形式的贡献！
-
-### 贡献方式
-
-1. **⭐ Star 项目** - 如果这个项目对你有帮助，请给我们一个 Star
-2. **🐛 报告 Bug** - 在 [Issues](https://github.com/13662049573/TFYSwiftTabBarController/issues) 中报告问题
-3. **💡 提出建议** - 在 [Discussions](https://github.com/13662049573/TFYSwiftTabBarController/discussions) 中分享想法
-4. **🔧 提交代码** - 通过 Pull Request 贡献代码
-
-### 贡献指南
-
-1. Fork 本项目
-2. 创建你的特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交你的改动 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开一个 Pull Request
-
-## 👨‍💻 作者信息
-
-**田风有** - iOS 开发工程师
-
-- 📧 **Email**: 420144542@qq.com
-- 💬 **微信**: 13662049573
-- 📱 **博客**: [掘金主页](https://juejin.cn/user/你的掘金ID)
-- 🐦 **GitHub**: [@13662049573](https://github.com/13662049573)
-
-## 📄 开源协议
-
-TFYSwiftTabBarController 基于 **MIT 许可证** 开源。
-
-详细内容请查看 [LICENSE](LICENSE) 文件。
-
-## ⭐ Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=13662049573/TFYSwiftTabBarController&type=Date)](https://star-history.com/#13662049573/TFYSwiftTabBarController&Date)
-
-## 📞 联系我们
-
-如果你有任何问题或建议，欢迎通过以下方式联系我们：
-
-- 📧 **邮箱**: 420144542@qq.com
-- 💬 **微信**: 13662049573
-- 🐛 **Issues**: [GitHub Issues](https://github.com/13662049573/TFYSwiftTabBarController/issues)
-
----
-
-<div align="center">
-    <p>如果这个项目对你有帮助，请给我们一个 ⭐ Star</p>
-    <p>Made with ❤️ by 田风有</p>
-</div>
+MIT。作者 田风有 · 420144542@qq.com · [GitHub](https://github.com/13662049573)

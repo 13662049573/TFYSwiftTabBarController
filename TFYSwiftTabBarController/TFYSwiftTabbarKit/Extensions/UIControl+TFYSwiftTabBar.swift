@@ -8,10 +8,6 @@
 import ObjectiveC
 import UIKit
 
-#if canImport(Lottie)
-import Lottie
-#endif
-
 public extension UIControl {
 
     // MARK: - Associated indexes / flags
@@ -68,6 +64,9 @@ public extension UIControl {
         }
         return false
     }
+
+    /// OC `cyl_isSelected`. Kept as alias of `tfy_isSelectedTab()`.
+    @objc func tfy_isSelected() -> Bool { tfy_isSelectedTab() }
 
     @objc func tfy_isSelectedTab() -> Bool {
         let tabBarSelectedIndex = tfy_tabBarController?.selectedIndex ?? NSNotFound
@@ -282,7 +281,14 @@ public extension UIControl {
         if shouldShowNewView {
             tabBarButton.addSubview(newView)
             let newViewSize = newView.frame.size
-            if #available(iOS 9.0, *) {
+            if newView.translatesAutoresizingMaskIntoConstraints {
+                let xAnchor = swappableImageView ?? anchorView
+                newView.bounds.size = newViewSize
+                newView.center = CGPoint(
+                    x: xAnchor.center.x + offset.horizontal,
+                    y: anchorView.center.y + offset.vertical
+                )
+            } else if #available(iOS 9.0, *) {
                 NSLayoutConstraint.activate([
                     newView.centerXAnchor.constraint(equalTo: (swappableImageView ?? anchorView).centerXAnchor, constant: offset.horizontal),
                     newView.centerYAnchor.constraint(equalTo: anchorView.centerYAnchor, constant: offset.vertical),
@@ -308,46 +314,22 @@ public extension UIControl {
     }
 
     @objc func tfy_addLottieImage(withLottieFilePath lottieFilePath: String, size: CGSize, contentMode: UIView.ContentMode) {
-        guard TFYSwiftConstants.tfy_getURL(from: lottieFilePath) != nil else { return }
+        guard let lottieURL = TFYSwiftConstants.tfy_getURL(from: lottieFilePath) else { return }
         var resolvedSize = size
         if resolvedSize == .zero {
             resolvedSize = CGSize(width: TFYSwiftTabBarItemImagePlaceholderWidth, height: TFYSwiftTabBarItemImagePlaceholderHeight)
         }
         if tfy_isPlusControl() { return }
+        if tfy_lottieAnimationView() != nil { return }
 
-        #if canImport(Lottie)
-        if let existing = tfy_lottieAnimationView() as? TFYSwiftCompatibleLOTAnimationView {
-            let loadedPath = objc_getAssociatedObject(self, &TFYSwiftAssociatedKeys.loadedLottieFilePath) as? String
-            guard loadedPath != lottieFilePath else { return }
-            existing.compatibleAnimation = TFYSwiftCompatibleLOTAnimation(filepath: lottieFilePath)
-            existing.currentProgress = 0
-            objc_setAssociatedObject(
-                self,
-                &TFYSwiftAssociatedKeys.loadedLottieFilePath,
-                lottieFilePath,
-                .OBJC_ASSOCIATION_COPY_NONATOMIC
-            )
-            return
+        if let lottieView = tfy_makeObjCLottieView(url: lottieURL, size: resolvedSize)
+            ?? tfy_makeCompatibleLottieView(filePath: lottieFilePath, size: resolvedSize) {
+            lottieView.isUserInteractionEnabled = false
+            lottieView.contentMode = contentMode
+            lottieView.translatesAutoresizingMaskIntoConstraints = false
+            lottieView.clipsToBounds = false
+            tfy_replaceTabImageViewWithNewView(lottieView, show: true)
         }
-
-        guard tfy_lottieAnimationView() == nil else { return }
-        let animation = TFYSwiftCompatibleLOTAnimation(filepath: lottieFilePath)
-        let lottieView = TFYSwiftCompatibleLOTAnimationView(compatibleAnimation: animation)
-        lottieView.frame = CGRect(origin: .zero, size: resolvedSize)
-        lottieView.isUserInteractionEnabled = false
-        lottieView.isAccessibilityElement = true
-        lottieView.accessibilityIdentifier = "tfy.tabbar.lottie"
-        lottieView.contentMode = contentMode
-        lottieView.translatesAutoresizingMaskIntoConstraints = false
-        lottieView.clipsToBounds = false
-        objc_setAssociatedObject(
-            self,
-            &TFYSwiftAssociatedKeys.loadedLottieFilePath,
-            lottieFilePath,
-            .OBJC_ASSOCIATION_COPY_NONATOMIC
-        )
-        tfy_replaceTabImageViewWithNewView(lottieView, show: true)
-        #endif
     }
 
     @objc func tfy_animationLottieImage(
@@ -363,50 +345,38 @@ public extension UIControl {
 
         NotificationCenter.default.post(name: .TFYSwiftTabBarItemLottieAnimationPlaying, object: self)
 
-        DispatchQueue.main.async {
-            if let compatibleView = lottieView as? TFYSwiftCompatibleLOTAnimationView {
-                if defaultSelected {
-                    compatibleView.animationProgress = 1
-                    compatibleView.forceDrawingUpdate()
-                } else {
-                    compatibleView.animationProgress = 0
-                    compatibleView.play()
-                }
-                return
-            }
-            let progressSelector = NSSelectorFromString("setAnimationProgress:")
-            let actionSelector = NSSelectorFromString(defaultSelected ? "forceDrawingUpdate" : "play")
-            guard lottieView.responds(to: progressSelector), lottieView.responds(to: actionSelector) else { return }
+        let apply: () -> Void = {
             if defaultSelected {
                 lottieView.setValue(1.0, forKey: "animationProgress")
-                _ = lottieView.perform(actionSelector)
+                _ = lottieView.perform(NSSelectorFromString("forceDrawingUpdate"))
             } else {
                 lottieView.setValue(0.0, forKey: "animationProgress")
-                _ = lottieView.perform(actionSelector)
+                _ = lottieView.perform(NSSelectorFromString("play"))
             }
+        }
+        // OC: ObjC LOTAnimationView plays on main queue; CompatibleLOTAnimationView must not,
+        // or pause/play can desync.
+        let className = NSStringFromClass(type(of: lottieView))
+        if className.contains("CompatibleLOTAnimationView") {
+            apply()
+        } else {
+            DispatchQueue.main.async(execute: apply)
         }
     }
 
     @objc func tfy_stopAnimationOfLottieView() {
         guard let lottieView = tfy_lottieAnimationView() else { return }
-        if let compatibleView = lottieView as? TFYSwiftCompatibleLOTAnimationView {
-            guard compatibleView.animationProgress > 0 else { return }
-            compatibleView.stop()
-            return
-        }
-        let stopSelector = NSSelectorFromString("stop")
-        guard lottieView.responds(to: NSSelectorFromString("animationProgress")),
-              lottieView.responds(to: stopSelector) else { return }
         let progress = (lottieView.value(forKey: "animationProgress") as? NSNumber)?.doubleValue ?? 0
         guard progress > 0 else { return }
-        _ = lottieView.perform(stopSelector)
+        _ = lottieView.perform(NSSelectorFromString("stop"))
     }
 
     // MARK: - Platter controls
 
     @objc func tfy_platterSelectedControl() -> UIControl? {
-        guard tfy_tabBarController?.tabBar is UITabBar else { return nil }
-        return tfy_tabBarController?.tabBar.tfy_selectedContentControl(fromContentControl: self) ?? self
+        let tabBar = tfy_tabBarController?.tabBar ?? tfy_enclosingTabBar()
+        guard let tabBar else { return nil }
+        return tabBar.tfy_selectedContentControl(fromContentControl: self) ?? self
     }
 
     @objc func tfy_isPlatterSelectedControl() -> Bool {
@@ -510,4 +480,26 @@ public extension UIControl {
         tfy_tabBadgePointView.isHidden = !showTabBadgePoint
         tfy_tabBadgeView()?.isHidden = showTabBadgePoint
     }
+}
+
+private extension UIControl {
+    func tfy_makeObjCLottieView(url: URL, size: CGSize) -> UIView? {
+        guard let view = tfy_objcAllocInit("LOTAnimationView", selector: "initWithContentsOfURL:", argument: url) as? UIView else {
+            return nil
+        }
+        view.frame = CGRect(origin: .zero, size: size)
+        return view
+    }
+
+    func tfy_makeCompatibleLottieView(filePath: String, size: CGSize) -> UIView? {
+        TFYSwiftMakeCompatibleLottieView?(filePath, size)
+    }
+}
+
+private func tfy_objcAllocInit(_ className: String, selector: String, argument: Any) -> AnyObject? {
+    guard let cls = NSClassFromString(className) else { return nil }
+    guard let allocated = (cls as AnyObject).perform(NSSelectorFromString("alloc"))?.takeUnretainedValue() else {
+        return nil
+    }
+    return (allocated as AnyObject).perform(NSSelectorFromString(selector), with: argument)?.takeRetainedValue()
 }

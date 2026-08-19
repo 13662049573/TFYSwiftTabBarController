@@ -9,36 +9,86 @@ import ObjectiveC
 import UIKit
 
 private extension UIControl {
+    /// Image/lottie host. Nil when the host is this control — forwarding would recurse.
     var tfy_actualBadgeHost: UIView? {
-        tfy_getActualBadgeSuperView() as? UIView
+        let host = tfy_getActualBadgeSuperView() as? UIView
+        return host === self ? nil : host
     }
 }
 
 public extension UIControl {
 
     @objc override var tfy_badge: UIView? {
-        get { tfy_actualBadgeHost?.tfy_badge }
-        set { tfy_actualBadgeHost?.tfy_badge = newValue }
+        get {
+            if let host = tfy_actualBadgeHost { return host.tfy_badge }
+            return objc_getAssociatedObject(self, &TFYSwiftAssociatedKeys.badge) as? UIView
+        }
+        set {
+            if let host = tfy_actualBadgeHost {
+                host.tfy_badge = newValue
+            } else {
+                objc_setAssociatedObject(self, &TFYSwiftAssociatedKeys.badge, newValue, .OBJC_ASSOCIATION_RETAIN)
+            }
+        }
     }
 
     @objc override var tfy_badgeFont: UIFont? {
-        get { tfy_actualBadgeHost?.tfy_badgeFont }
-        set { tfy_actualBadgeHost?.tfy_badgeFont = newValue }
+        get {
+            if let host = tfy_actualBadgeHost { return host.tfy_badgeFont }
+            return (objc_getAssociatedObject(self, &TFYSwiftAssociatedKeys.badgeFont) as? UIFont) ?? TFYSwiftBadgeDefaultFont
+        }
+        set {
+            if let host = tfy_actualBadgeHost {
+                host.tfy_badgeFont = newValue
+            } else {
+                objc_setAssociatedObject(self, &TFYSwiftAssociatedKeys.badgeFont, newValue, .OBJC_ASSOCIATION_RETAIN)
+            }
+        }
     }
 
     @objc override var tfy_badgeBackgroundColor: UIColor? {
-        get { tfy_actualBadgeHost?.tfy_badgeBackgroundColor }
-        set { tfy_actualBadgeHost?.tfy_badgeBackgroundColor = newValue }
+        get {
+            if let host = tfy_actualBadgeHost { return host.tfy_badgeBackgroundColor }
+            return objc_getAssociatedObject(self, &TFYSwiftAssociatedKeys.badgeBackgroundColor) as? UIColor
+        }
+        set {
+            if let host = tfy_actualBadgeHost {
+                host.tfy_badgeBackgroundColor = newValue
+            } else {
+                objc_setAssociatedObject(self, &TFYSwiftAssociatedKeys.badgeBackgroundColor, newValue, .OBJC_ASSOCIATION_RETAIN)
+            }
+        }
     }
 
     @objc override var tfy_badgeTextColor: UIColor? {
-        get { tfy_actualBadgeHost?.tfy_badgeTextColor }
-        set { tfy_actualBadgeHost?.tfy_badgeTextColor = newValue }
+        get {
+            if let host = tfy_actualBadgeHost { return host.tfy_badgeTextColor }
+            return objc_getAssociatedObject(self, &TFYSwiftAssociatedKeys.badgeTextColor) as? UIColor
+        }
+        set {
+            if let host = tfy_actualBadgeHost {
+                host.tfy_badgeTextColor = newValue
+            } else {
+                objc_setAssociatedObject(self, &TFYSwiftAssociatedKeys.badgeTextColor, newValue, .OBJC_ASSOCIATION_RETAIN)
+            }
+        }
     }
 
     @objc override var tfy_badgeAnimationType: TFYSwiftBadgeAnimationType {
-        get { tfy_actualBadgeHost?.tfy_badgeAnimationType ?? .none }
-        set { tfy_actualBadgeHost?.tfy_badgeAnimationType = newValue }
+        get {
+            if let host = tfy_actualBadgeHost { return host.tfy_badgeAnimationType }
+            if let number = objc_getAssociatedObject(self, &TFYSwiftAssociatedKeys.badgeAnimationType) as? NSNumber {
+                return TFYSwiftBadgeAnimationType(rawValue: number.uintValue) ?? .none
+            }
+            return .none
+        }
+        set {
+            if let host = tfy_actualBadgeHost {
+                host.tfy_badgeAnimationType = newValue
+            } else {
+                objc_setAssociatedObject(self, &TFYSwiftAssociatedKeys.badgeAnimationType, NSNumber(value: newValue.rawValue), .OBJC_ASSOCIATION_RETAIN)
+            }
+        }
     }
 
     @objc override var tfy_badgeAnimationTypeValue: NSNumber? {
@@ -116,61 +166,92 @@ public extension UIControl {
     }
 
     @objc override func tfy_showBadge() {
-        tfy_actualBadgeHost?.tfy_showBadgeValue("", animationType: .none)
+        tfy_showBadgeValue("", animationType: .none)
     }
 
     @objc override func tfy_showBadgeValue(_ value: String?, animationType: TFYSwiftBadgeAnimationType) {
-        tfy_actualBadgeHost?.tfy_showBadgeValue(value, animationType: animationType)
+        let boxed = NSNumber(value: animationType.rawValue)
+        if let host = tfy_actualBadgeHost {
+            host.tfy_showBadgeValue(value, animationTypeValue: boxed)
+        } else {
+            tfy_showBadgeValue(value, animationTypeValue: boxed)
+        }
     }
 
     @objc override func tfy_clearBadge() {
-        tfy_actualBadgeHost?.tfy_clearBadge()
+        if let host = tfy_actualBadgeHost {
+            host.tfy_clearBadge()
+            return
+        }
+        tfy_badge?.tfy_setHidden(true)
     }
 
     @objc override func tfy_resumeBadge() {
-        tfy_actualBadgeHost?.tfy_resumeBadge()
+        if let host = tfy_actualBadgeHost {
+            host.tfy_resumeBadge()
+            return
+        }
+        if let badge = tfy_badge, badge.tfy_isHidden {
+            badge.tfy_setHidden(false)
+        }
     }
 
     @objc override func tfy_isShowBadge() -> Bool {
-        tfy_actualBadgeHost?.tfy_isShowBadge() ?? false
+        if let host = tfy_actualBadgeHost { return host.tfy_isShowBadge() }
+        guard let badge = tfy_badge else { return false }
+        return !badge.tfy_isHidden
     }
 
     @objc override func tfy_isPauseBadge() -> Bool {
-        tfy_actualBadgeHost?.tfy_isPauseBadge() ?? false
+        if let host = tfy_actualBadgeHost { return host.tfy_isPauseBadge() }
+        guard let badge = tfy_badge else { return false }
+        return badge.tfy_isHidden
     }
 
     @objc override func tfy_getActualBadgeSuperView() -> Any? {
+        // `_UIButtonBarButton` is a nav-bar control. Tab-image KVC (`imageView`) throws.
+        if NSStringFromClass(type(of: self)) == "_UIButtonBarButton" {
+            let content = tfy_findBarButtonContentView()
+            return content === self ? nil : content
+        }
+
         let tabImageView = tfy_tabImageView()
         let lottieAnimationView = tfy_lottieAnimationView()
 
         var actualBadgeSuperView: UIView?
-        if let lottieAnimationView, !lottieAnimationView.tfy_isInvisiable() {
+        if let lottieAnimationView, lottieAnimationView.tfy_isValidBadgeAnchor() {
             actualBadgeSuperView = lottieAnimationView
-        } else if let tabImageView, !tabImageView.tfy_isInvisiable() {
+        } else if let tabImageView, tabImageView.tfy_isValidBadgeAnchor() {
             actualBadgeSuperView = tabImageView
         }
 
         if let actualBadgeSuperView {
-            actualBadgeSuperView.clipsToBounds = false
+            actualBadgeSuperView.tfy_unclipForBadge()
             actualBadgeSuperView.layoutIfNeeded()
+            return actualBadgeSuperView
         }
-        return actualBadgeSuperView
+        // iOS 26 `_UITabButton` icon is often a 1pt placeholder; pin the badge on the control.
+        tfy_unclipForBadge()
+        if tfy_usesLiquidGlassBadgePlacement(),
+           let selected = tfy_platterSelectedControl(),
+           selected !== self,
+           selected.tfy_isValidBadgeAnchor() {
+            return selected
+        }
+        return self
     }
 
     @objc override func tfy_isReady() -> Bool {
-        if !TFYSwiftConstants.isLiquidGlassActive() {
+        if !tfy_usesLiquidGlassBadgePlacement() {
             return true
         }
-        guard tfy_platterSelectedControl()?.tfy_tabImageView() != nil else { return false }
-        let isTabImageViewReady = (tfy_tabImageView()?.frame.size.width ?? 0) > 10 || (tfy_tabLabel()?.frame.size.width ?? 0) > 10
-        var isLottieReady = true
-        if tfy_tabBarController?.lottieURLs.count ?? 0 > 0 {
-            isLottieReady = tfy_isLottieReady()
-        }
-        return isTabImageViewReady && isLottieReady
+        if bounds.width > 10 { return true }
+        // `_UITabButton` / portal icon is often 1pt; still paint, then reparent onto the tab bar.
+        return superview != nil
     }
 
     @objc func tfy_getActualBadgeSuperViewFromControl(_ tabButton: UIControl) -> UIView? {
         tabButton.tfy_getActualBadgeSuperView() as? UIView
     }
 }
+

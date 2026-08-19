@@ -12,8 +12,18 @@ import UIKit
 
     private weak var platterView: UIView?
 
+    public override init(frame: CGRect) {
+        super.init(frame: frame)
+        super.isHidden = true
+    }
+
+    public required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        super.isHidden = true
+    }
+
     open override var isHidden: Bool {
-        get { super.isHidden }
+        get { true }
         set { super.isHidden = true }
     }
 

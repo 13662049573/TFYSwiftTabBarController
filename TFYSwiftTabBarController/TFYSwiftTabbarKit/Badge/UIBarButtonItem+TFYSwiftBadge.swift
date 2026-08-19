@@ -17,11 +17,8 @@ private extension UIBarButtonItem {
 public extension UIBarButtonItem {
 
     @objc func tfy_isReady() -> Bool {
-        let view = tfy_getActualBadgeSuperView() as? UIView
-        if let view, view.frame.size.width > 10 {
-            return true
-        }
-        return (view?.tfy_findBarButtonContentView().frame.size.width ?? 0) > 10
+        guard let view = tfy_getActualBadgeSuperView() as? UIView else { return false }
+        return view.frame.size.width > 10
     }
 
     @objc func tfy_showBadge() {
@@ -71,9 +68,8 @@ public extension UIBarButtonItem {
     }
 
     @objc var tfy_view: UIView? {
-        let selector = NSSelectorFromString("view")
-        if responds(to: selector) {
-            return perform(selector)?.takeUnretainedValue() as? UIView
+        if responds(to: NSSelectorFromString("view")) {
+            return (self as NSObject).tfy_valueForKey("view") as? UIView
         }
         return nil
     }
