@@ -5,23 +5,17 @@ final class PlusButtonSubclass: TFYSwiftPlusButton, TFYSwiftPlusButtonSubclassin
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        if #available(iOS 15.0, *) {
-            configuration = nil
-        }
+        configuration = nil
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        if #available(iOS 15.0, *) {
-            configuration = nil
-        }
+        configuration = nil
     }
 
     static func plusButton() -> Any {
         let button = PlusButtonSubclass(type: .custom)
-        if #available(iOS 15.0, *) {
-            button.configuration = nil
-        }
+        button.configuration = nil
         button.setImage(contentImage(), for: .normal)
         button.setImage(selectedContentImage(), for: [.highlighted, .selected])
         button.setTitle("发布", for: .normal)

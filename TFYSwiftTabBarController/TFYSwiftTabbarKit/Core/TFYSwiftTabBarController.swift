@@ -743,11 +743,7 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
             if viewController !== TFYSwiftPlusChildViewController {
                 if tabBarItemsAttributes.count > idx {
                     let attrs = tabBarItemsAttributes[idx]
-                    if #available(iOS 13.0, *) {
-                        title = (attrs[TFYSwiftTabBarItemTitle] as? String) ?? ""
-                    } else {
-                        title = attrs[TFYSwiftTabBarItemTitle] as? String
-                    }
+                    title = (attrs[TFYSwiftTabBarItemTitle] as? String) ?? ""
                     normalImageInfo = attrs[TFYSwiftTabBarItemImage]
                     selectedImageInfo = attrs[TFYSwiftTabBarItemSelectedImage]
                     lottieURL = attrs[TFYSwiftTabBarLottieURL] as? URL
@@ -1272,7 +1268,7 @@ public typealias TFYSwiftViewDidLayoutSubViewsBlock = (TFYSwiftTabBarController)
     }
 
     private func fixTabBarTransparencyIfNeeded() {
-        guard tfy_systemVersionGreaterThanOrEqualTo("15.0"), !TFYSwiftConstants.isLiquidGlassActive() else { return }
+        guard !TFYSwiftConstants.isLiquidGlassActive() else { return }
         guard UITabBar.appearance().backgroundImage == nil else { return }
         if let bg = tfy_cylTabBar.tfy_tabBackgroundView()?.tfy_tabEffectView() {
             bg.alpha = 1

@@ -140,7 +140,7 @@ public typealias TFYSwiftTabBarDidLayoutSubViewsBlock = (TFYSwiftTabBar) -> Void
             setupTabImageViewDefaultOffset(first)
         }
 
-        if tfy_systemVersionGreaterThanOrEqualTo("15.0"), !TFYSwiftConstants.isLiquidGlassActive(), !isHidden {
+        if !TFYSwiftConstants.isLiquidGlassActive(), !isHidden {
             removeAlphaObserver()
             let backgroundView = tfy_tabBackgroundView()
             let shadowView = tfy_tabShadowImageView()?.subviews.first
@@ -441,7 +441,7 @@ public typealias TFYSwiftTabBarDidLayoutSubViewsBlock = (TFYSwiftTabBar) -> Void
             return
         }
         NotificationCenter.default.post(name: .TFYSwiftTabBarItemWidthDidChange, object: self)
-        if #available(iOS 11.0, *), tfy_isIPhoneX {
+        if tfy_isIPhoneX {
             layoutIfNeeded()
         }
     }
@@ -449,26 +449,24 @@ public typealias TFYSwiftTabBarDidLayoutSubViewsBlock = (TFYSwiftTabBar) -> Void
     // MARK: - Private
 
     private func presetUnselectedItemTintColor() {
-        if #available(iOS 13.0, *) {
-            guard unselectedItemTintColor == nil else { return }
-            var tabLabelTextColor = UIColor.tfy_systemGrayColor
-            for childView in tabBarButtonArray where !childView.isSelected {
-                if childView.tfy_tabEffectView() != nil, let label = childView.tfy_tabLabel() {
-                    tabLabelTextColor = label.textColor
-                }
+        guard unselectedItemTintColor == nil else { return }
+        var tabLabelTextColor = UIColor.tfy_systemGrayColor
+        for childView in tabBarButtonArray where !childView.isSelected {
+            if childView.tfy_tabEffectView() != nil, let label = childView.tfy_tabLabel() {
+                tabLabelTextColor = label.textColor
             }
-            if #available(iOS 26.0, *) {
-                for obj in tfy_tabBarSubviews() {
-                    for sub in obj.subviews where sub.tfy_isTabLabel() {
-                        if let label = sub as? UILabel, label.textColor != nil {
-                            tabLabelTextColor = label.textColor
-                            break
-                        }
+        }
+        if #available(iOS 26.0, *) {
+            for obj in tfy_tabBarSubviews() {
+                for sub in obj.subviews where sub.tfy_isTabLabel() {
+                    if let label = sub as? UILabel, label.textColor != nil {
+                        tabLabelTextColor = label.textColor
+                        break
                     }
                 }
             }
-            unselectedItemTintColor = tabLabelTextColor
         }
+        unselectedItemTintColor = tabLabelTextColor
     }
 
     private func setupTabImageViewDefaultOffset(_ tabBarButton: UIView) {
@@ -491,7 +489,7 @@ public typealias TFYSwiftTabBarDidLayoutSubViewsBlock = (TFYSwiftTabBar) -> Void
     }
 
     private func removeAlphaObserver() {
-        guard tfy_systemVersionGreaterThanOrEqualTo("15.0"), !TFYSwiftConstants.isLiquidGlassActive() else { return }
+        guard !TFYSwiftConstants.isLiquidGlassActive() else { return }
         for case let view as UIView in observedViews {
             view.tfy_removeObserver(self, forKeyPath: "alpha")
         }

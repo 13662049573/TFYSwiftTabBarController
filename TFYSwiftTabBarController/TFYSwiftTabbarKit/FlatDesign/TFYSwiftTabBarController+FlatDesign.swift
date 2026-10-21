@@ -327,11 +327,7 @@ extension TFYSwiftTabBarController {
 
         if viewController !== TFYSwiftPlusChildViewController, tabBarItemsAttributes.count > idx {
             let attrs = tabBarItemsAttributes[idx]
-            if #available(iOS 13.0, *) {
-                title = (attrs[TFYSwiftTabBarItemTitle] as? String) ?? ""
-            } else {
-                title = attrs[TFYSwiftTabBarItemTitle] as? String
-            }
+            title = (attrs[TFYSwiftTabBarItemTitle] as? String) ?? ""
             normalImageInfo = attrs[TFYSwiftTabBarItemImage]
             selectedImageInfo = attrs[TFYSwiftTabBarItemSelectedImage]
             lottieFilePath = attrs[TFYSwiftTabBarLottieFilePath] as? String

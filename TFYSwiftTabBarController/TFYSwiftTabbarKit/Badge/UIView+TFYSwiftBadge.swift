@@ -684,7 +684,6 @@ extension UIView: TFYSwiftBadgeProtocol {}
 
 public enum TFYSwiftBarButtonSwizzleToken {
     public static func installWillMoveToSuperviewSwizzleIfNeeded() {
-        guard #available(iOS 11.0, *) else { return }
         DispatchQueue.once(token: "tfy.UIButtonBarButton.willMoveToSuperview") {
             guard let barButtonClass = NSClassFromString("_UIButtonBarButton") else { return }
             let originalSelector = #selector(UIView.willMove(toSuperview:))

@@ -1,16 +1,16 @@
 Pod::Spec.new do |spec|
   spec.name         = "TFYSwiftTabbarKit"
-  spec.version      = "2.0.7"
+  spec.version      = "2.1.0"
   spec.summary      = "Swift TabBarController：中间 Plus、角标、扁平栏、Lottie、iOS 26 Liquid Glass。"
   spec.description  = <<-DESC
     CYLTabBarController 的 Swift 实现。支持中间 Plus 按钮、数字/红点角标、扁平自定义 TabBar、
-    Lottie Tab 动画，以及 iOS 26 Liquid Glass。最低 iOS 15、Swift 5。
+    Lottie Tab 动画，以及 iOS 26 Liquid Glass。最低 iOS 16、Swift 5。
   DESC
   spec.homepage     = "https://github.com/13662049573/TFYSwiftTabBarController"
   spec.license      = { :type => "MIT", :file => "LICENSE" }
   spec.author       = { "田风有" => "420144542@qq.com" }
-  spec.platform     = :ios, "15.0"
-  spec.ios.deployment_target = "15.0"
+  spec.platform     = :ios, "16.0"
+  spec.ios.deployment_target = "16.0"
   spec.swift_versions = ["5.0"]
   spec.module_name  = "TFYSwiftTabbarKit"
   spec.source       = { :git => "https://github.com/13662049573/TFYSwiftTabBarController.git", :tag => spec.version.to_s }
