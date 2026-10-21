@@ -46,14 +46,14 @@
 - iOS 16.0+
 - Swift 5.0+
 - Xcode 16.0+（含 iOS 26 SDK 才能编 Liquid Glass / `UIScrollEdgeElementContainerInteraction`）
-- 依赖 [lottie-ios](https://github.com/airbnb/lottie-ios) 4.0+
+- Lottie Tab 动画：SPM 会自动引入 [lottie-ios](https://github.com/airbnb/lottie-ios) 4.0+；CocoaPods 从 2.1.1 起不再依赖 lottie-ios（其 podspec 声明 iOS 13，Xcode 27 会报部署版本错误）
 
 ## 安装
 
 ### CocoaPods
 
 ```ruby
-pod 'TFYSwiftTabbarKit', '~> 2.1.0'
+pod 'TFYSwiftTabbarKit', '~> 2.1.1'
 ```
 
 ```bash
@@ -70,7 +70,7 @@ Xcode：File → Add Package Dependencies，填：
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/13662049573/TFYSwiftTabBarController.git", .upToNextMajor(from: "2.1.0"))
+    .package(url: "https://github.com/13662049573/TFYSwiftTabBarController.git", .upToNextMajor(from: "2.1.1"))
 ]
 ```
 
@@ -110,11 +110,13 @@ final class MainTabBarController: TFYSwiftTabBarController {
 }
 ```
 
-`AppDelegate` 里如果要用 Lottie Tab，先注册运行时工厂：
+`AppDelegate` 里如果要用 Lottie Tab，先注册运行时工厂（SPM 安装时可用）：
 
 ```swift
 TFYSwiftCompatibleLOTAnimation.loadRuntime()
 ```
+
+CocoaPods 安装时（2.1.1+ 不再带 Lottie，桥接文件不会编进 Pod）：Lottie Tab 会退回普通图片。需要动画的话，在 App 的 Podfile 里自行加 `pod 'lottie-ios'`，把本仓库的 `TFYSwiftTabBarController/TFYSwiftTabbarKit/Lottie/TFYSwiftCompatibleLottie.swift` 复制进 App target，并在文件头加上 `import TFYSwiftTabbarKit`，然后同样调用 `TFYSwiftCompatibleLOTAnimation.loadRuntime()`。
 
 启动时把 `MainTabBarController` 设成窗口根控制器（或包一层导航）。
 

@@ -1,10 +1,11 @@
 Pod::Spec.new do |spec|
   spec.name         = "TFYSwiftTabbarKit"
-  spec.version      = "2.1.0"
+  spec.version      = "2.1.1"
   spec.summary      = "Swift TabBarController：中间 Plus、角标、扁平栏、Lottie、iOS 26 Liquid Glass。"
   spec.description  = <<-DESC
     CYLTabBarController 的 Swift 实现。支持中间 Plus 按钮、数字/红点角标、扁平自定义 TabBar、
-    Lottie Tab 动画，以及 iOS 26 Liquid Glass。最低 iOS 16、Swift 5。
+    Lottie Tab 动画（SPM 自带 Lottie；CocoaPods 不再依赖 lottie-ios，可自行引入 Lottie 并接入桥接文件），
+    以及 iOS 26 Liquid Glass。最低 iOS 16、Swift 5。
   DESC
   spec.homepage     = "https://github.com/13662049573/TFYSwiftTabBarController"
   spec.license      = { :type => "MIT", :file => "LICENSE" }
@@ -21,7 +22,6 @@ Pod::Spec.new do |spec|
   spec.public_header_files = "TFYSwiftTabBarController/TFYSwiftTabbarKit/include/*.h"
   spec.requires_arc = true
   spec.frameworks   = "UIKit", "Foundation", "QuartzCore"
-  spec.dependency "lottie-ios", ">= 4.0"
   spec.pod_target_xcconfig = {
     "SWIFT_VERSION" => "5.0",
     "DEFINES_MODULE" => "YES",

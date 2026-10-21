@@ -7,6 +7,9 @@
  */
 
 
+// CocoaPods (2.1.1+) no longer depends on lottie-ios; this bridge only compiles when Lottie is
+// available (e.g. SPM, or a target that links Lottie). Without it, Lottie tabs degrade to static images.
+#if canImport(Lottie)
 import Foundation
 import Lottie
 import UIKit
@@ -434,3 +437,5 @@ public final class TFYSwiftCompatibleLOTAnimationView: UIView {
         animationView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
     }
 }
+
+#endif // canImport(Lottie)
