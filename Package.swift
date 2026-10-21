@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "TFYSwiftTabbarKit",
     platforms: [
-        .iOS(.v15),
+        .iOS(.v16),
     ],
     products: [
         .library(name: "TFYSwiftTabbarKit", targets: ["TFYSwiftTabbarKit"]),
