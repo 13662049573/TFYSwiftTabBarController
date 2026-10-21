@@ -125,27 +125,21 @@ public extension NSObject {
             _ = appDelegate.application?(UIApplication.shared, supportedInterfaceOrientationsFor: tfy_getRootWindow())
         }
 
-        if #available(iOS 16.0, *) {
-            guard let windowScene = tfy_getWindowScene() else { return }
-            var topVC = windowScene.keyWindow?.rootViewController
-            while let presented = topVC?.presentedViewController {
-                topVC = presented
-            }
-            guard let topVC else { return }
-
-            var targetMask = tfy_mask(from: orientation)
-            let supportedMask = topVC.supportedInterfaceOrientations
-            if supportedMask.intersection(targetMask).isEmpty {
-                targetMask = supportedMask
-            }
-            topVC.setNeedsUpdateOfSupportedInterfaceOrientations()
-            let preferences = UIWindowScene.GeometryPreferences.iOS(interfaceOrientations: targetMask)
-            windowScene.requestGeometryUpdate(preferences) { _ in }
-        } else if UIDevice.current.responds(to: NSSelectorFromString("setOrientation:")) {
-            UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
-            UIViewController.attemptRotationToDeviceOrientation()
-            UIDevice.current.setValue(orientation.rawValue, forKey: "orientation")
+        guard let windowScene = tfy_getWindowScene() else { return }
+        var topVC = windowScene.keyWindow?.rootViewController
+        while let presented = topVC?.presentedViewController {
+            topVC = presented
         }
+        guard let topVC else { return }
+
+        var targetMask = tfy_mask(from: orientation)
+        let supportedMask = topVC.supportedInterfaceOrientations
+        if supportedMask.intersection(targetMask).isEmpty {
+            targetMask = supportedMask
+        }
+        topVC.setNeedsUpdateOfSupportedInterfaceOrientations()
+        let preferences = UIWindowScene.GeometryPreferences.iOS(interfaceOrientations: targetMask)
+        windowScene.requestGeometryUpdate(preferences) { _ in }
     }
 
     @objc(tfy_valueForKey:)

@@ -66,10 +66,7 @@ extension UIColor {
     // MARK: - Private
 
     private static func tfy_systemColor(_ selector: TFYSystemColorSelector, fallback: UIColor) -> UIColor {
-        if #available(iOS 13.0, *) {
-            return selector.color()
-        }
-        return fallback
+        selector.color()
     }
 
     private enum TFYSystemColorSelector {

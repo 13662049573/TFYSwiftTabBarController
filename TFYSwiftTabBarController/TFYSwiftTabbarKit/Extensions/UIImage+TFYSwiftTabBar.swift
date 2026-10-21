@@ -79,22 +79,17 @@ extension UIImage {
         lightImage: UIImage?,
         darkImage: UIImage?
     ) -> UIImage? {
-        var isDark = false
-        if #available(iOS 13.0, *) {
-            let trait = owner?.traitCollection
-                ?? tfy_getWindowScene()?.traitCollection
-                ?? UITraitCollection.current
-            isDark = trait.userInterfaceStyle == .dark
-        }
+        let trait = owner?.traitCollection
+            ?? tfy_getWindowScene()?.traitCollection
+            ?? UITraitCollection.current
+        let isDark = trait.userInterfaceStyle == .dark
         return isDark ? darkImage : lightImage
     }
 
     static func tfy_assetImageName(_ assetImageName: String, userInterfaceStyle: UIUserInterfaceStyle) -> UIImage? {
         guard var image = UIImage(named: assetImageName) else { return nil }
-        if #available(iOS 13.0, *) {
-            let trait = UITraitCollection(userInterfaceStyle: userInterfaceStyle)
-            image = image.imageAsset?.image(with: trait) ?? image
-        }
+        let trait = UITraitCollection(userInterfaceStyle: userInterfaceStyle)
+        image = image.imageAsset?.image(with: trait) ?? image
         return image
     }
 

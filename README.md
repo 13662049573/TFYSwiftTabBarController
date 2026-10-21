@@ -21,7 +21,7 @@
         <img src="https://img.shields.io/badge/Swift-5.0+-orange.svg?style=flat-square" alt="Swift 5.0+"/>
     </a>
     <a href="https://developer.apple.com/ios/">
-        <img src="https://img.shields.io/badge/iOS-15.0+-blue.svg?style=flat-square" alt="iOS 15.0+"/>
+        <img src="https://img.shields.io/badge/iOS-16.0+-blue.svg?style=flat-square" alt="iOS 16.0+"/>
     </a>
     <a href="https://github.com/13662049573/TFYSwiftTabBarController/stargazers">
         <img src="https://img.shields.io/github/stars/13662049573/TFYSwiftTabBarController.svg?style=flat-square" alt="Stars"/>
@@ -43,7 +43,7 @@
 
 ## 系统要求
 
-- iOS 15.0+
+- iOS 16.0+
 - Swift 5.0+
 - Xcode 16.0+（含 iOS 26 SDK 才能编 Liquid Glass / `UIScrollEdgeElementContainerInteraction`）
 - 依赖 [lottie-ios](https://github.com/airbnb/lottie-ios) 4.0+
@@ -53,7 +53,7 @@
 ### CocoaPods
 
 ```ruby
-pod 'TFYSwiftTabbarKit', '~> 2.0.7'
+pod 'TFYSwiftTabbarKit', '~> 2.1.0'
 ```
 
 ```bash
@@ -70,7 +70,7 @@ Xcode：File → Add Package Dependencies，填：
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/13662049573/TFYSwiftTabBarController.git", .upToNextMajor(from: "2.0.7"))
+    .package(url: "https://github.com/13662049573/TFYSwiftTabBarController.git", .upToNextMajor(from: "2.1.0"))
 ]
 ```
 

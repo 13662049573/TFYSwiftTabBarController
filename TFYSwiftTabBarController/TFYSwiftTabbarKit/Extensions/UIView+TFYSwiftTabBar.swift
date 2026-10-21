@@ -287,15 +287,9 @@ public extension UIView {
     }
 
     @objc func tfy_tabShadowImageView() -> UIImageView? {
-        if #available(iOS 10.0, *) {
-            guard let subview = tfy_tabBackgroundView() else { return nil }
-            for child in subview.subviews where child.bounds.height <= 1.0 {
-                return child as? UIImageView
-            }
-        } else {
-            for subview in subviews where subview.bounds.height <= 1.0 {
-                return subview as? UIImageView
-            }
+        guard let subview = tfy_tabBackgroundView() else { return nil }
+        for child in subview.subviews where child.bounds.height <= 1.0 {
+            return child as? UIImageView
         }
         return nil
     }

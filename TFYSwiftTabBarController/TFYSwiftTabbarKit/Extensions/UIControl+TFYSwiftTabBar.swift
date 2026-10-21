@@ -288,7 +288,7 @@ public extension UIControl {
                     x: xAnchor.center.x + offset.horizontal,
                     y: anchorView.center.y + offset.vertical
                 )
-            } else if #available(iOS 9.0, *) {
+            } else {
                 NSLayoutConstraint.activate([
                     newView.centerXAnchor.constraint(equalTo: (swappableImageView ?? anchorView).centerXAnchor, constant: offset.horizontal),
                     newView.centerYAnchor.constraint(equalTo: anchorView.centerYAnchor, constant: offset.vertical),

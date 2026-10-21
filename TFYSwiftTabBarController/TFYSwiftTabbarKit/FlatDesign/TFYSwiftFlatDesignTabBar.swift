@@ -360,9 +360,7 @@ import UIKit
               let plus = TFYSwiftExternPlusButton,
               Int(TFYSwiftPlusButtonIndex) < buttons.count else { return }
         plus.layer.contentsGravity = .center
-        if #available(iOS 13.0, *) {
-            plus.layer.contentsScale = tfy_getRootWindow()?.windowScene?.screen.scale ?? UIScreen.main.scale
-        }
+        plus.layer.contentsScale = tfy_getRootWindow()?.windowScene?.screen.scale ?? UIScreen.main.scale
         plusButton = plus
         plus.tfy_setTabBarController(tabBarController as? TFYSwiftTabBarController)
         plus.isUserInteractionEnabled = true
